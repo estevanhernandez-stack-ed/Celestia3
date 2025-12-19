@@ -1,0 +1,7 @@
+{
+  "name": "Celestial Flyby: 3D Natal Chart Experience",
+  "description": "An immersive 3D visualization of your astrological natal chart. Enter your birth details to generate a cosmic map and experience a guided flyby through the planetary alignments that shaped your journey, powered by Gemini 3 Pro.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
