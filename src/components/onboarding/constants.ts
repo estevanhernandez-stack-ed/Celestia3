@@ -5,17 +5,17 @@ export const ZODIAC_SIGNS = [
 
 export const CONSTELLATION_RADIUS = 150;
 
-export const PLANET_CONFIGS: Record<string, { color: string; size: number; baseDistance: number }> = {
-  "Sun": { color: "#FFD700", size: 3.0, baseDistance: 0 },
-  "Moon": { color: "#F5F5F5", size: 1.2, baseDistance: 12 },
-  "Mercury": { color: "#A9A9A9", size: 1.0, baseDistance: 18 },
-  "Venus": { color: "#E9967A", size: 1.5, baseDistance: 28 },
-  "Mars": { color: "#FF4500", size: 1.3, baseDistance: 38 },
-  "Jupiter": { color: "#DAA520", size: 2.5, baseDistance: 54 },
-  "Saturn": { color: "#F4A460", size: 2.2, baseDistance: 70 },
-  "Uranus": { color: "#AFEEEE", size: 1.8, baseDistance: 85 },
-  "Neptune": { color: "#4169E1", size: 1.8, baseDistance: 98 },
-  "Pluto": { color: "#DCDCDC", size: 0.8, baseDistance: 110 },
+export const PLANET_CONFIGS: Record<string, { color: string; size: number; baseDistance: number; type: 'star' | 'rocky' | 'gas'; ring?: boolean }> = {
+  "Sun": { color: "#FFD700", size: 3.5, baseDistance: 0, type: 'star' },
+  "Moon": { color: "#F5F5F5", size: 1.0, baseDistance: 12, type: 'rocky' },
+  "Mercury": { color: "#A9A9A9", size: 1.0, baseDistance: 18, type: 'rocky' },
+  "Venus": { color: "#E9967A", size: 1.5, baseDistance: 28, type: 'rocky' },
+  "Mars": { color: "#FF4500", size: 1.3, baseDistance: 38, type: 'rocky' },
+  "Jupiter": { color: "#DAA520", size: 2.8, baseDistance: 54, type: 'gas' },
+  "Saturn": { color: "#F4A460", size: 2.5, baseDistance: 70, type: 'gas', ring: true },
+  "Uranus": { color: "#AFEEEE", size: 2.0, baseDistance: 85, type: 'gas' },
+  "Neptune": { color: "#4169E1", size: 2.0, baseDistance: 98, type: 'gas' },
+  "Pluto": { color: "#DCDCDC", size: 0.8, baseDistance: 110, type: 'rocky' },
 };
 
 export const HOUSE_COLORS = [

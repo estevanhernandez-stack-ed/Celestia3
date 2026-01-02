@@ -4,15 +4,21 @@ import { useState, useRef, useEffect } from "react";
 import { ChatService, ChatMessage } from "@/lib/ChatService";
 import { RitualLib } from "@/utils/CelestialLogic";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Zap, Settings2, Brain, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { Send, Zap, Settings2, Brain, Sparkles, Volume2 } from "lucide-react";
 import { useSettings } from "@/context/SettingsContext";
 import { useAuth } from "@/context/AuthContext";
 import { PersistenceService } from "@/lib/PersistenceService";
 import CosmicCalibration from "./CosmicCalibration";
 import RitualVision from "./RitualVision";
 import { voiceService } from "@/lib/VoiceService";
+import { ResonanceService } from "@/lib/ResonanceService";
 
-export default function ChatInterface() {
+interface ChatInterfaceProps {
+  initialPrompt?: string | null;
+  onPromptHandled?: () => void;
+}
+
+export default function ChatInterface({ initialPrompt, onPromptHandled }: ChatInterfaceProps) {
   const { user } = useAuth();
   const { preferences, updatePreferences } = useSettings();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -32,6 +38,17 @@ export default function ChatInterface() {
     }
   }, [user]);
 
+  // Handle Initial Prompt
+  useEffect(() => {
+    if (initialPrompt && !isLoading) {
+      setInput(initialPrompt);
+      // Optional: Auto-send could be done here, but pre-filling is safer UX
+      // handleSend(); 
+      // For now, let's just pre-fill.
+      if (onPromptHandled) onPromptHandled();
+    }
+  }, [initialPrompt]);
+
   // Sync Pronunciations
   useEffect(() => {
     const map: Record<string, string> = {};
@@ -48,6 +65,9 @@ export default function ChatInterface() {
   }, [messages]);
 
   const handleSend = async () => {
+    // Interrupt any ongoing speech when user sends a new message
+    voiceService.stop();
+    
     if (!input.trim() || isLoading || !user) return;
 
     const userMsg: ChatMessage = { 
@@ -92,16 +112,19 @@ export default function ChatInterface() {
       setMessages((prev) => [...prev, aiMsg]);
       
       // Speak the response
-      voiceService.speak(content, {
+      ResonanceService.duck();
+      await voiceService.speak(content, {
         voiceId: preferences.voiceId,
         rate: preferences.voiceSpeed,
         pitch: preferences.voicePitch
       });
+      ResonanceService.unduck();
 
       if (result.thought_signature) {
         setActiveThought(result.thought_signature);
       }
     } catch (error) {
+      ResonanceService.unduck(); // Ensure volume restores on error
       const errorMsg: ChatMessage = { 
         id: "err-" + Date.now(),
         role: "system", 
@@ -121,6 +144,9 @@ export default function ChatInterface() {
       <RitualVision 
         isOpen={isVisionOpen} 
         thought={activeThought} 
+        sigilSvg={null}
+        incantation={null}
+        context={null}
         onClose={() => setIsVisionOpen(false)} 
       />
 
@@ -179,13 +205,15 @@ export default function ChatInterface() {
                 {m.role === 'model' && (
                   <div className="mt-3 pt-3 border-t border-emerald-900/30 flex items-center justify-between">
                     <button 
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
-                        voiceService.speak(m.content, {
+                        ResonanceService.duck();
+                        await voiceService.speak(m.content, {
                           voiceId: preferences.voiceId,
                           rate: preferences.voiceSpeed,
                           pitch: preferences.voicePitch
                         });
+                        ResonanceService.unduck();
                       }}
                       className="flex items-center gap-2 group/voice"
                     >

@@ -2,6 +2,9 @@ export interface OnboardingBirthInfo {
   date: string;
   time: string;
   location: string;
+  fullName?: string;
+  magicName?: string;
+  pronouns?: string;
   lat?: number;
   lng?: number;
 }

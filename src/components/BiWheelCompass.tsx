@@ -9,8 +9,10 @@ import {
 import { NatalChartData, PlanetPosition } from '@/types/astrology';
 
 interface BiWheelCompassProps {
-  natalChart: NatalChartData;
-  transitChart: NatalChartData;
+  innerChart: NatalChartData;
+  outerChart: NatalChartData;
+  innerLabel?: string;
+  outerLabel?: string;
 }
 
 type PlanetIconMap = Record<string, React.ComponentType<{ size?: number; className?: string }>>;
@@ -40,30 +42,35 @@ interface ChartNode extends PlanetPosition {
   angle: number;
 }
 
-const BiWheelCompass: React.FC<BiWheelCompassProps> = ({ natalChart, transitChart }) => {
-  const [hoveredPlanet, setHoveredPlanet] = useState<{ name: string; type: 'natal' | 'transit' } | null>(null);
+const BiWheelCompass: React.FC<BiWheelCompassProps> = ({ 
+  innerChart, 
+  outerChart, 
+  innerLabel = "Natal",
+  outerLabel = "Transit"
+}) => {
+  const [hoveredPlanet, setHoveredPlanet] = useState<{ name: string; type: 'inner' | 'outer' } | null>(null);
 
   const radius = 200;
   const cx = 250;
   const cy = 250;
 
   const rotationOffset = useMemo(() => {
-    if (!natalChart.ascendant) return 0;
-    return 180 - natalChart.ascendant.absoluteDegree;
-  }, [natalChart]);
+    if (!innerChart.ascendant) return 0;
+    return 180 - innerChart.ascendant.absoluteDegree;
+  }, [innerChart]);
 
-  const natalNodes = useMemo<ChartNode[]>(() => {
-    return natalChart.planets.map((p) => {
+  const innerNodes = useMemo<ChartNode[]>(() => {
+    return innerChart.planets.map((p) => {
       const angleInDegrees = (p.absoluteDegree + rotationOffset) % 360;
       const angle = angleInDegrees * (Math.PI / 180);
       const x = cx + Math.cos(angle) * (radius - 60);
       const y = cy - Math.sin(angle) * (radius - 60); // Inverted Y
       return { ...p, x, y, angle };
     });
-  }, [natalChart, rotationOffset]);
+  }, [innerChart, rotationOffset]);
 
-  const transitNodes = useMemo<ChartNode[]>(() => {
-    return transitChart.planets.map((p) => {
+  const outerNodes = useMemo<ChartNode[]>(() => {
+    return outerChart.planets.map((p) => {
       const angleInDegrees = (p.absoluteDegree + rotationOffset) % 360;
       const angle = angleInDegrees * (Math.PI / 180);
       // Transits are on an outer ring
@@ -71,14 +78,14 @@ const BiWheelCompass: React.FC<BiWheelCompassProps> = ({ natalChart, transitChar
       const y = cy - Math.sin(angle) * (radius - 15); // Inverted Y
       return { ...p, x, y, angle };
     });
-  }, [transitChart, rotationOffset]);
+  }, [outerChart, rotationOffset]);
 
   const aspects = useMemo(() => {
     const results: Array<{ p1: ChartNode, p2: ChartNode, type: string, color: string, opacity: number }> = [];
     
-    // For Bi-Wheel, we usually focus on Transit-to-Natal aspects
-    transitNodes.forEach(tp => {
-      natalNodes.forEach(np => {
+    // For Bi-Wheel, we usually focus on Outer-to-Inner aspects
+    outerNodes.forEach(tp => {
+      innerNodes.forEach(np => {
         const diff = Math.abs(tp.absoluteDegree - np.absoluteDegree);
         const shortestDiff = Math.min(diff, 360 - diff);
 
@@ -100,7 +107,7 @@ const BiWheelCompass: React.FC<BiWheelCompassProps> = ({ natalChart, transitChar
     });
 
     return results;
-  }, [transitNodes, natalNodes]);
+  }, [outerNodes, innerNodes]);
 
   return (
     <div className="relative w-full max-w-2xl mx-auto">
@@ -151,7 +158,7 @@ const BiWheelCompass: React.FC<BiWheelCompassProps> = ({ natalChart, transitChar
           );
         })}
 
-        {/* Transit-to-Natal Aspects */}
+        {/* Outer-to-Inner Aspects */}
         <g strokeWidth="1.2">
           {aspects.map((asp, i) => (
             <motion.line 
@@ -168,11 +175,11 @@ const BiWheelCompass: React.FC<BiWheelCompassProps> = ({ natalChart, transitChar
           ))}
         </g>
 
-        {/* Natal Planets (Inner) */}
-        {natalNodes.map((p) => {
+        {/* Inner Chart Planets (Inner) */}
+        {innerNodes.map((p) => {
           const Icon = PLANET_ICONS[p.name] || Circle;
           return (
-            <g key={`natal-${p.name}`}>
+            <g key={`inner-${p.name}`}>
               <circle cx={p.x} cy={p.y} r="8" fill="#064e3b" fillOpacity="0.4" stroke="#059669" strokeWidth="0.5" />
               <foreignObject x={p.x - 4} y={p.y - 4} width="8" height="8">
                 <div className="flex items-center justify-center w-full h-full">
@@ -182,20 +189,20 @@ const BiWheelCompass: React.FC<BiWheelCompassProps> = ({ natalChart, transitChar
               <circle 
                 cx={p.x} cy={p.y} r="12" fill="transparent" 
                 className="cursor-pointer"
-                onMouseEnter={() => setHoveredPlanet({ name: p.name, type: 'natal' })}
+                onMouseEnter={() => setHoveredPlanet({ name: p.name, type: 'inner' })}
                 onMouseLeave={() => setHoveredPlanet(null)}
               />
             </g>
           );
         })}
 
-        {/* Transit Planets (Outer) */}
-        {transitNodes.map((p) => {
+        {/* Outer Chart Planets (Outer) */}
+        {outerNodes.map((p) => {
           const Icon = PLANET_ICONS[p.name] || Circle;
-          const isHovered = hoveredPlanet?.name === p.name && hoveredPlanet?.type === 'transit';
+          const isHovered = hoveredPlanet?.name === p.name && hoveredPlanet?.type === 'outer';
           return (
             <motion.g 
-              key={`transit-${p.name}`}
+              key={`outer-${p.name}`}
               animate={{ scale: isHovered ? 1.2 : 1 }}
             >
               <circle cx={p.x} cy={p.y} r="10" fill="#1e3a8a" fillOpacity="0.6" stroke="#3b82f6" strokeWidth="1" />
@@ -207,7 +214,7 @@ const BiWheelCompass: React.FC<BiWheelCompassProps> = ({ natalChart, transitChar
               <circle 
                 cx={p.x} cy={p.y} r="15" fill="transparent" 
                 className="cursor-pointer"
-                onMouseEnter={() => setHoveredPlanet({ name: p.name, type: 'transit' })}
+                onMouseEnter={() => setHoveredPlanet({ name: p.name, type: 'outer' })}
                 onMouseLeave={() => setHoveredPlanet(null)}
               />
             </motion.g>
@@ -225,17 +232,17 @@ const BiWheelCompass: React.FC<BiWheelCompassProps> = ({ natalChart, transitChar
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             className={`absolute top-0 right-0 p-4 rounded-xl border backdrop-blur-md ${
-              hoveredPlanet.type === 'natal' 
+              hoveredPlanet.type === 'inner' 
                 ? 'bg-emerald-950/80 border-emerald-500/30 text-emerald-400' 
                 : 'bg-blue-950/80 border-blue-500/30 text-blue-400'
             }`}
           >
             <div className="text-[10px] font-black uppercase tracking-widest opacity-50 mb-1">
-              {hoveredPlanet.type === 'natal' ? 'Natal Position' : 'Current Transit'}
+              {hoveredPlanet.type === 'inner' ? innerLabel : outerLabel}
             </div>
             <div className="text-sm font-bold">{hoveredPlanet.name}</div>
             <div className="text-xs">
-              {(hoveredPlanet.type === 'natal' ? natalChart : transitChart).planets.find(p => p.name === hoveredPlanet.name)?.degree.toFixed(2)}° {(hoveredPlanet.type === 'natal' ? natalChart : transitChart).planets.find(p => p.name === hoveredPlanet.name)?.sign}
+              {(hoveredPlanet.type === 'inner' ? innerChart : outerChart).planets.find(p => p.name === hoveredPlanet.name)?.degree.toFixed(2)}° {(hoveredPlanet.type === 'inner' ? innerChart : outerChart).planets.find(p => p.name === hoveredPlanet.name)?.sign}
             </div>
           </motion.div>
         )}

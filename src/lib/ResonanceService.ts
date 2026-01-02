@@ -20,68 +20,151 @@ export const PLANETARY_FREQUENCIES: Record<string, number> = {
 
 class ArtificiallyResonantService {
   private audioContext: AudioContext | null = null;
-  private currentOscillator: OscillatorNode | null = null;
-  private currentGain: GainNode | null = null;
+  private activeDrone: {
+    oscillators: OscillatorNode[];
+    gain: GainNode;
+    planet: string;
+  } | null = null;
+
+  private masterGain: GainNode | null = null;
+  private isMuted: boolean = false;
 
   private init() {
     if (!this.audioContext) {
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      this.audioContext = new AudioContextClass();
+      this.masterGain = this.audioContext.createGain();
+      this.masterGain.connect(this.audioContext.destination);
+      this.masterGain.gain.value = 0.4; // Default volume
     }
+  }
+
+  public setVolume(val: number) {
+    if (this.masterGain) {
+        this.masterGain.gain.setTargetAtTime(val, this.audioContext!.currentTime, 0.1);
+    }
+  }
+
+  public duck() {
+      if (this.masterGain && this.audioContext) {
+          const current = this.masterGain.gain.value;
+          this.masterGain.gain.cancelScheduledValues(this.audioContext.currentTime);
+          this.masterGain.gain.linearRampToValueAtTime(current * 0.3, this.audioContext.currentTime + 0.5);
+      }
+  }
+
+  public unduck(originalVolume: number = 0.4) {
+      if (this.masterGain && this.audioContext) {
+          this.masterGain.gain.cancelScheduledValues(this.audioContext.currentTime);
+          this.masterGain.gain.linearRampToValueAtTime(originalVolume, this.audioContext.currentTime + 1);
+      }
+  }
+
+  public toggleMute(mute: boolean) {
+      this.isMuted = mute;
+      if (this.audioContext) {
+          if (mute) {
+              this.audioContext.suspend();
+          } else {
+              this.audioContext.resume();
+          }
+      }
   }
 
   public playTone(planet: string, duration: number = 2000) {
     this.init();
-    if (!this.audioContext) return;
+    if (!this.audioContext || !this.masterGain || this.isMuted) return;
 
     const frequency = PLANETARY_FREQUENCIES[planet];
     if (!frequency) return;
 
-    // Stop current tone if playing
-    this.stop();
-
     const osc = this.audioContext.createOscillator();
     const gain = this.audioContext.createGain();
 
-    osc.type = "sine"; // Pure resonance
+    osc.type = "sine";
     osc.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
 
-    // Smooth envelope
+    // Envelope
     gain.gain.setValueAtTime(0, this.audioContext.currentTime);
-    gain.gain.linearRampToValueAtTime(0.2, this.audioContext.currentTime + 0.1); // Short fade in
-    gain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + (duration / 1000)); // Long fade out
+    gain.gain.linearRampToValueAtTime(0.3, this.audioContext.currentTime + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + (duration / 1000));
 
     osc.connect(gain);
-    gain.connect(this.audioContext.destination);
+    gain.connect(this.masterGain);
 
     osc.start();
     osc.stop(this.audioContext.currentTime + (duration / 1000));
-
-    this.currentOscillator = osc;
-    this.currentGain = gain;
   }
 
-  public stop() {
-    if (this.currentOscillator) {
-      try {
-        this.currentOscillator.stop();
-        this.currentOscillator.disconnect();
-      } catch (e) {
-        // Already stopped
+  public startDrone(planet: string) {
+    this.init();
+    if (!this.audioContext || !this.masterGain) return;
+
+    // specific check to avoid restarting same drone
+    if (this.activeDrone?.planet === planet) return;
+
+    // Crossfade: Stop existing
+    this.stopDrone();
+
+    const frequency = PLANETARY_FREQUENCIES[planet];
+    if (!frequency) return;
+
+    const now = this.audioContext.currentTime;
+    const droneGain = this.audioContext.createGain();
+    droneGain.gain.setValueAtTime(0, now);
+    droneGain.gain.linearRampToValueAtTime(0.2, now + 2); // Slow fade in
+
+    // Complex Drone: Root + Fifth + Octave below
+    const osc1 = this.audioContext.createOscillator();
+    osc1.type = 'triangle'; // Warmer than sine
+    osc1.frequency.value = frequency;
+
+    const osc2 = this.audioContext.createOscillator();
+    osc2.type = 'sine';
+    osc2.frequency.value = frequency * 1.5; // Perfect Fifth
+
+    const osc3 = this.audioContext.createOscillator();
+    osc3.type = 'sine';
+    osc3.frequency.value = frequency / 2; // Sub-octave
+
+    // Slight detune for "shimmer"
+    osc1.detune.value = 2; 
+    osc2.detune.value = -3;
+
+    [osc1, osc2, osc3].forEach(osc => {
+        osc.connect(droneGain);
+        osc.start();
+    });
+
+    droneGain.connect(this.masterGain);
+
+    this.activeDrone = {
+        oscillators: [osc1, osc2, osc3],
+        gain: droneGain,
+        planet
+    };
+  }
+
+  public stopDrone() {
+      if (this.activeDrone && this.audioContext) {
+          const { gain, oscillators } = this.activeDrone;
+          const now = this.audioContext.currentTime;
+          
+          // Fade out
+          gain.gain.cancelScheduledValues(now);
+          gain.gain.setValueAtTime(gain.gain.value, now);
+          gain.gain.linearRampToValueAtTime(0, now + 2);
+
+          // Stop oscillators after fade
+          oscillators.forEach(osc => osc.stop(now + 2.1));
+          
+          this.activeDrone = null;
       }
-      this.currentOscillator = null;
-    }
-    if (this.currentGain) {
-      this.currentGain.disconnect();
-      this.currentGain = null;
-    }
   }
 
-  /**
-   * Generates a "Binary Star" chord (major/minor triad based on energy)
-   */
   public playAethericChord(planets: string[]) {
     planets.forEach((p, i) => {
-      setTimeout(() => this.playTone(p, 3000), i * 50);
+      setTimeout(() => this.playTone(p, 3000), i * 150);
     });
   }
 }

@@ -1,37 +1,158 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Rocket, ChevronLeft, ChevronRight, Target, Sparkles, Wand2, Volume2, VolumeX } from 'lucide-react';
+import { Rocket, ChevronLeft, ChevronRight, Target, Sparkles, Wand2, Volume2, VolumeX, Compass } from 'lucide-react';
 import CelestialScene from './CelestialScene';
 import { OnboardingService } from '@/lib/OnboardingService';
+import { GeocodingService } from '@/lib/GeocodingService';
 import { OnboardingBirthInfo, OnboardingChartData } from '@/types/onboarding';
 import { useSettings } from '@/context/SettingsContext';
 import { voiceService } from '@/lib/VoiceService';
+import { ResonanceService } from '@/lib/ResonanceService';
 
-const OnboardingExperience: React.FC = () => {
+interface OnboardingExperienceProps {
+  initialStep?: 'input' | 'loading' | 'flyby';
+  onComplete?: () => void;
+}
+
+const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep = 'input', onComplete }) => {
   const { preferences, updatePreferences } = useSettings();
-  const [step, setStep] = useState<'input' | 'loading' | 'flyby'>('input');
+  const [step, setStep] = useState<'input' | 'loading' | 'flyby'>(() => {
+    // Always start in loading if initial step is flyby, to wait for hydration and chart generation
+    if (initialStep === 'flyby') return 'loading';
+    return initialStep;
+  });
   const [birthInfo, setBirthInfo] = useState<OnboardingBirthInfo>({
     date: '1995-05-15',
     time: '12:00',
-    location: 'New York, USA',
+    location: '',
+    fullName: '',
+    magicName: '',
+    pronouns: '',
     lat: 40.7128,
     lng: -74.0060
   });
+
   const [chartData, setChartData] = useState<OnboardingChartData | null>(null);
   const [selectedPlanet, setSelectedPlanet] = useState<string | null>(null);
   const [flybyIndex, setFlybyIndex] = useState(-1);
   const [isFlybyRunning, setIsFlybyRunning] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isSceneReady, setIsSceneReady] = useState(false);
+  const [viewMode, setViewMode] = useState<'orbit' | 'flyby'>('orbit');
+
+  // Typing timer for geocoding debounce
+  const [isSearching, setIsSearching] = useState(false);
+  const [coordinatesLocked, setCoordinatesLocked] = useState(false);
+
+  // Auto-geocode when location changes
+  React.useEffect(() => {
+    // Don't search for short queries
+    if (!birthInfo.location || birthInfo.location.length < 3) {
+        setIsSearching(false);
+        setCoordinatesLocked(false);
+        return;
+    }
+    
+    setIsSearching(true);
+    setCoordinatesLocked(false);
+    
+    const timer = setTimeout(async () => {
+      const results = await GeocodingService.searchCity(birthInfo.location);
+      if (results && results.length > 0) {
+        setBirthInfo(prev => ({
+          ...prev,
+          lat: results[0].lat,
+          lng: results[0].lng
+        }));
+        setCoordinatesLocked(true);
+      }
+      setIsSearching(false);
+    }, 1000); // 1-second debounce
+
+    return () => clearTimeout(timer);
+  }, [birthInfo.location]);
+
+  // Hydrate and Auto-Start if Replaying
+  useEffect(() => {
+    if (initialStep === 'flyby' && preferences.birthDate && preferences.birthLocation) {
+        const d = new Date(preferences.birthDate);
+        // Convert UTC stored date back to "Local ISO-like" string for form population
+        const localTime = new Date(d.getTime() - (d.getTimezoneOffset() * 60000));
+        const localISO = localTime.toISOString();
+
+        const info: OnboardingBirthInfo = {
+            date: localISO.split('T')[0],
+            time: localISO.split('T')[1].slice(0, 5),
+            location: preferences.birthLocation.city || "Unknown",
+            fullName: preferences.fullName || "",
+            magicName: preferences.name || "Traveler",
+            pronouns: preferences.pronouns || "They/Them",
+            lat: preferences.birthLocation.lat,
+            lng: preferences.birthLocation.lng
+        };
+        setBirthInfo(info);
+        
+        // Auto-generate
+        OnboardingService.generateChart(info)
+            .then(data => {
+                setChartData(data);
+                setStep('flyby');
+                setViewMode('flyby'); // Set view mode to flyby
+                // Auto-start flyby
+                setIsFlybyRunning(true);
+                setFlybyIndex(0);
+                if (data.planets.length > 0) {
+                    setSelectedPlanet(data.planets[0].name);
+                }
+            })
+            .catch(err => {
+                console.error("Flyby Replay Error:", err);
+                setStep('input'); // Fallback to input on error
+            });
+    }
+  }, [initialStep, preferences]);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Force geocoding if location is entered but lat/lng are defaults or search is pending
+    let currentLat = birthInfo.lat;
+    let currentLng = birthInfo.lng;
+
+    if (birthInfo.location && birthInfo.location.length > 3) {
+        if (birthInfo.lat === 40.7128 && birthInfo.lng === -74.0060) {
+             setStep('loading'); // Show loading immediately
+             try {
+                const results = await GeocodingService.searchCity(birthInfo.location);
+                if (results && results.length > 0) {
+                    currentLat = results[0].lat;
+                    currentLng = results[0].lng;
+                    setBirthInfo(prev => ({
+                        ...prev,
+                        lat: currentLat,
+                        lng: currentLng
+                    }));
+                }
+             } catch (err) {
+                 console.warn("Geocoding failed during submit", err);
+             }
+        }
+    }
+
     setStep('loading');
     try {
-      const data = await OnboardingService.generateChart(birthInfo);
+      const data = await OnboardingService.generateChart({
+          ...birthInfo,
+          lat: currentLat, // Use fresh values
+          lng: currentLng
+      });
       setChartData(data);
       setStep('flyby');
+      setViewMode('flyby');
+      // If we just generated, we might want to auto-start or wait? 
+      // For now, let's keep it manual unless specified otherwise, but setting viewMode to flyby prepares it.
     } catch (err) {
       console.error(err);
       alert("The stars are obscured. Please try again.");
@@ -43,20 +164,29 @@ const OnboardingExperience: React.FC = () => {
     if (!chartData) return;
     setIsFlybyRunning(true);
     setFlybyIndex(0);
+    setViewMode('flyby');
     setSelectedPlanet(chartData.planets[0].name);
   };
 
   const finishOnboarding = useCallback(() => {
+    if (onComplete) {
+        onComplete();
+        return;
+    }
+
     updatePreferences({
-      birthDate: new Date(`${birthInfo.date}T${birthInfo.time}:00Z`).toISOString(),
+      birthDate: new Date(`${birthInfo.date}T${birthInfo.time}:00`).toISOString(),
       birthLocation: {
         city: birthInfo.location,
         lat: birthInfo.lat || 0,
         lng: birthInfo.lng || 0
       },
+      fullName: birthInfo.fullName,
+      name: birthInfo.magicName || "Traveler",
+      pronouns: birthInfo.pronouns || "They/Them",
       hasCompletedOnboarding: true
     });
-  }, [birthInfo, updatePreferences]);
+  }, [birthInfo, updatePreferences, onComplete]);
 
   const nextFlyby = useCallback(() => {
     if (!chartData) return;
@@ -84,20 +214,23 @@ const OnboardingExperience: React.FC = () => {
     if (isSpeaking) {
       voiceService.stop();
       setIsSpeaking(false);
+      ResonanceService.unduck();
       return;
     }
     
     setIsSpeaking(true);
+    ResonanceService.duck();
     await voiceService.speak(text, {
       voiceId: preferences.voiceId,
       rate: preferences.voiceSpeed,
       pitch: preferences.voicePitch
     });
+    ResonanceService.unduck();
     setIsSpeaking(false);
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black overflow-hidden font-mono text-emerald-400">
+    <div className="fixed inset-0 z-100 bg-black overflow-hidden font-mono text-emerald-400">
       {/* 3D Scene */}
       <div className="absolute inset-0 z-0 text-white">
         <CelestialScene 
@@ -110,9 +243,24 @@ const OnboardingExperience: React.FC = () => {
                setFlybyIndex(idx);
             }
           }}
-          flybyActive={isFlybyRunning || selectedPlanet !== null}
+          flybyActive={viewMode === 'flyby' && (isFlybyRunning || selectedPlanet !== null)}
+          onReady={() => setIsSceneReady(true)}
         />
       </div>
+
+      {(!isSceneReady && step === 'flyby') && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-3xl font-mono">
+             <div className="relative">
+                <div className="w-24 h-24 border-t-2 border-emerald-500 rounded-full animate-spin"></div>
+                <div className="absolute inset-0 border-b-2 border-emerald-900 rounded-full animate-spin-reverse opacity-50"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <Sparkles className="animate-pulse text-emerald-400" size={32} />
+                </div>
+              </div>
+              <p className="mt-8 text-emerald-400 animate-pulse text-xs font-bold tracking-[0.5em] uppercase">Initializing Holodeck...</p>
+              <p className="text-emerald-700 text-[10px] tracking-widest mt-2 uppercase">Calibrating Planetary Sensors</p>
+        </div>
+      )}
 
       {/* UI Overlays */}
       <div className="relative z-10 p-8 flex flex-col h-full pointer-events-none">
@@ -145,6 +293,36 @@ const OnboardingExperience: React.FC = () => {
                 
                 <div className="space-y-4">
                   <div className="space-y-1">
+                    <label className="text-[10px] text-emerald-700 uppercase tracking-widest pl-1">Magic Name (Avatar)</label>
+                    <input 
+                      type="text" 
+                      placeholder="Your Chosen Identity"
+                      className="w-full bg-emerald-950/20 border border-emerald-900/50 rounded-xl px-4 py-3 text-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-inner"
+                      value={birthInfo.magicName || ''}
+                      onChange={(e) => setBirthInfo({...birthInfo, magicName: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-emerald-700 uppercase tracking-widest pl-1">Pronouns</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. They/Them"
+                      className="w-full bg-emerald-950/20 border border-emerald-900/50 rounded-xl px-4 py-3 text-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-inner"
+                      value={birthInfo.pronouns || ''}
+                      onChange={(e) => setBirthInfo({...birthInfo, pronouns: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-emerald-700 uppercase tracking-widest pl-1">Full Birth Name</label>
+                    <input 
+                      type="text" 
+                      placeholder="Required for Numerology"
+                      className="w-full bg-emerald-950/20 border border-emerald-900/50 rounded-xl px-4 py-3 text-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-inner"
+                      value={birthInfo.fullName || ''}
+                      onChange={(e) => setBirthInfo({...birthInfo, fullName: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-1">
                     <label className="text-[10px] text-emerald-700 uppercase tracking-widest pl-1">Arrival Date</label>
                     <input 
                       type="date" 
@@ -162,15 +340,46 @@ const OnboardingExperience: React.FC = () => {
                       onChange={(e) => setBirthInfo({...birthInfo, time: e.target.value})}
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] text-emerald-700 uppercase tracking-widest pl-1">Earthly Coordinates</label>
-                    <input 
-                      type="text" 
-                      placeholder="City, Country"
-                      className="w-full bg-emerald-950/20 border border-emerald-900/50 rounded-xl px-4 py-3 text-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-inner"
-                      value={birthInfo.location}
-                      onChange={(e) => setBirthInfo({...birthInfo, location: e.target.value})}
-                    />
+                  <div className="space-y-1 relative">
+                    <label className="text-[10px] text-emerald-700 uppercase tracking-widest pl-1">Birthplace (City, Country)</label>
+                    <div className="relative">
+                        <input 
+                        type="text" 
+                        placeholder="e.g. Paris, France"
+                        className="w-full bg-emerald-950/20 border border-emerald-900/50 rounded-xl px-4 py-3 text-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-inner"
+                        value={birthInfo.location}
+                        onChange={(e) => setBirthInfo({...birthInfo, location: e.target.value})}
+                        />
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500/50 pointer-events-none">
+                            {isSearching ? (
+                                <Sparkles className="animate-spin" size={16} />
+                            ) : coordinatesLocked ? (
+                                <Target size={16} className="text-emerald-500" />
+                            ) : null}
+                        </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-emerald-700 uppercase tracking-widest pl-1">Latitude</label>
+                      <input 
+                        type="number" 
+                        step="any"
+                        className="w-full bg-emerald-950/20 border border-emerald-900/50 rounded-xl px-4 py-3 text-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-inner [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none"
+                        value={birthInfo.lat}
+                        onChange={(e) => setBirthInfo({...birthInfo, lat: parseFloat(e.target.value)})}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-emerald-700 uppercase tracking-widest pl-1">Longitude</label>
+                      <input 
+                        type="number" 
+                        step="any"
+                        className="w-full bg-emerald-950/20 border border-emerald-900/50 rounded-xl px-4 py-3 text-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-inner [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none"
+                        value={birthInfo.lng}
+                        onChange={(e) => setBirthInfo({...birthInfo, lng: parseFloat(e.target.value)})}
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -288,16 +497,25 @@ const OnboardingExperience: React.FC = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={startFlyby}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-black px-12 py-5 rounded-2xl font-black shadow-[0_0_40px_rgba(16,185,129,0.2)] transition-all flex items-center gap-4 group"
+                    className="bg-emerald-600 hover:bg-emerald-500 text-black px-8 py-5 rounded-2xl font-black shadow-[0_0_40px_rgba(16,185,129,0.2)] transition-all flex items-center gap-4 group"
                   >
                     <Rocket size={24} className="group-hover:-translate-y-1 transition-transform" />
                     Begin Celestial Flyby
                   </motion.button>
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setViewMode(viewMode === 'orbit' ? 'flyby' : 'orbit')}
+                    className="bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 px-8 py-5 rounded-2xl font-bold hover:bg-emerald-900/40 transition-all flex items-center gap-3"
+                  >
+                    <Compass size={24} />
+                    {viewMode === 'orbit' ? 'Orbit View' : 'Free Camera'}
+                  </motion.button>
                   <button 
                     onClick={() => {setChartData(null); setStep('input'); setSelectedPlanet(null);}}
-                    className="bg-black/40 backdrop-blur-md border border-emerald-900 text-emerald-500 px-10 py-5 rounded-2xl font-bold hover:bg-emerald-950/30 transition-all"
+                    className="bg-black/40 backdrop-blur-md border border-emerald-900 text-emerald-700 px-6 py-5 rounded-2xl font-bold hover:bg-emerald-950/30 transition-all"
                   >
-                    Recalibrate Input
+                    Reset
                   </button>
                 </div>
               )}

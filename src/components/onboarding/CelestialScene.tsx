@@ -14,6 +14,7 @@ interface SceneProps {
   selectedPlanet: string | null;
   onSelectPlanet: (name: string) => void;
   flybyActive: boolean;
+  onReady?: () => void;
 }
 
 const CameraRig: React.FC<{ targetPlanet: string | null; data: OnboardingChartData | null; flybyActive: boolean }> = ({ 
@@ -25,7 +26,7 @@ const CameraRig: React.FC<{ targetPlanet: string | null; data: OnboardingChartDa
   const targetPos = useRef(new THREE.Vector3(100, 50, 100));
   const lookAtPos = useRef(new THREE.Vector3(0, 0, 0));
 
-  useFrame((_state) => {
+  useFrame((state) => {
     if (flybyActive && targetPlanet && data) {
       const planet = data.planets.find(p => p.name === targetPlanet);
       if (planet) {
@@ -48,12 +49,23 @@ const CameraRig: React.FC<{ targetPlanet: string | null; data: OnboardingChartDa
         lookAtPos.current.set(lookX, -15, lookZ); // PUSH PLANET HIGHER to clear UI
       }
     } else if (!flybyActive && !targetPlanet) {
-      targetPos.current.set(100, 60, 100);
+      // Gentle drift when idle
+      const time = state.clock.getElapsedTime();
+      targetPos.current.set(
+        100 + Math.sin(time * 0.1) * 20, 
+        60 + Math.cos(time * 0.1) * 10, 
+        100 + Math.sin(time * 0.05) * 20
+      );
       lookAtPos.current.set(0, 0, 0);
     }
 
-    camera.position.lerp(targetPos.current, 0.04);
+    // CINEMATIC SMOOTHING: Faster lerp for snappier acquisition
+    camera.position.lerp(targetPos.current, 0.05);
     
+    // Smooth lookAt using a temporary dummy object would be better, but direct lookAt is okay if position is smooth
+    // For now, we lerp quaternion for ultra smooth rotation but that's complex to setup here quickly.
+    // Instead we just keep the lookAt simple or perform a manual lerp of focus point?
+    // Let's just update lookAt. With slower position lerp, it should be fine.
     camera.lookAt(lookAtPos.current);
   });
 
@@ -64,33 +76,45 @@ const Nebula: React.FC = () => {
   return (
     <group>
       {/* Deep Purple Core */}
-      <Sparkles count={50} scale={200} size={20} speed={0.1} opacity={0.15} color="#4b0082" />
+      <Sparkles count={50} scale={200} size={20} speed={0} opacity={0.08} color="#4b0082" />
       {/* Indigo Wash */}
-      <Sparkles count={80} scale={300} size={40} speed={0.05} opacity={0.1} color="#1e1b4b" />
+      <Sparkles count={80} scale={300} size={40} speed={0} opacity={0.05} color="#1e1b4b" />
       {/* Distant Teal Glow */}
-      <Sparkles count={40} scale={400} size={50} speed={0.02} opacity={0.05} color="#134e4a" />
+      <Sparkles count={40} scale={400} size={50} speed={0} opacity={0.02} color="#134e4a" />
     </group>
   );
 };
 
-const CelestialScene: React.FC<SceneProps> = ({ data, selectedPlanet, onSelectPlanet, flybyActive }) => {
+const CelestialScene: React.FC<SceneProps> = ({ data, selectedPlanet, onSelectPlanet, flybyActive, onReady }) => {
   return (
-    <Canvas shadows dpr={[1, 2]}>
+    <Canvas 
+      shadows 
+      dpr={[1, 2]}
+      onCreated={() => {
+        // Short delay to ensure shaders are compiled and first frame is ready
+        setTimeout(() => {
+            if (onReady) onReady();
+        }, 200);
+      }}
+    >
       <PerspectiveCamera makeDefault position={[120, 80, 120]} fov={45} />
       <CameraRig targetPlanet={selectedPlanet} data={data} flybyActive={flybyActive} />
       
       {!flybyActive && <OrbitControls enablePan={true} maxDistance={400} minDistance={10} />}
       
-      <ambientLight intensity={0.1} />
-      <pointLight position={[0, 0, 0]} intensity={5.0} color="#FFCC33" />
-      <spotLight position={[50, 100, 50]} angle={0.25} penumbra={1} intensity={2} castShadow color="#10b981" />
+      <ambientLight intensity={0.05} />
+      <pointLight position={[0, 0, 0]} intensity={4.0} color="#FFD700" distance={200} decay={2} />
+      <spotLight position={[50, 100, 50]} angle={0.3} penumbra={1} intensity={1.5} castShadow color="#10b981" />
       
-      {/* Background stars */}
-      <Stars radius={400} depth={50} count={10000} factor={4} saturation={0} fade speed={0.1} />
+      <color attach="background" args={['#000005']} />
+      <fog attach="fog" args={['#000005', 30, 450]} />
+
+      {/* Background stars - Static and calm */}
+      <Stars radius={450} depth={100} count={10000} factor={4} saturation={0} speed={0} />
       
-      {/* Nebula & Stardust */}
+      {/* Nebula & Stardust - Static dust */}
       <Nebula />
-      <Sparkles count={1000} scale={CONSTELLATION_RADIUS * 1.8} size={2} speed={0.2} opacity={0.3} color="#ffffff" />
+      <Sparkles count={800} scale={CONSTELLATION_RADIUS * 2} size={2} speed={0} opacity={0.2} color="#a5f3fc" />
 
       <group>
         <ZodiacWheel />
@@ -105,8 +129,10 @@ const CelestialScene: React.FC<SceneProps> = ({ data, selectedPlanet, onSelectPl
         ))}
       </group>
 
-      <Environment preset="night" />
-      <ContactShadows position={[0, -2, 0]} opacity={0.4} scale={20} blur={2.4} far={4.5} />
+      <React.Suspense fallback={null}>
+        <Environment preset="city" />
+      </React.Suspense>
+      <ContactShadows position={[0, -2, 0]} opacity={0.4} scale={40} blur={4} far={10} color="#047857" />
     </Canvas>
   );
 };

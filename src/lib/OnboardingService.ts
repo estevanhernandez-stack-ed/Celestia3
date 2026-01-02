@@ -5,6 +5,25 @@ import { PLANET_CONFIGS } from '@/components/onboarding/constants';
 
 export class OnboardingService {
   static async generateChart(info: OnboardingBirthInfo): Promise<OnboardingChartData> {
+    const cacheKey = `celestia_flyby_cache_${info.date}_${info.time}_${info.lat?.toFixed(4) || '0'}_${info.lng?.toFixed(4) || '0'}`;
+    
+    // Check Cache
+    if (typeof window !== 'undefined') {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+            try {
+                const data = JSON.parse(cached);
+                if (data && Array.isArray(data.planets) && data.planets.length > 0) {
+                    console.log("Loading Chart from Cache");
+                    return data;
+                }
+                localStorage.removeItem(cacheKey);
+            } catch {
+                localStorage.removeItem(cacheKey);
+            }
+        }
+    }
+
     // 1. Get Precision Astronomical Data
     const birthDate = new Date(`${info.date}T${info.time}:00Z`); // Assuming UTC or local handled in UI
     const precisionChart = await SwissEphemerisService.calculateChart(
@@ -49,17 +68,24 @@ export class OnboardingService {
       sign: p.sign,
       degree: p.degree,
       house: p.house || 1,
-      interpretation: esotericData.interpretations[p.name] || "The celestial gears turn in silence.",
+      interpretation: esotericData.interpretations[p.name] || "The celestial gears turn in silence, yet their influence is felt across the ages. This body's song is faint but profound.",
       color: PLANET_CONFIGS[p.name]?.color || "#FFFFFF",
       size: PLANET_CONFIGS[p.name]?.size || 0.5,
       distance: PLANET_CONFIGS[p.name]?.baseDistance || 0,
       retrograde: p.retrograde
     }));
 
-    return {
+    const finalData = {
       planets,
       ascendant: `${precisionChart.ascendant?.sign} ${precisionChart.ascendant?.degree.toFixed(2)}°`,
       summary: esotericData.summary
     };
+
+    // Save to Cache
+    if (typeof window !== 'undefined') {
+        localStorage.setItem(cacheKey, JSON.stringify(finalData));
+    }
+
+    return finalData;
   }
 }

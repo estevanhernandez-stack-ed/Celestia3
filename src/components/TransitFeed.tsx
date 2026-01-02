@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Sun, Moon, Zap, Heart, Flame, Crown, 
@@ -8,9 +8,10 @@ import {
   Clock, MapPin, Activity
 } from 'lucide-react';
 import { SwissEphemerisService } from '@/lib/SwissEphemerisService';
-import { NatalChartData } from '@/types/astrology';
+import { NatalChartData, Aspect } from '@/types/astrology';
 import { useSettings } from '@/context/SettingsContext';
 import BiWheelCompass from './BiWheelCompass';
+import { AspectEngine } from '@/utils/AspectEngine';
 
 type PlanetIconMap = Record<string, React.ComponentType<{ size?: number; className?: string }>>;
 
@@ -33,6 +34,7 @@ const TransitFeed: React.FC = () => {
   const [transits, setTransits] = useState<NatalChartData | null>(null);
   const [natalChart, setNatalChart] = useState<NatalChartData | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [activeAspects, setActiveAspects] = useState<Aspect[]>([]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000); // Pulse every minute
@@ -49,6 +51,10 @@ const TransitFeed: React.FC = () => {
         const transitData = await SwissEphemerisService.calculateChart(currentTime, lat, lng);
         setTransits(transitData);
 
+        // Detect Aspects within Transit Chart (Mundane)
+        const mundaneAspects = AspectEngine.calculateAspects(transitData.planets);
+        setActiveAspects(mundaneAspects.filter(a => a.orb <= 2)); // Only show tight aspects
+
         // Calculate Natal Chart (Birth Time)
         if (preferences.birthDate && preferences.birthLocation) {
           const birthDate = new Date(preferences.birthDate);
@@ -58,6 +64,11 @@ const TransitFeed: React.FC = () => {
             preferences.birthLocation.lng
           );
           setNatalChart(natalData);
+          
+          // Detect Transits to Natal (Personal)
+          const personalAspects = AspectEngine.calculateAspects(transitData.planets, natalData.planets, true);
+          // Prioritize personal aspects
+          setActiveAspects(prev => [...personalAspects.filter(a => a.orb <= 1.5), ...prev].slice(0, 10)); 
         }
       } catch (e) {
         console.error("Celestial calculation failed", e);
@@ -98,7 +109,7 @@ const TransitFeed: React.FC = () => {
             <span className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-500/60 block mb-1">Celestial Synthesis</span>
             <h3 className="text-lg font-bold text-white tracking-tighter uppercase">Transit-to-Natal Map</h3>
           </div>
-          <BiWheelCompass natalChart={natalChart} transitChart={transits} />
+          <BiWheelCompass innerChart={natalChart} outerChart={transits} outerLabel="Current Transit" />
           <div className="absolute bottom-6 right-6 text-right max-w-xs">
             <p className="text-[8px] text-blue-800 uppercase tracking-widest leading-relaxed">
               Dashed lines indicate active aspects between current planetary positions and your natal geometry.
@@ -142,13 +153,17 @@ const TransitFeed: React.FC = () => {
           <Activity size={12} /> Recent Ingress Events
         </h3>
         <div className="space-y-4 relative z-10">
-          {[
-            { body: 'Mercury', event: 'Entered Capricorn', time: '2.4 Hours Ago' },
-            { body: 'Moon', event: 'Square Saturn', time: '14 Minutes Ago' }
-          ].map((log, i) => (
+          {activeAspects.length === 0 && (
+             <p className="text-blue-500/50 text-xs italic text-center">No major aspects detected in current timeline.</p>
+          )}
+          {activeAspects.map((aspect, i) => (
             <div key={i} className="flex items-center justify-between text-xs border-b border-blue-900/10 pb-4 last:border-0 last:pb-0">
-               <span className="text-white font-medium">{log.body} <span className="text-blue-500 font-light">{log.event}</span></span>
-               <span className="text-blue-900 uppercase font-black text-[9px] tracking-widest">{log.time}</span>
+               <span className="text-white font-medium">
+                  {aspect.planet1.name} <span className="text-blue-500 font-light">{aspect.type}</span> {aspect.planet2.name}
+               </span>
+               <span className="text-blue-900 uppercase font-black text-[9px] tracking-widest">
+                  {aspect.isSynastry ? 'PERSONAL' : 'GLOBAL'} • {aspect.orb.toFixed(2)}°
+               </span>
             </div>
           ))}
         </div>

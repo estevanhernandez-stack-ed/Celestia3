@@ -3,37 +3,141 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Compass, 
-  MessageSquare,  
-  Activity, Zap, Settings, ChevronLeft, ChevronRight,
   Sparkles,
-  Calendar
+  Compass, 
+  Users, 
+  Sun,
+  Moon, 
+  MessageSquare, 
+  Settings, 
+  ChevronRight, 
+  ChevronLeft,
+  Clock, 
+  Flame, 
+  Hash
 } from 'lucide-react';
 import NatalCompass from './NatalCompass';
 import ChatInterface from './ChatInterface';
 import TransitFeed from './TransitFeed';
+import RitualVision from './RitualVision';
+import NumerologyView from './NumerologyView';
 import { useSettings } from '@/context/SettingsContext';
+import { useAuth } from '@/context/AuthContext';
 import CosmicCalibration from './CosmicCalibration';
+import WelcomeModal from './WelcomeModal';
+import OnboardingExperience from './onboarding/OnboardingExperience';
+import NumerologyDetailModal from './NumerologyDetailModal';
 import { SwissEphemerisService } from '@/lib/SwissEphemerisService';
 import { NatalChartData } from '@/types/astrology';
 import { ARCHETYPES, DESTINY_THREADS, SIGN_RULERS } from '@/utils/astrologyUtils';
 import { PLANETARY_FREQUENCIES } from '@/lib/ResonanceService';
+import { TarotCard } from '@/lib/TarotConstants';
+import RitualControlPanel from './RitualControlPanel';
+import { RitualService, RitualResult } from '@/lib/RitualService';
+import FeatureDetailModal from './FeatureDetailModal';
+import CosmicInsightPanel from './CosmicInsightPanel';
+import SynastryView from './SynastryView';
+import TarotDeck from './TarotDeck';
+import TarotSpread from './TarotSpread';
+import GrimoireView from './GrimoireView';
+import AtmosphereController from './AtmosphereController';
+import { Book } from 'lucide-react';
+import { GrimoireService } from '@/lib/GrimoireService';
+import { NumerologyEngine } from '@/utils/NumerologyEngine';
+import { calculateMoonPhase, getNextMoonPhaseDate } from '@/utils/astrologyUtils';
+import { Zap } from 'lucide-react';
 
-type DashboardView = 'compass' | 'athanor' | 'rituals' | 'chronos';
-
-
+type DashboardView = 'compass' | 'synastry' | 'tarot' | 'athanor' | 'rituals' | 'chronos' | 'numerology' | 'grimoire';
 
 const DashboardShell: React.FC = () => {
   const [activeView, setActiveView] = useState<DashboardView>('compass');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isOracleOpen, setIsOracleOpen] = useState(false);
+
   const [isCalibrationOpen, setIsCalibrationOpen] = useState(false);
-  const { preferences } = useSettings();
+  const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
+  const { preferences, updatePreferences } = useSettings();
+  const { user } = useAuth();
   const [natalChart, setNatalChart] = useState<NatalChartData | null>(null);
+  const [ritualResult, setRitualResult] = useState<RitualResult | null>(null);
+  const [isPerformingRitual, setIsPerformingRitual] = useState(false);
+  
+  const [selectedFeature, setSelectedFeature] = useState<{ title: string; value: string; sub: string } | null>(null);
+  const [oraclePrompt, setOraclePrompt] = useState<string | null>(null);
+  const [isReplayingFlyby, setIsReplayingFlyby] = useState(false);
+  const [selectedNum, setSelectedNum] = useState<{number: number, type: 'Life Path' | 'Destiny' | 'Active' | 'Personal Day'} | null>(null);
+
+
+
+  // Check for Welcome
+  React.useEffect(() => {
+    if (!preferences.hasSeenWelcome && preferences.hasCompletedOnboarding) {
+        // Short delay for effect
+        setTimeout(() => setIsWelcomeOpen(true), 1500);
+    }
+  }, [preferences.hasSeenWelcome, preferences.hasCompletedOnboarding]);
+
+  // Handler for Rituals
+  const handlePerformRitual = async (intent: string, paradigm: string) => {
+    if (!user) return;
+    setIsPerformingRitual(true);
+    try {
+        const result = await RitualService.performRitual(user.uid, intent, paradigm);
+        setRitualResult(result);
+        
+        // Persist to Grimoire
+        if (user.uid) {
+            await GrimoireService.saveEntry(user.uid, {
+                userId: user.uid,
+                type: 'ritual',
+                title: `Ritual: ${paradigm}`,
+                content: {
+                    intent,
+                    paradigm,
+                    result: result.vision.thought
+                },
+                tags: ['ritual', paradigm.toLowerCase().replace(' ', '-')]
+            });
+        }
+    } catch (e) {
+        console.error("Ritual failed", e);
+    } finally {
+        setIsPerformingRitual(false);
+    }
+  };
+
+  // Handler for Tarot
+  const [tarotState, setTarotState] = useState<{ cards: TarotCard[], spreadId: string } | null>(null);
+
+  // Handler for Tarot
+  const handleTarotDraw = async (cards: TarotCard[], spreadId: string) => {
+     setTarotState({ cards, spreadId });
+     
+     // Persist to Grimoire
+     if (user?.uid) {
+         await GrimoireService.saveEntry(user.uid, {
+             userId: user.uid,
+             type: 'tarot',
+             title: `Reading: ${spreadId}`,
+             content: {
+                 question: oraclePrompt || "General Guidance",
+                 spreadType: spreadId,
+                 cards: cards.map(c => ({
+                     name: c.name,
+                     position: "Spread Position", // Ideally mapped to spread definition
+                     orientation: 'upright' 
+                 })),
+                 interpretation: "Interpretation pending..." // AI integration would go here
+             },
+             tags: ['tarot', spreadId]
+         });
+     }
+  };
 
   // Calculate Natal Chart once for all dashboard components
   React.useEffect(() => {
     async function initChart() {
+      console.log("Shell: Starting Chart Calc for", preferences.birthDate);
       if (preferences.birthDate && preferences.birthLocation) {
         try {
           const data = await SwissEphemerisService.calculateChart(
@@ -41,274 +145,395 @@ const DashboardShell: React.FC = () => {
             preferences.birthLocation.lat,
             preferences.birthLocation.lng
           );
+          console.log("Shell: Chart Calc Success", data);
           setNatalChart(data);
         } catch (error) {
           console.error("Dashboard Chart Calibration Failed", error);
         }
+      } else {
+        console.log("Shell: Missing birth data");
       }
     }
     initChart();
   }, [preferences.birthDate, preferences.birthLocation]);
 
   const navItems = [
-    { id: 'compass', icon: Compass, label: 'Natal Compass', color: 'text-emerald-400' },
-    { id: 'chronos', icon: Activity, label: 'Chronos Feed', color: 'text-blue-400' },
-    { id: 'athanor', icon: MessageSquare, label: 'Athanor (Full)', color: 'text-pink-400' },
-    { id: 'rituals', icon: Zap, label: 'Ritual Array', color: 'text-amber-400' },
+    { id: 'compass', label: 'Natal Compass', icon: Compass, color: 'text-emerald-500' },
+    { id: 'synastry', label: 'Synastry', icon: Users, color: 'text-pink-500' },
+    { id: 'tarot', label: 'Tarot Oracle', icon: Sparkles, color: 'text-indigo-400' },
+    { id: 'numerology', label: 'Arithmancy', icon: Hash, color: 'text-purple-400' },
+    { id: 'chronos', label: 'Chronos', icon: Clock, color: 'text-amber-500' },
+    { id: 'rituals', label: 'Rituals', icon: Flame, color: 'text-red-500' },
+    { id: 'grimoire', label: 'Grimoire', icon: Book, color: 'text-emerald-300' },
+    { id: 'athanor', label: 'Athanor AI', icon: MessageSquare, color: 'text-blue-500' },
   ];
+
+  /* 
+    COMPONENTS ARE CURRENTLY DISABLED FOR DEBUGGING 
+    Restoring only the skeleton layout.
+  */
 
   return (
     <div className="flex h-screen bg-black text-emerald-400 font-mono overflow-hidden">
-      {/* Sidebar Navigation */}
-      <motion.aside 
-        initial={false}
-        animate={{ width: isSidebarCollapsed ? '80px' : '280px' }}
-        className="border-r border-emerald-900/30 bg-black/40 backdrop-blur-xl flex flex-col z-20"
+      {/* Sidebar */}
+      <div 
+        className={`${isSidebarCollapsed ? 'w-20' : 'w-64'} bg-black/80 backdrop-blur-xl border-r border-emerald-900/30 transition-all duration-300 flex flex-col z-20`}
       >
-        <div className="p-6 flex items-center justify-between border-b border-emerald-900/20">
-          {!isSidebarCollapsed && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex items-center gap-3"
-            >
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-                <Sparkles size={16} className="text-emerald-500" />
-              </div>
-              <span className="font-black tracking-tighter text-white uppercase">Celestia <span className="text-emerald-500 text-[8px] border border-emerald-500/20 px-1 rounded ml-1">v3</span></span>
-            </motion.div>
-          )}
-          <button 
-            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="p-2 hover:bg-emerald-500/10 rounded-lg transition-colors"
-          >
-            {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-          </button>
-        </div>
-
-        <nav className="flex-1 p-4 space-y-2 focus-visible:outline-none">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                setActiveView(item.id as DashboardView);
-                if (item.id === 'athanor') setIsOracleOpen(false);
-              }}
-              className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all group ${
-                activeView === item.id 
-                  ? 'bg-emerald-500/10 border border-emerald-500/20 text-white shadow-[0_0_20px_rgba(16,185,129,0.1)]' 
-                  : 'hover:bg-emerald-950/20 border border-transparent text-emerald-800'
-              }`}
-            >
-              <item.icon size={20} className={`${activeView === item.id ? item.color : 'opacity-40 group-hover:opacity-100 transition-opacity'}`} />
-              {!isSidebarCollapsed && (
-                <span className="text-xs font-bold uppercase tracking-widest leading-none mt-0.5">
-                  {item.label}
-                </span>
-              )}
-            </button>
-          ))}
-
-          {/* Persistent Oracle Toggle */}
-          {activeView !== 'athanor' && (
-            <button
-              onClick={() => setIsOracleOpen(!isOracleOpen)}
-              className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all mt-8 border ${
-                isOracleOpen 
-                  ? 'bg-pink-500/10 border-pink-500/20 text-pink-400' 
-                  : 'hover:bg-pink-900/10 border-transparent text-pink-900/40'
-              }`}
-            >
-              <MessageSquare size={20} />
-              {!isSidebarCollapsed && (
-                <span className="text-xs font-bold uppercase tracking-widest leading-none mt-0.5">
-                  Oracle Logic
-                </span>
-              )}
-            </button>
-          )}
-        </nav>
-
-        <div className="p-4 border-t border-emerald-900/20">
-          <button 
-            onClick={() => setIsCalibrationOpen(true)}
-            className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-emerald-950/20 transition-all text-emerald-800 group"
-          >
-            <Settings size={20} className="opacity-40 group-hover:opacity-100 group-hover:rotate-45 transition-all" />
+        <div className="p-4 border-b border-emerald-900/30 flex items-center justify-between">
             {!isSidebarCollapsed && (
-              <span className="text-xs font-bold uppercase tracking-widest leading-none mt-0.5">
-                Calibration
-              </span>
+                <div className="font-bold text-xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+                    CELESTIA
+                </div>
             )}
-          </button>
+            <button 
+                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                className="p-2 hover:bg-emerald-900/20 rounded-lg transition-colors"
+            >
+                {isSidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+            </button>
         </div>
-      </motion.aside>
+
+        <nav className="flex-1 overflow-y-auto p-4 space-y-2">
+            {navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                    <button
+                        key={item.id}
+                        onClick={() => setActiveView(item.id as DashboardView)}
+                        className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all group ${
+                            activeView === item.id 
+                            ? 'bg-emerald-900/30 text-emerald-300 border border-emerald-500/30' 
+                            : 'hover:bg-emerald-900/10 text-emerald-600'
+                        }`}
+                    >
+                        <Icon className={item.color} size={24} />
+                        {!isSidebarCollapsed && (
+                            <span className="font-medium tracking-wide">{item.label}</span>
+                        )}
+                    </button>
+                )
+            })}
+        </nav>
+      </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 relative overflow-hidden flex flex-col">
-        {/* View Switcher Container */}
-        <div className="flex-1 relative">
-          <AnimatePresence mode="wait">
-            {activeView === 'compass' && (
-              <motion.div 
-                key="compass"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="absolute inset-0 p-12 overflow-y-auto custom-scrollbar"
-              >
-                <div className="max-w-6xl mx-auto space-y-12">
-                  <header className="flex justify-between items-end">
-                    <div>
-                      <h2 className="text-4xl font-black text-white tracking-tighter uppercase">Natal Compass</h2>
-                      <p className="text-emerald-700 text-xs mt-2 uppercase tracking-[0.3em]">Precision geometry for {preferences.name}</p>
+      <div className="flex-1 relative overflow-hidden flex flex-col">
+        {/* Header */}
+        <header className="h-16 border-b border-emerald-900/30 flex items-center px-6 justify-between bg-black/50 backdrop-blur-md z-10">
+            <div className="flex items-center gap-6">
+                <h1 className="text-xl font-medium tracking-widest text-emerald-400 uppercase">
+                    {navItems.find(i => i.id === activeView)?.label}
+                </h1>
+                
+                {/* Moon Phase Widget */}
+                <div className="hidden lg:flex items-center gap-3 px-3 py-1 bg-emerald-900/20 rounded-full border border-emerald-500/10">
+                    <span className="text-lg">{calculateMoonPhase().emoji}</span>
+                    <div className="flex flex-col leading-none">
+                        <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">
+                            {calculateMoonPhase().phase}
+                        </span>
+                        <span className="text-[9px] text-emerald-600/70">
+                            {getNextMoonPhaseDate().phase} in {getNextMoonPhaseDate().timeRemaining}
+                        </span>
                     </div>
-                    <div className="text-right">
-                      <span className="block text-[10px] text-emerald-900 uppercase font-black tracking-widest">Stellar Resonance</span>
-                      <span className="text-2xl font-light text-emerald-500 tabular-nums">1.61803...</span>
+                </div>
+            </div>
+            
+            <div className="flex items-center gap-4">
+                <div className="text-right hidden md:block">
+                    <div className="text-xs text-emerald-600 uppercase tracking-widest">Operator</div>
+                    <div className="text-sm font-bold text-white">{preferences?.name || "Initiate"}</div>
+                </div>
+                <button 
+                    onClick={() => setIsCalibrationOpen(true)}
+                    className="p-2 hover:bg-emerald-900/30 rounded-full transition-colors text-emerald-500"
+                    title="Cosmic Calibration"
+                >
+                    <Settings size={20} />
+                </button>
+            </div>
+        </header>
+
+        {/* View Switcher */}
+        <main className="flex-1 overflow-auto p-6 relative scrollbar-hide">
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={activeView}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                    className="h-full"
+                >
+                    {activeView === 'compass' && (
+                        <div className="h-full flex flex-col space-y-6 overflow-y-auto pr-2">
+                             {/* Welcome & Pulse Section */}
+                             <div className="space-y-6">
+                                <div className="flex justify-between items-end">
+                                    <div className="space-y-1">
+                                        <h1 className="text-3xl font-bold text-white tracking-tight">
+                                            Welcome back, {preferences.name || "Initiate"}
+                                        </h1>
+                                        <div className="flex items-center gap-3 text-emerald-500/60 text-sm font-mono">
+                                            <span>{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}</span>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={() => setIsReplayingFlyby(true)}
+                                        className="mb-1 text-[10px] uppercase tracking-widest text-emerald-600 hover:text-emerald-400 border border-emerald-900/30 hover:bg-emerald-900/20 px-3 py-1.5 rounded-lg transition-all"
+                                    >
+                                        Replay Flyby
+                                    </button>
+                                </div>
+
+                                {/* Daily Pulse Card */}
+                                {(() => {
+                                    const pulse = NumerologyEngine.getDailyPulse(preferences.birthDate || new Date());
+                                    return (
+                                        <div className="bg-gradient-to-r from-slate-900 to-black border border-emerald-900/30 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl relative overflow-hidden group">
+                                            <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                            
+                                            <div className="flex items-start gap-4 flex-1">
+                                                <div className="h-12 w-12 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 shrink-0">
+                                                    <Zap className="text-indigo-400" size={24} />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <div className="text-indigo-300 font-bold uppercase tracking-widest text-xs">Daily Pulse</div>
+                                                    <p className="text-emerald-100/90 leading-relaxed font-medium">
+                                                        {pulse.message}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-4 shrink-0">
+                                                <div className="bg-black/40 border border-emerald-900 rounded-lg px-4 py-2 text-center">
+                                                    <div className="text-[10px] text-emerald-600 uppercase tracking-widest mb-1">Focus</div>
+                                                    <div className="text-white font-bold text-sm">{pulse.focus}</div>
+                                                </div>
+                                                <div className="bg-black/40 border border-emerald-900 rounded-lg px-4 py-2 text-center">
+                                                    <div className="text-[10px] text-emerald-600 uppercase tracking-widest mb-1">Color</div>
+                                                    <div className={`${pulse.hex} font-bold text-sm`}>{pulse.color}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+
+                                 {/* Numerology Row */}
+                                <div className="grid grid-cols-3 gap-4">
+                                     {[
+                                        { 
+                                            label: "Life Path", 
+                                            val: NumerologyEngine.calculateLifePath(preferences.birthDate || new Date()).core, 
+                                            color: "text-amber-400",
+                                            desc: "The road you're traveling. Your core purpose."
+                                        },
+                                        { 
+                                            label: "Destiny", 
+                                            val: NumerologyEngine.calculateName(preferences.fullName || preferences.name || "", 'pythagorean').core, 
+                                            color: "text-cyan-400",
+                                            desc: "Your potential. What you're destined to become."
+                                        },
+                                        { 
+                                            label: "Active", 
+                                            val: NumerologyEngine.calculateName(preferences.name || "Initiate", 'chaldean').core, 
+                                            color: "text-pink-400",
+                                            desc: "Your daily energy. How you interact right now."
+                                        }
+                                     ].map((num, i) => (
+                                         <div key={i} className="bg-black/40 border border-emerald-900/30 rounded-xl p-4 flex flex-col items-center justify-center hover:border-emerald-500/30 transition-all group relative cursor-help">
+                                             <span className={`text-4xl font-black ${num.color}`}>{num.val}</span>
+                                             <span className="text-[10px] uppercase tracking-widest text-emerald-600 mt-1">{num.label}</span>
+                                             
+                                             {/* Tooltip */}
+                                             <div className="absolute top-full mt-2 w-32 p-2 bg-black border border-emerald-500/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
+                                                <p className="text-[9px] text-emerald-300 text-center leading-tight">
+                                                    {num.desc}
+                                                </p>
+                                             </div>
+                                         </div>
+                                     ))}
+                                </div>
+                             </div>
+
+                             {/* Chart & Compass Grid */}
+                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[500px]">
+                                 <div className="lg:col-span-2 flex flex-col items-center justify-center relative bg-emerald-900/5 rounded-2xl border border-emerald-900/20">
+                                      <NatalCompass chart={natalChart} />
+                                 </div>
+
+                             {/* Cosmic Identity & Analysis Panel */}
+                             <div className="flex flex-col justify-center space-y-6 p-4 overflow-y-auto">
+                                  {natalChart ? (
+                                    <>
+                                        {/* Identity Card */}
+                                        <div className="bg-black/40 backdrop-blur-md border border-emerald-500/30 p-6 rounded-xl space-y-4">
+                                            <div className="flex items-center gap-3 border-b border-emerald-900/50 pb-3">
+                                                <div className="h-10 w-10 rounded-full bg-emerald-900/40 flex items-center justify-center border border-emerald-500/50">
+                                                    <span className="text-lg font-bold text-emerald-300">
+                                                        {preferences.name ? preferences.name[0].toUpperCase() : "O"}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <h2 className="text-emerald-300 font-bold tracking-wider text-lg">
+                                                        {preferences.name || "OPERATOR"}
+                                                    </h2>
+                                                    <p className="text-emerald-600 text-xs font-mono uppercase">
+                                                        Level 1 Initiate
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                {/* Sun */}
+                                                <div className="flex items-center justify-between group">
+                                                    <div className="flex items-center gap-2 text-amber-400">
+                                                        <Sun size={18} />
+                                                        <span className="text-sm font-medium">Sun</span>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-white font-bold">
+                                                            {natalChart.planets.find(p => p.name === 'Sun')?.sign}
+                                                        </div>
+                                                        <div className="text-[10px] text-amber-400/60 uppercase tracking-widest">
+                                                            {ARCHETYPES[natalChart.planets.find(p => p.name === 'Sun')?.sign || 'Aries']}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Moon */}
+                                                <div className="flex items-center justify-between group">
+                                                    <div className="flex items-center gap-2 text-slate-300">
+                                                        <Moon size={18} />
+                                                        <span className="text-sm font-medium">Moon</span>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-white font-bold">
+                                                            {natalChart.planets.find(p => p.name === 'Moon')?.sign}
+                                                        </div>
+                                                        <div className="text-[10px] text-slate-400/60 uppercase tracking-widest">
+                                                            {ARCHETYPES[natalChart.planets.find(p => p.name === 'Moon')?.sign || 'Aries']}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Ascendant */}
+                                                <div className="flex items-center justify-between group">
+                                                    <div className="flex items-center gap-2 text-purple-400">
+                                                        <Compass size={18} />
+                                                        <span className="text-sm font-medium">Rising</span>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-white font-bold">
+                                                            {natalChart.ascendant?.sign}
+                                                        </div>
+                                                        <div className="text-[10px] text-purple-400/60 uppercase tracking-widest">
+                                                            {ARCHETYPES[natalChart.ascendant?.sign || 'Aries']}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Chart Explanation / Destiny Thread */}
+                                        <CosmicInsightPanel chart={natalChart} />
+                                    </>
+                                  ) : (
+                                    <div className="text-center text-emerald-500/50 animate-pulse">
+                                        Calibrating Astral Sensors...
+                                    </div>
+                                  )}
+                             </div>
+                        </div>
                     </div>
-                  </header>
+                )}
 
-                  <div className="max-w-xl mx-auto">
-                    <NatalCompass chart={natalChart} />
-                  </div>
+                    {activeView === 'synastry' && <SynastryView userChart={natalChart} />} 
+                    {activeView === 'tarot' && (
+                        tarotState ? (
+                            <TarotSpread 
+                                cards={tarotState.cards}
+                                spreadType={tarotState.spreadId}
+                                onReset={() => setTarotState(null)}
+                            />
+                        ) : (
+                            <TarotDeck 
+                                onDraw={handleTarotDraw} 
+                                isDrawing={false} 
+                            />
+                        )
+                    )}
+                    {activeView === 'numerology' && (
+                        <NumerologyView 
+                            birthDate={preferences.birthDate || ""} 
+                            fullName={preferences.fullName || preferences.name || ""} 
+                        />
+                    )}
+                    {activeView === 'rituals' && (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+                            <RitualControlPanel 
+                                onPerformRitual={handlePerformRitual} 
+                                isPerforming={isPerformingRitual} 
+                            />
+                            <RitualVision 
+                                isOpen={!!ritualResult}
+                                thought={ritualResult?.vision?.thought || null}
+                                sigilSvg={ritualResult?.sigil || null}
+                                incantation={ritualResult?.vision?.incantation || null}
+                                context={ritualResult?.context || null}
+                                onClose={() => setRitualResult(null)}
+                            />
+                        </div>
+                    )}
+                    {activeView === 'grimoire' && <GrimoireView />}
+                    
+                    {activeView === 'chronos' && <TransitFeed />}
+                    
+                    {activeView === 'athanor' && (
+                        <div className="h-full">
+                            <ChatInterface />
+                        </div>
+                    )}
+                </motion.div>
+            </AnimatePresence>
+        </main>
 
-                  <div className="grid grid-cols-3 gap-6">
-                    {(() => {
-                      const sunSign = natalChart?.planets.find(p => p.name === 'Sun')?.sign;
-                      const northNodeSign = natalChart?.planets.find(p => p.name === 'North Node')?.sign;
-                      const rulingPlanet = sunSign ? SIGN_RULERS[sunSign] : null;
-                      const frequency = rulingPlanet ? PLANETARY_FREQUENCIES[rulingPlanet] : null;
-
-                      const cards = [
-                        { 
-                          title: 'Core Archetype', 
-                          value: sunSign ? ARCHETYPES[sunSign] : "Synchronizing...", 
-                          sub: sunSign ? `Sun in ${sunSign}` : "Accessing local memory..."
-                        },
-                        { 
-                          title: 'Vibrational Key', 
-                          value: frequency ? `${frequency} Hz` : "Calibrating...", 
-                          sub: rulingPlanet ? `${rulingPlanet} Resonance` : "Scanning frequencies..."
-                        },
-                        { 
-                          title: 'Destiny Thread', 
-                          value: northNodeSign ? DESTINY_THREADS[northNodeSign] : "Tracing...", 
-                          sub: northNodeSign ? `Node in ${northNodeSign}` : "Analyzing trajectory..." 
-                        }
-                      ];
-
-                      return cards.map((card, i) => (
-                        <motion.div 
-                          key={i} 
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.5 + (i * 0.1) }}
-                          className="p-6 bg-emerald-950/10 border border-emerald-900/30 rounded-2xl space-y-3 group hover:border-emerald-500/30 transition-colors"
-                        >
-                          <span className="text-[10px] text-emerald-700 uppercase tracking-widest font-black group-hover:text-emerald-500 transition-colors">{card.title}</span>
-                          <div className="space-y-1">
-                            <h3 className="text-white font-bold text-lg tracking-tight uppercase">{card.value}</h3>
-                            <p className="text-xs text-emerald-100 font-light opacity-60 italic">&quot;{card.sub}&quot;</p>
-                          </div>
-                          <div className="h-1.5 w-full bg-emerald-900/20 rounded-full overflow-hidden">
-                             <motion.div 
-                               initial={{ width: 0 }}
-                               animate={{ width: natalChart ? `${60 + (i*10)}%` : 0 }}
-                               transition={{ duration: 2, ease: "easeOut" }}
-                               className="h-full bg-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
-                             />
-                          </div>
-                        </motion.div>
-                      ));
-                    })()}
-                  </div>
-                </div>
-              </motion.div>
+        {/* Modals & Overlays */}
+        <AnimatePresence>
+            {isCalibrationOpen && (
+                <CosmicCalibration 
+                    isOpen={isCalibrationOpen} 
+                    onClose={() => setIsCalibrationOpen(false)} 
+                />
             )}
-
-            {activeView === 'chronos' && (
-              <motion.div 
-                key="chronos"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="absolute inset-0 p-12 overflow-y-auto custom-scrollbar"
-              >
-                <TransitFeed />
-              </motion.div>
+            {isWelcomeOpen && (
+                <WelcomeModal
+                    isOpen={isWelcomeOpen}
+                    onClose={() => setIsWelcomeOpen(false)}
+                    userName={preferences.name || "Initiate"}
+                />
             )}
-
-            {activeView === 'athanor' && (
-              <motion.div 
-                key="athanor"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0"
-              >
-                <ChatInterface />
-              </motion.div>
+            {selectedNum && (
+                <NumerologyDetailModal
+                    isOpen={!!selectedNum}
+                    onClose={() => setSelectedNum(null)}
+                    number={selectedNum.number}
+                    type={selectedNum.type}
+                />
             )}
-
-            {activeView === 'rituals' && (
-              <motion.div 
-                key="rituals"
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                className="absolute inset-0 flex items-center justify-center p-20"
-              >
-                <div className="text-center space-y-6">
-                  <div className="relative mx-auto w-24 h-24">
-                    <Zap size={64} className="text-amber-500/20 absolute inset-0 m-auto animate-pulse" />
-                    <Sparkles size={32} className="text-amber-500/40 absolute top-0 right-0 animate-bounce" />
-                  </div>
-                  <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Ritual Athanor Offline</h3>
-                  <p className="text-emerald-800 text-[10px] uppercase tracking-widest max-w-sm mx-auto leading-relaxed border-t border-emerald-900/20 pt-4">
-                    The ritual engines are currently cooling. <br/>
-                    Interactive spellbooks and sigil generators are scheduled for Phase 11.
-                  </p>
-                </div>
-              </motion.div>
+            {isReplayingFlyby && (
+                <OnboardingExperience
+                    initialStep="flyby"
+                    onComplete={() => setIsReplayingFlyby(false)}
+                />
             )}
-          </AnimatePresence>
-        </div>
-      </main>
-
-      {/* Oracle Side-Engine (Chat) */}
-      <AnimatePresence mode="wait">
-        {isOracleOpen && (
-          <motion.aside
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 120 }}
-            className="w-[450px] border-l border-emerald-900/30 bg-black/80 backdrop-blur-3xl z-30 flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.8)] relative"
-          >
-            <div className="p-4 border-b border-emerald-900/20 flex items-center justify-between bg-black/40">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-pink-500 animate-pulse shadow-[0_0_8px_#ec4899]" />
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-pink-500">Oracle Stream</span>
-              </div>
-              <button 
-                onClick={() => setIsOracleOpen(false)}
-                className="p-2 hover:bg-emerald-500/10 rounded-lg transition-colors text-emerald-800"
-              >
-                <ChevronRight size={18} />
-              </button>
-            </div>
-            <div className="flex-1 overflow-hidden relative">
-              <ChatInterface />
-              {/* Optional: Add a subtle overlay to indicate the side-engine state */}
-            </div>
-          </motion.aside>
-        )}
-      </AnimatePresence>
-
-      <CosmicCalibration isOpen={isCalibrationOpen} onClose={() => setIsCalibrationOpen(false)} />
+        </AnimatePresence>
+      
+      <AtmosphereController activeView={activeView} />
+     </div>
     </div>
   );
 };
 
 export default DashboardShell;
+

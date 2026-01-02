@@ -33,7 +33,7 @@ export class PersistenceService {
     // Fallback or Dev Mode: Save to localStorage
     const localHistory = JSON.parse(localStorage.getItem(this.LOCAL_STORAGE_KEY) || "[]");
     const newMessage: ChatMessage = {
-      id: `local-${Date.now()}`,
+      id: `local-${crypto.randomUUID()}`,
       role: role as any,
       content,
       timestamp: Date.now(),

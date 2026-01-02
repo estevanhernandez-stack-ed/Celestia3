@@ -85,6 +85,15 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
                 </div>
               </div>
               <div className="space-y-1">
+                <label className="text-[10px] text-emerald-700 uppercase">Full Legal Name</label>
+                <input 
+                  placeholder="Required for Destiny Number"
+                  value={preferences.fullName || ""}
+                  onChange={(e) => updatePreferences({ fullName: e.target.value })}
+                  className="w-full bg-black border border-emerald-900 rounded-lg p-2 text-sm text-emerald-200 focus:border-emerald-500 outline-none placeholder:text-emerald-900/30"
+                />
+              </div>
+              <div className="space-y-1">
                 <label className="text-[10px] text-emerald-700 uppercase">Vibrational Pronouns</label>
                 <input 
                   value={preferences.pronouns}
@@ -148,10 +157,10 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-emerald-700 uppercase">Birth Date & Time (UTC)</label>
+                  <label className="text-[10px] text-emerald-700 uppercase">Birth Date & Time (Local)</label>
                   <input 
                     type="datetime-local"
-                    value={preferences.birthDate ? preferences.birthDate.slice(0, 16) : ''}
+                    value={preferences.birthDate ? new Date(new Date(preferences.birthDate).getTime() - (new Date(preferences.birthDate).getTimezoneOffset() * 60000)).toISOString().slice(0, 16) : ''}
                     onChange={(e) => updatePreferences({ birthDate: new Date(e.target.value).toISOString() })}
                     className="w-full bg-black border border-emerald-900 rounded-lg p-2 text-sm text-emerald-200 focus:border-emerald-500 outline-none"
                   />
@@ -293,7 +302,6 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
             <div className="pt-8 mt-8 border-t border-red-500/20">
               <div className="flex justify-between items-center mb-4">
                 <div>
-```
                 <h3 className="text-red-400 font-bold uppercase tracking-widest text-xs">Danger Zone</h3>
                   <p className="text-[10px] text-red-500/50 mt-1">This will permanently delete your astral identity from this device.</p>
                 </div>

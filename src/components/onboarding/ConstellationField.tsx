@@ -20,7 +20,7 @@ const Constellation: React.FC<{ sign: string; angle: number }> = ({ sign, angle 
       <Billboard position={[0, 15, 0]}>
         <Text
           fontSize={6}
-          color="#emerald-400"
+          color="#34d399"
           anchorX="center"
           anchorY="middle"
           outlineWidth={0.2}

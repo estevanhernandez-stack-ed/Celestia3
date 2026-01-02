@@ -15,22 +15,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const loginAttempted = React.useRef(false);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
-        // Automatically sign in anonymously if not logged in
-        try {
-          await signInAnonymously(auth);
-        } catch (error) {
-          console.warn("Auth failed or project not configured. Falling back to Dev Mode.");
-          // PROVIDE MOCK USER FOR LOCAL DEV
-          setUser({
-            uid: 'dev-user-local',
-            isAnonymous: true,
-            email: null,
-            displayName: 'Technomancer Guest',
-          } as User);
-          setLoading(false);
+        if (!loginAttempted.current) {
+          loginAttempted.current = true;
+          // Automatically sign in anonymously if not logged in
+          try {
+            await signInAnonymously(auth);
+          } catch (error) {
+            console.warn("Auth failed or project not configured. Falling back to Dev Mode.");
+            // PROVIDE MOCK USER FOR LOCAL DEV
+            setUser({
+              uid: 'dev-user-local',
+              isAnonymous: true,
+              email: null,
+              displayName: 'Technomancer Guest',
+            } as User);
+            setLoading(false);
+          }
         }
       } else {
         setUser(currentUser);
