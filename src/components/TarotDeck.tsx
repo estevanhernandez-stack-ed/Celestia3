@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, RefreshCw } from 'lucide-react';
+import { Sparkles, RefreshCw, Book } from 'lucide-react';
 
 // --- RWS Image Helper (Ported from Old App) ---
 const BASE_URL = "https://www.sacred-texts.com/tarot/pkt/img/";
@@ -85,20 +85,22 @@ const SPREADS: SpreadType[] = [
     { id: 'horseshoe', label: 'The Horseshoe', description: 'Deep insight: Past, Present, Obstacle, Advice, Outcome.', count: 5 },
 ];
 
+
 interface TarotDeckProps {
-    onDraw: (cards: TarotCard[], spreadId: string) => void;
+    onDraw: (cards: TarotCard[], spreadId: string, intent: string) => void;
+    onExplore: () => void;
     isDrawing: boolean;
 }
 
-// Placeholder for the full deck importation - I will create a separate file for the deck constants next.
 import { FULL_DECK } from '@/lib/TarotConstants';
-import { Info, X } from 'lucide-react';
+import { Info, X, MessageSquare } from 'lucide-react';
 
-const TarotDeck: React.FC<TarotDeckProps> = ({ onDraw, isDrawing }) => {
+const TarotDeck: React.FC<TarotDeckProps> = ({ onDraw, isDrawing, onExplore }) => {
   const [deck, setDeck] = useState<TarotCard[]>(FULL_DECK);
   const [isShuffling, setIsShuffling] = useState(false);
   const [selectedSpread, setSelectedSpread] = useState<SpreadType>(SPREADS[1]); // Default to 3-card Time
   const [showNotice, setShowNotice] = useState(true);
+  const [intent, setIntent] = useState("");
 
   const handleShuffle = () => {
     setIsShuffling(true);
@@ -112,7 +114,7 @@ const TarotDeck: React.FC<TarotDeckProps> = ({ onDraw, isDrawing }) => {
   const handleDraw = () => {
     if (isShuffling) return;
     const draw = deck.slice(0, selectedSpread.count);
-    onDraw(draw, selectedSpread.id);
+    onDraw(draw, selectedSpread.id, intent);
   };
 
   return (
@@ -134,7 +136,7 @@ const TarotDeck: React.FC<TarotDeckProps> = ({ onDraw, isDrawing }) => {
                     <h4 className="text-indigo-300 font-bold text-sm uppercase tracking-wide mb-1">Analog Resonance Recommended</h4>
                     <p className="text-indigo-200/60 text-xs leading-relaxed">
                         For the most potent energetic connection, we recommend using a <strong>physical Tarot deck</strong>. 
-                        Digital randomization (Math.random) mimics chaos, but cannot replicate the tactile intuition of your own hands.
+                        Digital randomization mimics chaos, but cannot replicate the tactile intuition of your own hands.
                     </p>
                 </div>
                 <button 
@@ -155,7 +157,7 @@ const TarotDeck: React.FC<TarotDeckProps> = ({ onDraw, isDrawing }) => {
             {[0, 1, 2, 3].map((i) => (
             <motion.div
                 key={i}
-                className="absolute inset-0 bg-indigo-950 border-2 border-indigo-400/30 rounded-xl shadow-xl flex items-center justify-center backface-hidden"
+                className="absolute inset-0 rounded-xl shadow-xl flex items-center justify-center backface-hidden overflow-hidden bg-black border border-indigo-900/50"
                 style={{ 
                 zIndex: 10 - i,
                 top: -i * 2,
@@ -168,24 +170,44 @@ const TarotDeck: React.FC<TarotDeckProps> = ({ onDraw, isDrawing }) => {
                     transition: { repeat: Infinity, duration: 0.3 }
                 } : {}}
             >
-                <div className="w-full h-full opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"></div>
-                <Sparkles className="text-indigo-400 absolute opacity-50" />
+                <img 
+                    src="/assets/tarot_back.png" 
+                    alt="Card Back" 
+                    className="w-full h-full object-cover opacity-90"
+                />
+                <div className="absolute inset-0 bg-indigo-500/10 mix-blend-overlay"></div>
             </motion.div>
             ))}
             
-            {/* Top Card */}
-            <div className="absolute inset-0 bg-indigo-950 border-2 border-indigo-500 rounded-xl flex items-center justify-center shadow-[0_0_30px_rgba(99,102,241,0.3)] group-hover:shadow-[0_0_50px_rgba(99,102,241,0.5)] transition-all z-20">
-            <div className="text-center p-4">
-                <RefreshCw className={`mx-auto mb-2 text-indigo-400 ${isShuffling ? 'animate-spin' : ''}`} />
-                <span className="text-xs font-bold uppercase tracking-widest text-indigo-300">
-                {isShuffling ? "Shuffling..." : "Click to Shuffle"}
-                </span>
-            </div>
+            {/* Top Card Overlay */}
+            <div className="absolute inset-0 rounded-xl flex items-center justify-center shadow-[0_0_30px_rgba(99,102,241,0.2)] group-hover:shadow-[0_0_50px_rgba(99,102,241,0.4)] transition-all z-20 hover:bg-black/10">
+                <div className="text-center p-4 bg-black/60 backdrop-blur-sm rounded-xl border border-indigo-500/30">
+                    <RefreshCw className={`mx-auto mb-2 text-indigo-400 ${isShuffling ? 'animate-spin' : ''}`} />
+                    <span className="text-xs font-bold uppercase tracking-widest text-indigo-300">
+                    {isShuffling ? "Shuffling..." : "Click to Shuffle"}
+                    </span>
+                </div>
             </div>
           </div>
 
           {/* Controls */}
           <div className="flex-1 w-full space-y-6">
+              
+              {/* Intent Input */}
+              <div className="space-y-2">
+                  <h3 className="text-indigo-300 font-bold uppercase tracking-widest text-sm border-b border-indigo-500/20 pb-2 flex items-center gap-2">
+                      <MessageSquare size={14} /> Ritual Intent
+                  </h3>
+                  <div className="bg-indigo-950/20 border border-indigo-500/20 rounded-xl p-1 focus-within:border-indigo-500/50 transition-colors">
+                      <textarea 
+                          value={intent}
+                          onChange={(e) => setIntent(e.target.value)}
+                          placeholder="Focus your energy: What specifically do you seek guidance on today? (Optional)"
+                          className="w-full bg-transparent border-none outline-none text-indigo-100 placeholder:text-indigo-400/30 text-sm p-3 h-20 resize-none font-sans"
+                      />
+                  </div>
+              </div>
+
               <div className="space-y-4">
                   <h3 className="text-indigo-300 font-bold uppercase tracking-widest text-sm border-b border-indigo-500/20 pb-2">Select Spread</h3>
                   <div className="grid grid-cols-1 gap-3">
@@ -209,14 +231,24 @@ const TarotDeck: React.FC<TarotDeckProps> = ({ onDraw, isDrawing }) => {
                   </div>
               </div>
 
-            <button
-                onClick={handleDraw}
-                disabled={isShuffling || isDrawing}
-                className="w-full px-8 py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:hover:bg-indigo-600 text-white font-bold uppercase tracking-[0.2em] rounded-lg transition-all shadow-lg hover:shadow-indigo-500/50 flex items-center justify-center gap-2"
-            >
-                <Sparkles size={16} />
-                <span>Draw Cards</span>
-            </button>
+            <div className="flex gap-4">
+                <button
+                    onClick={onExplore}
+                    className="flex-1 px-4 py-4 bg-indigo-950/40 border border-indigo-500/20 text-indigo-400 font-bold uppercase tracking-widest rounded-lg hover:bg-indigo-900/40 hover:text-white transition-all flex items-center justify-center gap-2"
+                >
+                    <Book size={16} />
+                    <span>Explore Codex</span>
+                </button>
+                
+                <button
+                    onClick={handleDraw}
+                    disabled={isShuffling || isDrawing}
+                    className="flex-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:hover:bg-indigo-600 text-white font-bold uppercase tracking-widest rounded-lg transition-all shadow-lg hover:shadow-indigo-500/50 flex items-center justify-center gap-2"
+                >
+                    <Sparkles size={16} />
+                    <span>Draw Cards</span>
+                </button>
+            </div>
           </div>
       </div>
     </div>

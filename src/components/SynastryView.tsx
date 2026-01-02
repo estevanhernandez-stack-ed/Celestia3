@@ -1,13 +1,16 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Sparkles, User, MapPin, Calendar, Clock, RefreshCw } from 'lucide-react';
+import { Heart, Sparkles, User, MapPin, Calendar, Clock, RefreshCw, Bot, Loader2, Volume2, Square, Trash2 } from 'lucide-react';
 import { NatalChartData } from '@/types/astrology';
 import { SwissEphemerisService } from '@/lib/SwissEphemerisService';
+import { GeocodingService, GeoLocation } from '@/lib/GeocodingService';
 import BiWheelCompass from './BiWheelCompass';
 import { useSettings } from '@/context/SettingsContext';
 import { SavedChart } from '@/types/preferences';
+import { ChatService } from '@/lib/ChatService';
+import { voiceService } from '@/lib/VoiceService';
 
 interface SynastryViewProps {
   userChart: NatalChartData | null;
@@ -24,6 +27,48 @@ const SynastryView: React.FC<SynastryViewProps> = ({ userChart }) => {
   const [partnerLocation, setPartnerLocation] = useState({ lat: 0, lng: 0, city: "" });
   const [partnerChart, setPartnerChart] = useState<NatalChartData | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+
+  // Analysis State
+  const [analysisStatus, setAnalysisStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [analysisText, setAnalysisText] = useState("");
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  // Stop speech if component unmounts
+  useEffect(() => {
+    return () => {
+      voiceService.stop();
+    };
+  }, []);
+
+  // Location Search State
+  const [locationResults, setLocationResults] = useState<GeoLocation[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  const handleLocationSearch = async (query: string) => {
+    if (query.length < 3) {
+        setLocationResults([]);
+        return;
+    }
+    
+    setIsSearching(true);
+    try {
+        const results = await GeocodingService.searchCity(query);
+        setLocationResults(results);
+    } catch (e) {
+        console.error("Location search failed", e);
+    } finally {
+        setIsSearching(false);
+    }
+  };
+
+  const handleLocationSelect = (loc: GeoLocation) => {
+      setPartnerLocation({
+          lat: loc.lat,
+          lng: loc.lng,
+          city: `${loc.name}, ${loc.country}`
+      });
+      setLocationResults([]);
+  };
 
   const handleCalculate = async () => {
     setIsCalculating(true);
@@ -51,7 +96,24 @@ const SynastryView: React.FC<SynastryViewProps> = ({ userChart }) => {
     };
 
     const currentSaved = preferences.savedCharts || [];
-    updatePreferences({ savedCharts: [...currentSaved, newSavedChart] });
+    
+    // Check for existing chart by name to prevent duplicates
+    const existingIndex = currentSaved.findIndex(c => c.name.toLowerCase() === partnerName.toLowerCase());
+
+    if (existingIndex >= 0) {
+        const updatedList = [...currentSaved];
+        // Merge but keep original ID
+        updatedList[existingIndex] = { ...newSavedChart, id: currentSaved[existingIndex].id };
+        updatePreferences({ savedCharts: updatedList });
+    } else {
+        updatePreferences({ savedCharts: [...currentSaved, newSavedChart] });
+    }
+  };
+
+  const handleDeleteSaved = (id: string) => {
+    const currentSaved = preferences.savedCharts || [];
+    const newSaved = currentSaved.filter(c => c.id !== id);
+    updatePreferences({ savedCharts: newSaved });
   };
 
   const handleLoadSaved = (saved: SavedChart) => {
@@ -60,9 +122,6 @@ const SynastryView: React.FC<SynastryViewProps> = ({ userChart }) => {
       setPartnerTime(saved.time);
       setPartnerLocation(saved.location);
       setRelationshipType(saved.relationshipType);
-      // Auto-calculate
-      // In a real app we might refactor calculate into a useEffect or separate function
-      // For now we just populate fields and let user hit "Analyze" to confirm data fresh
   };
 
   const handleReset = () => {
@@ -71,12 +130,10 @@ const SynastryView: React.FC<SynastryViewProps> = ({ userChart }) => {
     setPartnerDate("");
     setPartnerTime("");
     setPartnerLocation({ lat: 0, lng: 0, city: "" });
-  };
-
-  // Simple hardcoded lat/lng for now for ease of testing user input
-  // In a real app we'd need a geocoding lookup
-  const setDummyLocation = () => {
-    setPartnerLocation({ lat: 51.5074, lng: -0.1278, city: "London, UK" });
+    setAnalysisStatus('idle');
+    setAnalysisText("");
+    voiceService.stop();
+    setIsSpeaking(false);
   };
 
   const aspects = useMemo(() => {
@@ -106,6 +163,67 @@ const SynastryView: React.FC<SynastryViewProps> = ({ userChart }) => {
     }
     return results.slice(0, 10); // Limit to top 10 for display
   }, [userChart, partnerChart]);
+
+  const handleAnalyzeConnection = async () => {
+    if (!userChart || !partnerChart) return;
+    
+    setAnalysisStatus('loading');
+    try {
+        const p1Data = userChart.planets.map(p => `${p.name}: ${p.sign}`).join(', ');
+        const p2Data = partnerChart.planets.map(p => `${p.name}: ${p.sign}`).join(', ');
+        
+        const aspectList = aspects.map(a => `${a.p1.name} ${a.type} ${a.p2.name}`).join('\n');
+
+        // Use preferences.birthDate (raw user input) as priority to avoid UTC shifts
+        // Only fall back to userChart.date if input is missing
+        const rawDate = preferences.birthDate || userChart.date;
+        let userDateString = "Unknown";
+        
+        if (rawDate) {
+            // Convert to local date string to fix off-by-one errors from UTC conversion
+            // This ensures "1983-05-18T20:00" (UTC 19th) becomes "5/18/1983" (Local)
+            userDateString = new Date(rawDate).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long', 
+                day: 'numeric'
+            });
+        }
+        
+        // Append full name to date string to pass it to AI context without changing the addressing name
+        if (preferences.fullName) {
+            userDateString += `\nFull Legal Name: ${preferences.fullName}`;
+        }
+        
+        const userName = preferences.name || "The Seeker";
+
+        const report = await ChatService.generateSynastryReport(
+            userName, p1Data, userDateString,
+            partnerName, p2Data, partnerDate,
+            relationshipType,
+            aspectList
+        );
+        
+        setAnalysisText(report);
+        setAnalysisStatus('success');
+    } catch {
+        setAnalysisStatus('error');
+    }
+  };
+
+  const toggleSpeech = async () => {
+    if (isSpeaking) {
+      voiceService.stop();
+      setIsSpeaking(false);
+    } else {
+      setIsSpeaking(true);
+      await voiceService.speak(analysisText, {
+        rate: 1.0,
+        pitch: 1.0,
+        volume: 1.0
+      });
+      setIsSpeaking(false);
+    }
+  };
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-start p-8 overflow-y-auto custom-scrollbar">
@@ -150,7 +268,7 @@ const SynastryView: React.FC<SynastryViewProps> = ({ userChart }) => {
                 <div className="text-center mb-8">
                 <Sparkles className="mx-auto text-pink-500 mb-4" size={24} />
                 <h3 className="text-xl font-bold text-white uppercase tracking-tight">Initiate Bond</h3>
-                <p className="text-xs text-pink-400 mt-2">Enter partner's celestial coordinates.</p>
+                <p className="text-xs text-pink-400 mt-2">Enter partner&apos;s celestial coordinates.</p>
                 </div>
 
                 <div className="space-y-4">
@@ -194,19 +312,39 @@ const SynastryView: React.FC<SynastryViewProps> = ({ userChart }) => {
                     </div>
                 </div>
 
-                <div className="group">
+                <div className="group relative">
                     <label className="text-[10px] font-bold text-pink-700 uppercase tracking-widest mb-1 block">Location</label>
                     <div className="flex items-center gap-3 bg-black/40 border border-pink-900/30 rounded-xl px-4 py-3 focus-within:border-pink-500/50 transition-colors">
                     <MapPin size={14} className="text-pink-600" />
                     <input 
                         value={partnerLocation.city}
-                        readOnly
-                        placeholder="Select Location..."
-                        className="bg-transparent border-none outline-none text-pink-100 placeholder:text-pink-900/50 text-sm w-full font-mono cursor-pointer"
-                        onClick={setDummyLocation}
+                        onChange={(e) => {
+                            setPartnerLocation(prev => ({ ...prev, city: e.target.value }));
+                            handleLocationSearch(e.target.value);
+                        }}
+                        placeholder="Search City..."
+                        className="bg-transparent border-none outline-none text-pink-100 placeholder:text-pink-900/50 text-sm w-full font-mono"
                     />
-                    <span className="text-[8px] text-pink-800 uppercase px-2 py-1 bg-pink-900/20 rounded">Dev: Click to set London</span>
+                    {isSearching && <div className="w-4 h-4 border-2 border-pink-500/30 border-t-pink-500 rounded-full animate-spin" />}
                     </div>
+                    
+                    {/* Location Results Dropdown */}
+                    {locationResults.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-black border border-pink-900/30 rounded-xl overflow-hidden z-50 shadow-2xl shadow-pink-900/20">
+                            {locationResults.map((loc, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => handleLocationSelect(loc)}
+                                    className="w-full text-left px-4 py-3 hover:bg-pink-900/20 text-sm text-pink-200 border-b border-pink-900/10 last:border-0 transition-colors block"
+                                >
+                                    <span className="font-bold">{loc.name}</span>
+                                    <span className="text-pink-600/60 ml-2 text-xs">
+                                        {loc.admin1 ? `${loc.admin1}, ` : ''}{loc.country}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 <div className="group">
@@ -248,17 +386,27 @@ const SynastryView: React.FC<SynastryViewProps> = ({ userChart }) => {
                     </h3>
                     <div className="space-y-3">
                         {preferences.savedCharts.map((saved) => (
-                            <button
-                                key={saved.id}
-                                onClick={() => handleLoadSaved(saved)}
-                                className="w-full text-left p-3 rounded-xl border border-pink-900/20 bg-black/20 hover:bg-pink-900/10 hover:border-pink-500/30 transition-all group"
-                            >
-                                <div className="font-bold text-pink-200 group-hover:text-pink-100">{saved.name}</div>
-                                <div className="flex justify-between items-center mt-1">
-                                    <span className="text-[10px] uppercase tracking-wider text-pink-700 group-hover:text-pink-500">{saved.relationshipType}</span>
-                                    <span className="text-[10px] text-pink-800">{saved.location.city}</span>
-                                </div>
-                            </button>
+                            <div key={saved.id} className="relative group">
+                                <button
+                                    onClick={() => handleLoadSaved(saved)}
+                                    className="w-full text-left p-3 rounded-xl border border-pink-900/20 bg-black/20 hover:bg-pink-900/10 hover:border-pink-500/30 transition-all pr-8"
+                                >
+                                    <div className="font-bold text-pink-200 group-hover:text-pink-100">{saved.name}</div>
+                                    <div className="flex justify-between items-center mt-1">
+                                        <span className="text-[10px] uppercase tracking-wider text-pink-700 group-hover:text-pink-500">{saved.relationshipType}</span>
+                                        <span className="text-[10px] text-pink-800">{saved.location.city}</span>
+                                    </div>
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteSaved(saved.id);
+                                    }}
+                                    className="absolute top-2 right-2 p-1.5 text-pink-900/50 hover:text-red-500 hover:bg-black rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                >
+                                    <Trash2 size={12} />
+                                </button>
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -324,6 +472,60 @@ const SynastryView: React.FC<SynastryViewProps> = ({ userChart }) => {
                    </motion.div>
                  ))
                )}
+             </div>
+
+             {/* AI Analysis Section */}
+             <div className="w-full mt-8 border-t border-pink-900/30 pt-6">
+                <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-bold text-pink-500 uppercase tracking-widest flex items-center gap-2">
+                            <Bot size={16} /> Chartradamus Insight
+                        </h3>
+                        <div className="flex gap-2">
+                            {analysisStatus === 'success' && (
+                                <button
+                                    onClick={toggleSpeech}
+                                    className={`p-2 rounded-lg transition-all ${
+                                        isSpeaking 
+                                            ? 'bg-pink-500 text-white shadow-[0_0_15px_rgba(236,72,153,0.5)]' 
+                                            : 'bg-pink-900/20 text-pink-400 hover:bg-pink-900/40 hover:text-white'
+                                    }`}
+                                >
+                                    {isSpeaking ? <Square size={14} fill="currentColor" /> : <Volume2 size={14} />}
+                                </button>
+                            )}
+                            {analysisStatus === 'idle' && (
+                                <button 
+                                    onClick={handleAnalyzeConnection}
+                                    className="px-4 py-2 bg-pink-600 hover:bg-pink-500 text-black text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all flex items-center gap-2"
+                                >
+                                    <Sparkles size={12} /> Interpret Bond
+                                </button>
+                            )}
+                        </div>
+                </div>
+
+                {analysisStatus === 'loading' && (
+                    <div className="p-8 bg-pink-950/10 border border-pink-900/20 rounded-2xl flex flex-col items-center justify-center text-center animate-pulse">
+                            <Loader2 className="text-pink-500 animate-spin mb-2" size={24} />
+                            <p className="text-xs text-pink-400 uppercase tracking-widest">Consulting the Akashic Records...</p>
+                    </div>
+                )}
+
+                {analysisStatus === 'success' && (
+                    <motion.div 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="p-6 bg-pink-950/20 border border-pink-500/20 rounded-2xl text-pink-100/80 text-sm leading-relaxed whitespace-pre-wrap font-mono"
+                    >
+                            {analysisText}
+                    </motion.div>
+                )}
+                
+                {analysisStatus === 'error' && (
+                    <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-xl text-red-300 text-xs text-center">
+                        The stars are clouded. Connection failed.
+                    </div>
+                )}
              </div>
           </div>
         </motion.div>

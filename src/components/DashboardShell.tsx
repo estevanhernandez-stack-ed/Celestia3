@@ -14,7 +14,8 @@ import {
   ChevronLeft,
   Clock, 
   Flame, 
-  Hash
+  Hash,
+  BookOpen
 } from 'lucide-react';
 import NatalCompass from './NatalCompass';
 import ChatInterface from './ChatInterface';
@@ -39,6 +40,7 @@ import CosmicInsightPanel from './CosmicInsightPanel';
 import SynastryView from './SynastryView';
 import TarotDeck from './TarotDeck';
 import TarotSpread from './TarotSpread';
+import TarotExplorer from './TarotExplorer';
 import GrimoireView from './GrimoireView';
 import AtmosphereController from './AtmosphereController';
 import { Book } from 'lucide-react';
@@ -46,6 +48,7 @@ import { GrimoireService } from '@/lib/GrimoireService';
 import { NumerologyEngine } from '@/utils/NumerologyEngine';
 import { calculateMoonPhase, getNextMoonPhaseDate } from '@/utils/astrologyUtils';
 import { Zap } from 'lucide-react';
+import GrimoireCodex from './GrimoireCodex';
 
 type DashboardView = 'compass' | 'synastry' | 'tarot' | 'athanor' | 'rituals' | 'chronos' | 'numerology' | 'grimoire';
 
@@ -53,6 +56,8 @@ const DashboardShell: React.FC = () => {
   const [activeView, setActiveView] = useState<DashboardView>('compass');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isOracleOpen, setIsOracleOpen] = useState(false);
+  const [isTarotExplorationOpen, setIsTarotExplorationOpen] = useState(false);
+  const [isCodexOpen, setIsCodexOpen] = useState(false);
 
   const [isCalibrationOpen, setIsCalibrationOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
@@ -107,11 +112,10 @@ const DashboardShell: React.FC = () => {
   };
 
   // Handler for Tarot
-  const [tarotState, setTarotState] = useState<{ cards: TarotCard[], spreadId: string } | null>(null);
+  const [tarotState, setTarotState] = useState<{ cards: TarotCard[], spreadId: string, intent: string } | null>(null);
 
-  // Handler for Tarot
-  const handleTarotDraw = async (cards: TarotCard[], spreadId: string) => {
-     setTarotState({ cards, spreadId });
+  const handleTarotDraw = async (cards: TarotCard[], spreadId: string, intent: string) => {
+     setTarotState({ cards, spreadId, intent });
      
      // Persist to Grimoire
      if (user?.uid) {
@@ -120,14 +124,14 @@ const DashboardShell: React.FC = () => {
              type: 'tarot',
              title: `Reading: ${spreadId}`,
              content: {
-                 question: oraclePrompt || "General Guidance",
+                 question: intent || "General Guidance",
                  spreadType: spreadId,
                  cards: cards.map(c => ({
                      name: c.name,
-                     position: "Spread Position", // Ideally mapped to spread definition
+                     position: "Spread Position", 
                      orientation: 'upright' 
                  })),
-                 interpretation: "Interpretation pending..." // AI integration would go here
+                 interpretation: "Interpretation pending..." 
              },
              tags: ['tarot', spreadId]
          });
@@ -181,7 +185,7 @@ const DashboardShell: React.FC = () => {
       >
         <div className="p-4 border-b border-emerald-900/30 flex items-center justify-between">
             {!isSidebarCollapsed && (
-                <div className="font-bold text-xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+                <div className="font-bold text-xl tracking-wider text-transparent bg-clip-text bg-linear-to-r from-emerald-400 to-cyan-400">
                     CELESTIA
                 </div>
             )}
@@ -244,6 +248,14 @@ const DashboardShell: React.FC = () => {
                     <div className="text-xs text-emerald-600 uppercase tracking-widest">Operator</div>
                     <div className="text-sm font-bold text-white">{preferences?.name || "Initiate"}</div>
                 </div>
+                {/* Cosmic Codex Button */}
+                <button 
+                    onClick={() => setIsCodexOpen(true)}
+                    className="p-2 hover:bg-emerald-900/30 rounded-full transition-colors text-emerald-500"
+                    title="Cosmic Codex"
+                >
+                    <BookOpen size={20} />
+                </button>
                 <button 
                     onClick={() => setIsCalibrationOpen(true)}
                     className="p-2 hover:bg-emerald-900/30 rounded-full transition-colors text-emerald-500"
@@ -450,7 +462,9 @@ const DashboardShell: React.FC = () => {
 
                     {activeView === 'synastry' && <SynastryView userChart={natalChart} />} 
                     {activeView === 'tarot' && (
-                        tarotState ? (
+                        isTarotExplorationOpen ? (
+                           <TarotExplorer onBack={() => setIsTarotExplorationOpen(false)} />
+                        ) : tarotState ? (
                             <TarotSpread 
                                 cards={tarotState.cards}
                                 spreadType={tarotState.spreadId}
@@ -459,6 +473,7 @@ const DashboardShell: React.FC = () => {
                         ) : (
                             <TarotDeck 
                                 onDraw={handleTarotDraw} 
+                                onExplore={() => setIsTarotExplorationOpen(true)}
                                 isDrawing={false} 
                             />
                         )
@@ -527,6 +542,12 @@ const DashboardShell: React.FC = () => {
                     onComplete={() => setIsReplayingFlyby(false)}
                 />
             )}
+            {isCodexOpen && (
+                <GrimoireCodex 
+                    isOpen={isCodexOpen} 
+                    onClose={() => setIsCodexOpen(false)} 
+                />
+            )}
         </AnimatePresence>
       
       <AtmosphereController activeView={activeView} />
@@ -536,4 +557,3 @@ const DashboardShell: React.FC = () => {
 };
 
 export default DashboardShell;
-

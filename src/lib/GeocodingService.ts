@@ -25,27 +25,40 @@ export class GeocodingService {
     static async searchCity(query: string): Promise<GeoLocation[]> {
         if (!query || query.length < 3) return [];
 
-        // Open-Meteo works best with just the city name. 
-        // If user enters "Paris, France", we should search for "Paris".
-        const cleanQuery = query.split(',')[0].trim();
+        // 1. First attempt: Search for the part before the comma (if any)
+        // If user types "Bedford, Texas", search "Bedford".
+        // If "Bedford Texas", search "Bedford Texas".
+        let cleanQuery = query.split(',')[0].trim();
 
-        try {
-            const url = `${this.BASE_URL}?name=${encodeURIComponent(cleanQuery)}&count=5&language=en&format=json`;
-            const response = await fetch(url);
-            const data = await response.json();
+        const fetchResults = async (q: string) => {
+             try {
+                const url = `${this.BASE_URL}?name=${encodeURIComponent(q)}&count=10&language=en&format=json`;
+                const response = await fetch(url);
+                const data = await response.json();
+                return data.results || [];
+            } catch (error) {
+                console.error("Geocoding failed:", error);
+                return [];
+            }
+        };
 
-            if (!data.results) return [];
+        let results = await fetchResults(cleanQuery);
 
-            return data.results.map((item: GeocodingResult) => ({
-                name: item.name,
-                lat: item.latitude,
-                lng: item.longitude,
-                country: item.country,
-                admin1: item.admin1
-            }));
-        } catch (error) {
-            console.error("Geocoding failed:", error);
-            return [];
+        // 2. Fallback: If no results and query has spaces (e.g. "Bedford Texas"), try first word
+        if (results.length === 0 && cleanQuery.includes(' ')) {
+            const firstWord = cleanQuery.split(' ')[0];
+            if (firstWord.length >= 3) {
+                 // console.log("Retrying with:", firstWord);
+                 results = await fetchResults(firstWord);
+            }
         }
+
+        return results.map((item: GeocodingResult) => ({
+            name: item.name,
+            lat: item.latitude,
+            lng: item.longitude,
+            country: item.country,
+            admin1: item.admin1
+        }));
     }
 }

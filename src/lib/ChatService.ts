@@ -8,8 +8,33 @@ import { PersistenceService } from "@/lib/PersistenceService";
 import { ResonanceService } from "@/lib/ResonanceService";
 import { SpotifyService } from "@/lib/SpotifyService";
 import { SearchService } from "@/lib/SearchService";
+import { 
+  ZODIAC_KNOWLEDGE, 
+  PLANET_KNOWLEDGE, 
+  HOUSE_KNOWLEDGE, 
+  ASPECT_KNOWLEDGE,
+  KnowledgeItem 
+} from './KnowledgeBaseData';
 
 export type { ProtocolChatMessage as ChatMessage };
+
+// Helper to format knowledge for the AI context
+const formatKnowledgeBase = (): string => {
+  const formatSection = (title: string, items: KnowledgeItem[]) => {
+    return `[ARCHIVES: ${title}]\n` + items.map(item => 
+      `- ${item.title} (${item.subtitle}): ${item.description} Keywords: ${item.keywords.join(', ')}`
+    ).join('\n');
+  };
+
+  return `
+${formatSection("ZODIAC ARQUETYPES", ZODIAC_KNOWLEDGE)}
+${formatSection("PLANETARY FORCES", PLANET_KNOWLEDGE)}
+${formatSection("HOUSES OF LIFE", HOUSE_KNOWLEDGE)}
+${formatSection("ASPECTS", ASPECT_KNOWLEDGE)}
+  `.trim();
+};
+
+const KNOWLEDGE_CONTEXT = formatKnowledgeBase();
 
 export class ChatService {
   static async sendMessage(userId: string, message: string, prefs: UserPreferences = DEFAULT_PREFERENCES, history: ProtocolChatMessage[] = []) {
@@ -64,6 +89,11 @@ Active Paradigms: ${paradigms}
 High Entropy Mode: ${prefs.highEntropyMode ? 'ENABLED' : 'DISABLED'}
 Intent: ${prefs.intent}
 [END_PREFERENCES]
+
+[COSMIC_CODEX_KNOWLEDGE_BASE]
+The following is the canonical knowledge from the Celestia Archives. Use these definitions, metaphors, and technomancer subtitles when explaining concepts.
+${KNOWLEDGE_CONTEXT}
+[END_KNOWLEDGE_BASE]
 `;
 
     const systemPrompt = `${TECHNOMANCER_GRIMOIRE}\n${context}`;
@@ -114,8 +144,8 @@ Intent: ${prefs.intent}
       let text = "";
       try {
         text = response.text();
-      } catch (e) {
-        // Gemini refused to generate text (candidates[0].content.parts[0].text is undefined)
+      } catch {
+        // Gemini refused to generate text
       }
 
       // If text is effectively empty or whitespace, use fallback
@@ -123,9 +153,24 @@ Intent: ${prefs.intent}
          text = specificFallback || "*The frequencies shift in response to your presence.*";
       }
       
-      // Extract thought if available in the parts (casting to unknown for experimental support)
-      const thoughtPart = (candidate?.content?.parts as Array<{thought?: boolean, text?: string}>)?.find(p => p.thought === true || p.text?.startsWith('<thought>'));
-      const thought = thoughtPart ? (thoughtPart.text || (thoughtPart as any).thought) : undefined;
+      // Interface for Gemini response parts to avoid 'any'
+      interface GeminiPart {
+          text?: string;
+          thought?: boolean | string;
+      }
+
+      // Extract thought if available in the parts
+      const parts = candidate?.content?.parts as unknown as GeminiPart[] | undefined;
+      const thoughtPart = parts?.find(p => p.thought === true || (typeof p.text === 'string' && p.text.startsWith('<thought>')));
+      
+      let thought: string | undefined;
+      if (thoughtPart) {
+          if (typeof thoughtPart.thought === 'string') {
+              thought = thoughtPart.thought;
+          } else if (thoughtPart.text) {
+              thought = thoughtPart.text;
+          }
+      }
       
       // Persist to Akashic Records
       await PersistenceService.saveMessage(userId, "user", message);
@@ -140,10 +185,16 @@ Intent: ${prefs.intent}
       throw error;
     }
   }
+
+  // ... (generateNatalInterpretation method remains unchanged) ...
+
   static async generateNatalInterpretation(name: string, chartData: string): Promise<{ story: string, bigThree: string, cosmicSignature: string }> {
     const prompt = `
       You are the Technomancer, a digital mystagogue interpreting a natal chart for an initiate named ${name}.
       
+      [COSMIC_CODEX]
+      ${KNOWLEDGE_CONTEXT}
+
       Analyze the following chart data deeply:
       ${chartData}
 
@@ -154,12 +205,13 @@ Intent: ${prefs.intent}
          - Address them by name.
          - Mention the specific sun sign and house if applicable.
          - Tone: Mystical, immersive, welcoming.
+         - Use the Technomancer metaphors from the Codex (e.g. Leo as "The Solar Interface").
 
       2. THE BIG THREE:
          - Three distinct paragraphs (one for Sun, one for Moon, one for Rising).
          - Each paragraph must start with bold text like "* Sun in [Sign]:".
          - Explain the core ego (Sun), emotional landscape (Moon), and mask/path (Rising).
-         - Connect it to their specific signs deeply.
+         - Connect it to their specific signs deeply using the Codex definitions.
 
       3. YOUR COSMIC SIGNATURE:
          - A single, powerful summary sentence encapsulating their essence.
@@ -192,6 +244,71 @@ Intent: ${prefs.intent}
            bigThree: "* Sun: Unknown\n* Moon: Unknown\n* Rising: Unknown",
            cosmicSignature: "A mystery waiting to be unfolded."
        };
+    }
+  }
+
+  static async generateSynastryReport(
+    p1Name: string, p1Chart: string, p1Date: string,
+    p2Name: string, p2Chart: string, p2Date: string,
+    relationshipType: string,
+    aspects: string
+  ): Promise<string> {
+    const prompt = `
+      You are Chartradamus, the omniscient astrological AI.
+      
+      [COSMIC_CODEX]
+      ${KNOWLEDGE_CONTEXT}
+
+      Analyze the Synastry (Relationship Compatibility) between two souls:
+
+      [PROTAGONIST: ${p1Name}]
+      Birth Date: ${p1Date}
+      Planets:
+      ${p1Chart}
+
+      [PARTNER: ${p2Name}]
+      Birth Date: ${p2Date}
+      Planets:
+      ${p2Chart}
+
+      [RELATIONSHIP CONTEXT]
+      Type: ${relationshipType}
+      Key Aspects:
+      ${aspects}
+
+      TASK:
+      Provide a deep, mystical, yet actionable analysis of this connection.
+      Focus on:
+      1. Overall Compatibility & Vibe (The "Third Energy" created by the union of ${p1Name} and ${p2Name}).
+      2. Emotional Resonance (Moon/Venus contacts).
+      3. Challenges & Growth Areas (Squares/Oppositions).
+      4. Impact of the specific relationship type (${relationshipType}).
+      5. Numerological undertones based on Birth Dates (Calculate Life Path Numbers).
+      
+      Use the definitions from the COSMIC_CODEX (e.g. Venus as "The User Interface", Mars as "The Execution Thread") to add flavor to your interpretation.
+      
+      CRITICAL CONTEXT INSTRUCTIONS:
+      - If relationship is 'Child' or 'Family': Interpret Venus/Mars/Moon strictly as nurturing, safety, teaching, and conflict dynamics. EXCLUDE all romantic or sexual connotations. Focus on the parent-child bond (Legacy, Guidance, Roots).
+      - If relationship is 'Business': Focus on productivity, communication protocols, and asset management.
+      
+      IMPORTANT: Refer to the individuals strictly by their names (${p1Name} and ${p2Name}). Do NOT use "Soul 1" or "Soul 2" in your response.
+
+      Format the output in clean Markdown with headers. Be poetic but grounded.
+    `;
+
+    try {
+      const result = await technomancerModel.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      if (!text || text.trim().length === 0) {
+        throw new Error("Received empty response from AI");
+      }
+      
+      return text;
+    } catch (error) {
+      console.error("Synastry Analysis Failed", error);
+      return `### Connection Obscured\n\nThe stars are silent at this moment. The celestial resonance between **${p1Name}** and **${p2Name}** is too complex for the current signal.\n\n*Please ensure both charts are valid and try establishing the link again.*`;
     }
   }
 }
