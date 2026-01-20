@@ -97,16 +97,20 @@ const SynastryView: React.FC<SynastryViewProps> = ({ userChart }) => {
 
     const currentSaved = preferences.savedCharts || [];
     
-    // Check for existing chart by name to prevent duplicates
     const existingIndex = currentSaved.findIndex(c => c.name.toLowerCase() === partnerName.toLowerCase());
+
+    const chartToSave: SavedChart = {
+        ...newSavedChart,
+        analysisReport: analysisText // Save the generated report
+    };
 
     if (existingIndex >= 0) {
         const updatedList = [...currentSaved];
         // Merge but keep original ID
-        updatedList[existingIndex] = { ...newSavedChart, id: currentSaved[existingIndex].id };
+        updatedList[existingIndex] = { ...chartToSave, id: currentSaved[existingIndex].id };
         updatePreferences({ savedCharts: updatedList });
     } else {
-        updatePreferences({ savedCharts: [...currentSaved, newSavedChart] });
+        updatePreferences({ savedCharts: [...currentSaved, chartToSave] });
     }
   };
 
@@ -122,6 +126,15 @@ const SynastryView: React.FC<SynastryViewProps> = ({ userChart }) => {
       setPartnerTime(saved.time);
       setPartnerLocation(saved.location);
       setRelationshipType(saved.relationshipType);
+      
+      // Load saved analysis if available
+      if (saved.analysisReport) {
+          setAnalysisText(saved.analysisReport);
+          setAnalysisStatus('success');
+      } else {
+          setAnalysisText("");
+          setAnalysisStatus('idle');
+      }
   };
 
   const handleReset = () => {
@@ -416,117 +429,128 @@ const SynastryView: React.FC<SynastryViewProps> = ({ userChart }) => {
         <motion.div 
            initial={{ opacity: 0 }}
            animate={{ opacity: 1 }}
-           className="w-full flex flex-col lg:flex-row gap-12 items-start justify-center"
+           className="w-full flex flex-col items-center justify-center gap-12"
         >
-          {/* Chart Display */}
-          <div className="flex-1 max-w-2xl bg-pink-950/5 border border-pink-900/20 rounded-3xl p-8 relative">
-             <div className="absolute top-6 left-6">
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-pink-500/60 block mb-1">
-                  Resonance Field
-                </span>
-                <h3 className="text-lg font-bold text-white tracking-tighter uppercase">
-                   {partnerName} <span className="text-pink-700">&</span> You
-                </h3>
-             </div>
-             
-             {userChart && (
-               <BiWheelCompass 
-                 innerChart={userChart} 
-                 outerChart={partnerChart} 
-                 innerLabel="You" 
-                 outerLabel={partnerName} 
-               />
-             )}
-          </div>
-          
-          {/* Aspects List */}
-          <div className="w-full lg:w-80 space-y-4">
-             <h3 className="text-sm font-bold text-pink-500 uppercase tracking-widest border-b border-pink-900/30 pb-2">
-               Key Harmonic Links
-             </h3>
-             <div className="space-y-3">
-               {aspects.length === 0 ? (
-                 <p className="text-xs text-pink-800 italic">No strong major aspects detected.</p>
-               ) : (
-                 aspects.map((asp, i) => (
-                   <motion.div 
-                     key={i}
-                     initial={{ opacity: 0, x: 20 }}
-                     animate={{ opacity: 1, x: 0 }}
-                     transition={{ delay: i * 0.1 }}
-                     className="p-4 bg-pink-950/10 border border-pink-900/20 rounded-xl flex items-center justify-between group hover:bg-pink-900/20 transition-colors"
-                   >
-                      <div className="flex flex-col">
-                        <span className="text-xs font-bold text-white">
-                          Your {asp.p1.name}
-                        </span>
-                        <span className="text-[10px] text-pink-400 capitalize">
-                          {asp.type}
-                        </span>
-                      </div>
-                      <div className="flex flex-col text-right">
-                        <span className="text-xs font-bold text-white">
-                          Their {asp.p2.name}
-                        </span>
-                      </div>
-                   </motion.div>
-                 ))
-               )}
-             </div>
-
-             {/* AI Analysis Section */}
-             <div className="w-full mt-8 border-t border-pink-900/30 pt-6">
-                <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold text-pink-500 uppercase tracking-widest flex items-center gap-2">
-                            <Bot size={16} /> Chartradamus Insight
-                        </h3>
-                        <div className="flex gap-2">
-                            {analysisStatus === 'success' && (
-                                <button
-                                    onClick={toggleSpeech}
-                                    className={`p-2 rounded-lg transition-all ${
-                                        isSpeaking 
-                                            ? 'bg-pink-500 text-white shadow-[0_0_15px_rgba(236,72,153,0.5)]' 
-                                            : 'bg-pink-900/20 text-pink-400 hover:bg-pink-900/40 hover:text-white'
-                                    }`}
-                                >
-                                    {isSpeaking ? <Square size={14} fill="currentColor" /> : <Volume2 size={14} />}
-                                </button>
-                            )}
-                            {analysisStatus === 'idle' && (
-                                <button 
-                                    onClick={handleAnalyzeConnection}
-                                    className="px-4 py-2 bg-pink-600 hover:bg-pink-500 text-black text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all flex items-center gap-2"
-                                >
-                                    <Sparkles size={12} /> Interpret Bond
-                                </button>
-                            )}
-                        </div>
+          <div className="w-full flex flex-col lg:flex-row gap-12 items-start justify-center">
+            {/* Chart Display */}
+            <div className="flex-1 w-full max-w-2xl bg-pink-950/5 border border-pink-900/20 rounded-3xl p-8 relative">
+                <div className="absolute top-6 left-6">
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-pink-500/60 block mb-1">
+                    Resonance Field
+                    </span>
+                    <h3 className="text-lg font-bold text-white tracking-tighter uppercase">
+                    {partnerName} <span className="text-pink-700">&</span> You
+                    </h3>
                 </div>
-
-                {analysisStatus === 'loading' && (
-                    <div className="p-8 bg-pink-950/10 border border-pink-900/20 rounded-2xl flex flex-col items-center justify-center text-center animate-pulse">
-                            <Loader2 className="text-pink-500 animate-spin mb-2" size={24} />
-                            <p className="text-xs text-pink-400 uppercase tracking-widest">Consulting the Akashic Records...</p>
-                    </div>
-                )}
-
-                {analysisStatus === 'success' && (
-                    <motion.div 
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="p-6 bg-pink-950/20 border border-pink-500/20 rounded-2xl text-pink-100/80 text-sm leading-relaxed whitespace-pre-wrap font-mono"
-                    >
-                            {analysisText}
-                    </motion.div>
-                )}
                 
-                {analysisStatus === 'error' && (
-                    <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-xl text-red-300 text-xs text-center">
-                        The stars are clouded. Connection failed.
-                    </div>
+                {userChart && (
+                <BiWheelCompass 
+                    innerChart={userChart} 
+                    outerChart={partnerChart} 
+                    innerLabel="You" 
+                    outerLabel={partnerName} 
+                />
                 )}
-             </div>
+            </div>
+            
+            {/* Aspects List */}
+            <div className="w-full lg:w-80 space-y-4">
+                <h3 className="text-sm font-bold text-pink-500 uppercase tracking-widest border-b border-pink-900/30 pb-2">
+                Key Harmonic Links
+                </h3>
+                <div className="space-y-3">
+                {aspects.length === 0 ? (
+                    <p className="text-xs text-pink-800 italic">No strong major aspects detected.</p>
+                ) : (
+                    aspects.map((asp, i) => (
+                    <motion.div 
+                        key={i}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        className="p-4 bg-pink-950/10 border border-pink-900/20 rounded-xl flex items-center justify-between group hover:bg-pink-900/20 transition-colors"
+                    >
+                        <div className="flex flex-col">
+                            <span className="text-xs font-bold text-white">
+                            Your {asp.p1.name}
+                            </span>
+                            <span className="text-[10px] text-pink-400 capitalize">
+                            {asp.type}
+                            </span>
+                        </div>
+                        <div className="flex flex-col text-right">
+                            <span className="text-xs font-bold text-white">
+                            Their {asp.p2.name}
+                            </span>
+                        </div>
+                    </motion.div>
+                    ))
+                )}
+                </div>
+            </div>
+          </div>
+
+          {/* AI Analysis Section - Full Width */}
+          <div className="w-full max-w-5xl mt-4 border-t border-pink-900/30 pt-8">
+            <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-bold text-pink-500 uppercase tracking-widest flex items-center gap-3">
+                        <Bot size={20} /> Chartradamus Insight
+                    </h3>
+                    <div className="flex gap-2">
+                        {analysisStatus === 'success' && (
+                            <button
+                                onClick={toggleSpeech}
+                                className={`p-3 rounded-lg transition-all ${
+                                    isSpeaking 
+                                        ? 'bg-pink-500 text-white shadow-[0_0_15px_rgba(236,72,153,0.5)]' 
+                                        : 'bg-pink-900/20 text-pink-400 hover:bg-pink-900/40 hover:text-white'
+                                }`}
+                            >
+                                {isSpeaking ? <Square size={16} fill="currentColor" /> : <Volume2 size={16} />}
+                            </button>
+                        )}
+                        {analysisStatus === 'idle' && (
+                            <button 
+                                onClick={handleAnalyzeConnection}
+                                className="px-6 py-3 bg-pink-600 hover:bg-pink-500 text-black text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center gap-2"
+                            >
+                                <Sparkles size={14} /> Interpret Bond
+                            </button>
+                        )}
+                        {/* Re-analyze button if already success */}
+                        {analysisStatus === 'success' && (
+                             <button 
+                                onClick={handleAnalyzeConnection}
+                                className="px-4 py-2 bg-pink-900/20 hover:bg-pink-900/40 border border-pink-500/20 text-pink-400 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all flex items-center gap-2"
+                            >
+                                <RefreshCw size={12} /> Refresh
+                            </button>
+                        )}
+                    </div>
+            </div>
+
+            {analysisStatus === 'loading' && (
+                <div className="p-12 bg-pink-950/10 border border-pink-900/20 rounded-3xl flex flex-col items-center justify-center text-center animate-pulse min-h-[200px]">
+                        <Loader2 className="text-pink-500 animate-spin mb-4" size={32} />
+                        <p className="text-sm text-pink-400 uppercase tracking-widest">Consulting the Akashic Records...</p>
+                </div>
+            )}
+
+            {analysisStatus === 'success' && (
+                <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="p-8 bg-pink-950/20 border border-pink-500/20 rounded-3xl text-pink-100/90 text-base leading-relaxed whitespace-pre-wrap font-mono shadow-xl shadow-black/20"
+                >
+                        {analysisText}
+                </motion.div>
+            )}
+            
+            {analysisStatus === 'error' && (
+                <div className="p-6 bg-red-900/20 border border-red-500/30 rounded-2xl text-red-300 text-sm text-center">
+                    The stars are clouded. Connection failed.
+                </div>
+            )}
           </div>
         </motion.div>
       )}

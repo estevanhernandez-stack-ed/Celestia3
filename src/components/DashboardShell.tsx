@@ -15,13 +15,21 @@ import {
   Clock, 
   Flame, 
   Hash,
-  BookOpen
+  BookOpen,
+  Eye,
+  Gem,
+  Globe,
+  Heart, 
+  Wind,
+  Shield
 } from 'lucide-react';
 import NatalCompass from './NatalCompass';
 import ChatInterface from './ChatInterface';
 import TransitFeed from './TransitFeed';
 import RitualVision from './RitualVision';
 import NumerologyView from './NumerologyView';
+import AdminView from './AdminView';
+import { LockingRuneIcon } from './AstrologyIcons';
 import { useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/context/AuthContext';
 import CosmicCalibration from './CosmicCalibration';
@@ -30,12 +38,10 @@ import OnboardingExperience from './onboarding/OnboardingExperience';
 import NumerologyDetailModal from './NumerologyDetailModal';
 import { SwissEphemerisService } from '@/lib/SwissEphemerisService';
 import { NatalChartData } from '@/types/astrology';
-import { ARCHETYPES, DESTINY_THREADS, SIGN_RULERS } from '@/utils/astrologyUtils';
-import { PLANETARY_FREQUENCIES } from '@/lib/ResonanceService';
+import { ARCHETYPES } from '@/utils/astrologyUtils';
 import { TarotCard } from '@/lib/TarotConstants';
 import RitualControlPanel from './RitualControlPanel';
 import { RitualService, RitualResult } from '@/lib/RitualService';
-import FeatureDetailModal from './FeatureDetailModal';
 import CosmicInsightPanel from './CosmicInsightPanel';
 import SynastryView from './SynastryView';
 import TarotDeck from './TarotDeck';
@@ -49,13 +55,14 @@ import { NumerologyEngine } from '@/utils/NumerologyEngine';
 import { calculateMoonPhase, getNextMoonPhaseDate } from '@/utils/astrologyUtils';
 import { Zap } from 'lucide-react';
 import GrimoireCodex from './GrimoireCodex';
+import CelebrityMatchView from './CelebrityMatchView';
+import { ProgressionService, VIEW_LEVEL_REQUIREMENTS } from '@/lib/ProgressionService';
 
-type DashboardView = 'compass' | 'synastry' | 'tarot' | 'athanor' | 'rituals' | 'chronos' | 'numerology' | 'grimoire';
+type DashboardView = 'compass' | 'synastry' | 'tarot' | 'athanor' | 'rituals' | 'chronos' | 'numerology' | 'grimoire' | 'admin' | 'celebrities';
 
 const DashboardShell: React.FC = () => {
   const [activeView, setActiveView] = useState<DashboardView>('compass');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isOracleOpen, setIsOracleOpen] = useState(false);
   const [isTarotExplorationOpen, setIsTarotExplorationOpen] = useState(false);
   const [isCodexOpen, setIsCodexOpen] = useState(false);
 
@@ -67,12 +74,9 @@ const DashboardShell: React.FC = () => {
   const [ritualResult, setRitualResult] = useState<RitualResult | null>(null);
   const [isPerformingRitual, setIsPerformingRitual] = useState(false);
   
-  const [selectedFeature, setSelectedFeature] = useState<{ title: string; value: string; sub: string } | null>(null);
-  const [oraclePrompt, setOraclePrompt] = useState<string | null>(null);
   const [isReplayingFlyby, setIsReplayingFlyby] = useState(false);
-  const [selectedNum, setSelectedNum] = useState<{number: number, type: 'Life Path' | 'Destiny' | 'Active' | 'Personal Day'} | null>(null);
-
-
+  const [selectedNum, setSelectedNum] = useState<{number: number, type: 'Life Path' | 'Destiny' | 'Active' | 'Personal Day', source: string} | null>(null);
+  const [lockedView, setLockedView] = useState<string | null>(null);
 
   // Check for Welcome
   React.useEffect(() => {
@@ -104,6 +108,11 @@ const DashboardShell: React.FC = () => {
                 tags: ['ritual', paradigm.toLowerCase().replace(' ', '-')]
             });
         }
+
+        // Add XP
+        const progression = ProgressionService.addXP(preferences, 'ritual');
+        updatePreferences({ xp: progression.xp, level: progression.level });
+        
     } catch (e) {
         console.error("Ritual failed", e);
     } finally {
@@ -136,6 +145,10 @@ const DashboardShell: React.FC = () => {
              tags: ['tarot', spreadId]
          });
      }
+
+     // Add XP
+     const progression = ProgressionService.addXP(preferences, 'tarot');
+     updatePreferences({ xp: progression.xp, level: progression.level });
   };
 
   // Calculate Natal Chart once for all dashboard components
@@ -162,15 +175,29 @@ const DashboardShell: React.FC = () => {
   }, [preferences.birthDate, preferences.birthLocation]);
 
   const navItems = [
-    { id: 'compass', label: 'Natal Compass', icon: Compass, color: 'text-emerald-500' },
-    { id: 'synastry', label: 'Synastry', icon: Users, color: 'text-pink-500' },
-    { id: 'tarot', label: 'Tarot Oracle', icon: Sparkles, color: 'text-indigo-400' },
-    { id: 'numerology', label: 'Arithmancy', icon: Hash, color: 'text-purple-400' },
-    { id: 'chronos', label: 'Chronos', icon: Clock, color: 'text-amber-500' },
-    { id: 'rituals', label: 'Rituals', icon: Flame, color: 'text-red-500' },
+    { id: 'compass', label: 'Natal Compass', icon: Compass, color: 'text-indigo-400' },
+    { id: 'synastry', label: 'Synastry', icon: Users, color: 'text-fuchsia-400' },
+    { id: 'tarot', label: 'Tarot Oracle', icon: Sparkles, color: 'text-violet-400' },
+    { id: 'numerology', label: 'Arithmancy', icon: Hash, color: 'text-cyan-400' },
+    { id: 'chronos', label: 'Chronos', icon: Clock, color: 'text-amber-400' },
+    { id: 'rituals', label: 'Rituals', icon: Flame, color: 'text-orange-500' },
+    { id: 'celebrities', label: 'Celebrity Synergy', icon: Users, color: 'text-rose-400' },
     { id: 'grimoire', label: 'Grimoire', icon: Book, color: 'text-emerald-300' },
-    { id: 'athanor', label: 'Athanor AI', icon: MessageSquare, color: 'text-blue-500' },
+    { id: 'codex', label: 'Cosmic Codex', icon: BookOpen, color: 'text-indigo-300' },
+    { id: 'athanor', label: 'Athanor AI', icon: MessageSquare, color: 'text-blue-400' },
+    { id: 'admin', label: 'Sanctum Control', icon: Shield, color: 'text-cyan-400' },
   ];
+
+  const userLevel = preferences.level || 1;
+
+  const handleViewChange = (view: string) => {
+    const req = VIEW_LEVEL_REQUIREMENTS[view];
+    if (req && userLevel < req) {
+      setLockedView(view);
+      return;
+    }
+    setActiveView(view as DashboardView);
+  };
 
   /* 
     COMPONENTS ARE CURRENTLY DISABLED FOR DEBUGGING 
@@ -178,20 +205,20 @@ const DashboardShell: React.FC = () => {
   */
 
   return (
-    <div className="flex h-screen bg-black text-emerald-400 font-mono overflow-hidden">
+    <div className="flex h-screen bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-indigo-950 via-slate-950 to-black text-slate-200 font-sans overflow-hidden">
       {/* Sidebar */}
       <div 
-        className={`${isSidebarCollapsed ? 'w-20' : 'w-64'} bg-black/80 backdrop-blur-xl border-r border-emerald-900/30 transition-all duration-300 flex flex-col z-20`}
+        className={`${isSidebarCollapsed ? 'w-20' : 'w-64'} bg-black/40 backdrop-blur-xl border-r border-white/10 transition-all duration-300 flex flex-col z-20 shadow-2xl`}
       >
-        <div className="p-4 border-b border-emerald-900/30 flex items-center justify-between">
+        <div className="p-4 border-b border-white/10 flex items-center justify-between">
             {!isSidebarCollapsed && (
-                <div className="font-bold text-xl tracking-wider text-transparent bg-clip-text bg-linear-to-r from-emerald-400 to-cyan-400">
+                <div className="font-bold text-xl tracking-wider text-transparent bg-clip-text bg-linear-to-r from-indigo-400 via-fuchsia-400 to-amber-400">
                     CELESTIA
                 </div>
             )}
             <button 
                 onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                className="p-2 hover:bg-emerald-900/20 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/5 rounded-lg transition-colors text-white/50 hover:text-white"
             >
                 {isSidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
             </button>
@@ -199,21 +226,30 @@ const DashboardShell: React.FC = () => {
 
         <nav className="flex-1 overflow-y-auto p-4 space-y-2">
             {navItems.map((item) => {
-                const Icon = item.icon;
+                const isLocked = VIEW_LEVEL_REQUIREMENTS[item.id] > userLevel;
                 return (
                     <button
                         key={item.id}
-                        onClick={() => setActiveView(item.id as DashboardView)}
-                        className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all group ${
+                        onClick={() => {
+                            if (item.id === 'codex') {
+                                setIsCodexOpen(true);
+                            } else {
+                                handleViewChange(item.id);
+                            }
+                        }}
+                        className={`w-full flex items-center justify-between p-4 rounded-xl transition-all group border ${
                             activeView === item.id 
-                            ? 'bg-emerald-900/30 text-emerald-300 border border-emerald-500/30' 
-                            : 'hover:bg-emerald-900/10 text-emerald-600'
-                        }`}
+                            ? 'bg-white/10 text-white border-white/20 shadow-lg shadow-indigo-500/10' 
+                            : 'hover:bg-white/5 text-slate-400 border-transparent hover:text-white'
+                        } ${isLocked ? 'opacity-50 grayscale-[0.5]' : ''}`}
                     >
-                        <Icon className={item.color} size={24} />
-                        {!isSidebarCollapsed && (
-                            <span className="font-medium tracking-wide">{item.label}</span>
-                        )}
+                        <div className="flex items-center gap-4">
+                            <item.icon className={activeView === item.id ? item.color : 'text-slate-500 group-hover:text-white transition-colors'} size={24} />
+                            {!isSidebarCollapsed && (
+                                <span className="font-medium tracking-wide text-sm">{item.label}</span>
+                            )}
+                        </div>
+                        {isLocked && <LockingRuneIcon size={12} className="text-slate-600" />}
                     </button>
                 )
             })}
@@ -223,20 +259,28 @@ const DashboardShell: React.FC = () => {
       {/* Main Content Area */}
       <div className="flex-1 relative overflow-hidden flex flex-col">
         {/* Header */}
-        <header className="h-16 border-b border-emerald-900/30 flex items-center px-6 justify-between bg-black/50 backdrop-blur-md z-10">
+        <header className="h-16 border-b border-white/5 flex items-center px-6 justify-between bg-black/20 backdrop-blur-md z-10 relative">
             <div className="flex items-center gap-6">
-                <h1 className="text-xl font-medium tracking-widest text-emerald-400 uppercase">
+                <h1 className="text-xl font-medium tracking-widest text-indigo-200 uppercase font-serif">
                     {navItems.find(i => i.id === activeView)?.label}
                 </h1>
                 
+                {/* Cosmic Wisdom Ticker */}
+                <div className="hidden xl:flex items-center gap-3 px-4 py-1.5 bg-white/5 rounded-full border border-white/10 hover:border-indigo-500/30 transition-colors">
+                    <Sparkles size={12} className="text-amber-300" />
+                    <span className="text-[10px] text-slate-300 uppercase tracking-wider font-medium">
+                         Current Current: Neptune Stationing Direct <span className="text-fuchsia-400 mx-1">→</span> Dreams verify Reality.
+                    </span>
+                </div>
+
                 {/* Moon Phase Widget */}
-                <div className="hidden lg:flex items-center gap-3 px-3 py-1 bg-emerald-900/20 rounded-full border border-emerald-500/10">
+                <div className="hidden lg:flex items-center gap-3 px-3 py-1 bg-white/5 rounded-full border border-white/10">
                     <span className="text-lg">{calculateMoonPhase().emoji}</span>
                     <div className="flex flex-col leading-none">
-                        <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">
+                        <span className="text-[10px] text-fuchsia-300 font-bold uppercase tracking-widest">
                             {calculateMoonPhase().phase}
                         </span>
-                        <span className="text-[9px] text-emerald-600/70">
+                        <span className="text-[9px] text-slate-400">
                             {getNextMoonPhaseDate().phase} in {getNextMoonPhaseDate().timeRemaining}
                         </span>
                     </div>
@@ -244,21 +288,32 @@ const DashboardShell: React.FC = () => {
             </div>
             
             <div className="flex items-center gap-4">
+                {/* Ascension Progress */}
+                <div className="hidden sm:flex flex-col items-end gap-1 mr-4">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-indigo-300 uppercase font-black tracking-widest">
+                            {ProgressionService.getLevelTitle(preferences.level || 1)}
+                        </span>
+                        <span className="text-xs font-bold text-white bg-indigo-500/20 px-2 py-0.5 rounded border border-indigo-500/30">
+                            Lvl {preferences.level || 1}
+                        </span>
+                    </div>
+                    <div className="w-32 h-1.5 bg-black/40 rounded-full border border-white/5 overflow-hidden">
+                        <motion.div 
+                            className="h-full bg-linear-to-r from-indigo-500 via-fuchsia-500 to-amber-400"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${((preferences.xp || 0) / ProgressionService.getXPForNextLevel(preferences.level || 1)) * 100}%` }}
+                        />
+                    </div>
+                </div>
+
                 <div className="text-right hidden md:block">
-                    <div className="text-xs text-emerald-600 uppercase tracking-widest">Operator</div>
+                    <div className="text-[10px] text-indigo-400/80 uppercase tracking-widest">Operator</div>
                     <div className="text-sm font-bold text-white">{preferences?.name || "Initiate"}</div>
                 </div>
-                {/* Cosmic Codex Button */}
-                <button 
-                    onClick={() => setIsCodexOpen(true)}
-                    className="p-2 hover:bg-emerald-900/30 rounded-full transition-colors text-emerald-500"
-                    title="Cosmic Codex"
-                >
-                    <BookOpen size={20} />
-                </button>
                 <button 
                     onClick={() => setIsCalibrationOpen(true)}
-                    className="p-2 hover:bg-emerald-900/30 rounded-full transition-colors text-emerald-500"
+                    className="p-2 hover:bg-white/10 rounded-full transition-colors text-indigo-400 hover:text-white"
                     title="Cosmic Calibration"
                 >
                     <Settings size={20} />
@@ -286,13 +341,13 @@ const DashboardShell: React.FC = () => {
                                         <h1 className="text-3xl font-bold text-white tracking-tight">
                                             Welcome back, {preferences.name || "Initiate"}
                                         </h1>
-                                        <div className="flex items-center gap-3 text-emerald-500/60 text-sm font-mono">
+                                        <div className="flex items-center gap-3 text-slate-400 text-sm font-medium tracking-wide">
                                             <span>{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}</span>
                                         </div>
                                     </div>
                                     <button 
                                         onClick={() => setIsReplayingFlyby(true)}
-                                        className="mb-1 text-[10px] uppercase tracking-widest text-emerald-600 hover:text-emerald-400 border border-emerald-900/30 hover:bg-emerald-900/20 px-3 py-1.5 rounded-lg transition-all"
+                                        className="mb-1 text-[10px] uppercase tracking-widest text-indigo-400 hover:text-white border border-indigo-500/30 hover:bg-indigo-500/20 px-3 py-1.5 rounded-lg transition-all"
                                     >
                                         Replay Flyby
                                     </button>
@@ -302,28 +357,40 @@ const DashboardShell: React.FC = () => {
                                 {(() => {
                                     const pulse = NumerologyEngine.getDailyPulse(preferences.birthDate || new Date());
                                     return (
-                                        <div className="bg-gradient-to-r from-slate-900 to-black border border-emerald-900/30 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl relative overflow-hidden group">
-                                            <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                        <div className="bg-linear-to-r from-indigo-950 to-slate-900 border border-indigo-500/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl relative overflow-hidden group">
+                                            <div className="absolute inset-0 bg-fuchsia-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                                             
                                             <div className="flex items-start gap-4 flex-1">
                                                 <div className="h-12 w-12 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 shrink-0">
                                                     <Zap className="text-indigo-400" size={24} />
                                                 </div>
-                                                <div className="space-y-2">
-                                                    <div className="text-indigo-300 font-bold uppercase tracking-widest text-xs">Daily Pulse</div>
-                                                    <p className="text-emerald-100/90 leading-relaxed font-medium">
-                                                        {pulse.message}
-                                                    </p>
+                                                <div className="space-y-3">
+                                                    <div className="space-y-1">
+                                                        <div className="text-indigo-300 font-bold uppercase tracking-widest text-xs">Daily Pulse</div>
+                                                        <p className="text-slate-100 leading-relaxed font-medium font-serif text-lg">
+                                                            {pulse.message}
+                                                        </p>
+                                                    </div>
+                                                    
+                                                    {pulse.context && (
+                                                        <div className="pt-3 border-t border-indigo-500/10 flex items-start gap-2">
+                                                            <div className="mt-0.5 w-1 h-3 bg-indigo-500/50 rounded-full" />
+                                                            <p className="text-xs text-indigo-300/80 leading-relaxed">
+                                                                <span className="font-bold text-indigo-300 uppercase tracking-wider mr-1">Cosmic Resonance:</span>
+                                                                {pulse.context}
+                                                            </p>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
 
                                             <div className="flex items-center gap-4 shrink-0">
-                                                <div className="bg-black/40 border border-emerald-900 rounded-lg px-4 py-2 text-center">
-                                                    <div className="text-[10px] text-emerald-600 uppercase tracking-widest mb-1">Focus</div>
+                                                <div className="bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-center">
+                                                    <div className="text-[10px] text-indigo-400 uppercase tracking-widest mb-1">Focus</div>
                                                     <div className="text-white font-bold text-sm">{pulse.focus}</div>
                                                 </div>
-                                                <div className="bg-black/40 border border-emerald-900 rounded-lg px-4 py-2 text-center">
-                                                    <div className="text-[10px] text-emerald-600 uppercase tracking-widest mb-1">Color</div>
+                                                <div className="bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-center">
+                                                    <div className="text-[10px] text-indigo-400 uppercase tracking-widest mb-1">Color</div>
                                                     <div className={`${pulse.hex} font-bold text-sm`}>{pulse.color}</div>
                                                 </div>
                                             </div>
@@ -331,46 +398,96 @@ const DashboardShell: React.FC = () => {
                                     );
                                 })()}
 
-                                 {/* Numerology Row */}
-                                <div className="grid grid-cols-3 gap-4">
+                                {/* Numerology Row */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                      {[
                                         { 
                                             label: "Life Path", 
                                             val: NumerologyEngine.calculateLifePath(preferences.birthDate || new Date()).core, 
                                             color: "text-amber-400",
-                                            desc: "The road you're traveling. Your core purpose."
+                                            borderColor: "border-amber-500/30",
+                                            bg: "bg-amber-950/10",
+                                            desc: "The road you're traveling. Your core purpose.",
+                                            source: `Birth Date: ${new Date(preferences.birthDate || Date.now()).toLocaleDateString()}`
                                         },
                                         { 
                                             label: "Destiny", 
                                             val: NumerologyEngine.calculateName(preferences.fullName || preferences.name || "", 'pythagorean').core, 
                                             color: "text-cyan-400",
-                                            desc: "Your potential. What you're destined to become."
+                                            borderColor: "border-cyan-500/30",
+                                            bg: "bg-cyan-950/10",
+                                            desc: "Your potential. What you're destined to become.",
+                                            source: `Birth Name: ${preferences.fullName || preferences.name || "Unknown"}`
                                         },
                                         { 
                                             label: "Active", 
                                             val: NumerologyEngine.calculateName(preferences.name || "Initiate", 'chaldean').core, 
                                             color: "text-pink-400",
-                                            desc: "Your daily energy. How you interact right now."
+                                            borderColor: "border-pink-500/30",
+                                            bg: "bg-pink-950/10",
+                                            desc: "Your daily energy. How you interact right now.",
+                                            source: `Chosen Name: ${preferences.name || "Initiate"}`
                                         }
-                                     ].map((num, i) => (
-                                         <div key={i} className="bg-black/40 border border-emerald-900/30 rounded-xl p-4 flex flex-col items-center justify-center hover:border-emerald-500/30 transition-all group relative cursor-help">
-                                             <span className={`text-4xl font-black ${num.color}`}>{num.val}</span>
-                                             <span className="text-[10px] uppercase tracking-widest text-emerald-600 mt-1">{num.label}</span>
-                                             
-                                             {/* Tooltip */}
-                                             <div className="absolute top-full mt-2 w-32 p-2 bg-black border border-emerald-500/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
-                                                <p className="text-[9px] text-emerald-300 text-center leading-tight">
-                                                    {num.desc}
-                                                </p>
+                                     ].map((num, i) => {
+                                         const details = NumerologyEngine.getRichDetails(num.val);
+                                         
+                                         // Dynamic Icon Mapping
+                                         let Icon = Sparkles;
+                                         if (num.val === 1) Icon = Flame;
+                                         if (num.val === 2) Icon = Users;
+                                         if (num.val === 3) Icon = Sparkles;
+                                         if (num.val === 4) Icon = Hash; // Structure
+                                         if (num.val === 5) Icon = Wind; // Change
+                                         if (num.val === 6) Icon = Heart;
+                                         if (num.val === 7) Icon = Eye;
+                                         if (num.val === 8) Icon = Gem;
+                                         if (num.val === 9) Icon = Globe;
+                                         if (num.val === 11) Icon = Zap;
+                                         if (num.val === 22) Icon = Compass; // Architect
+                                         if (num.val === 33) Icon = Sun;
+
+                                         return (
+                                         <button 
+                                            key={i} 
+                                            onClick={() => setSelectedNum({number: num.val, type: num.label as any, source: num.source})}
+                                            className={`relative overflow-hidden rounded-2xl border ${num.borderColor} ${num.bg} p-6 flex flex-col items-start justify-between min-h-[160px] hover:scale-[1.02] transition-all group text-left w-full hover:shadow-2xl hover:shadow-${num.color.replace('text-', '')}/20`}
+                                         >
+                                             {/* Header */}
+                                             <div className="flex justify-between items-start w-full z-10">
+                                                 <div className="flex flex-col">
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-500/80 mb-1">{num.label}</span>
+                                                    <span className={`text-xs font-bold ${num.color} opacity-90 uppercase tracking-wider max-w-[120px] leading-tight`}>
+                                                        {details.title}
+                                                    </span>
+                                                 </div>
+                                                 <div className={`p-2 rounded-lg bg-black/40 border ${num.borderColor}`}>
+                                                     <Icon className={`${num.color} opacity-80`} size={18} />
+                                                 </div>
                                              </div>
-                                         </div>
-                                     ))}
+                                             
+                                             {/* Big Number Watermark */}
+                                             <div className={`absolute -bottom-6 -right-4 text-9xl font-black ${num.color} opacity-[0.07] group-hover:opacity-[0.15] transition-opacity select-none pointer-events-none`}>
+                                                 {num.val}
+                                             </div>
+                                             
+                                             {/* Main Number Display */}
+                                             <div className="z-10 mt-6 flex items-baseline gap-2">
+                                                 <span className={`text-5xl font-black ${num.color} tracking-tighter filter drop-shadow-lg`}>
+                                                    {num.val}
+                                                 </span>
+                                             </div>
+
+                                             <div className="z-10 mt-2 opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-4 right-4 bg-black/90 px-3 py-1.5 rounded-full text-[9px] text-emerald-400 border border-emerald-500/30 font-bold tracking-widest uppercase shadow-xl">
+                                                Tap to Decode
+                                             </div>
+                                         </button>
+                                     )})}
                                 </div>
                              </div>
 
                              {/* Chart & Compass Grid */}
                              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[500px]">
-                                 <div className="lg:col-span-2 flex flex-col items-center justify-center relative bg-emerald-900/5 rounded-2xl border border-emerald-900/20">
+                                 <div className="lg:col-span-2 flex flex-col items-center justify-center relative bg-black/40 rounded-2xl border border-white/5">
                                       <NatalCompass chart={natalChart} />
                                  </div>
 
@@ -379,18 +496,18 @@ const DashboardShell: React.FC = () => {
                                   {natalChart ? (
                                     <>
                                         {/* Identity Card */}
-                                        <div className="bg-black/40 backdrop-blur-md border border-emerald-500/30 p-6 rounded-xl space-y-4">
-                                            <div className="flex items-center gap-3 border-b border-emerald-900/50 pb-3">
-                                                <div className="h-10 w-10 rounded-full bg-emerald-900/40 flex items-center justify-center border border-emerald-500/50">
-                                                    <span className="text-lg font-bold text-emerald-300">
+                                        <div className="bg-slate-900/40 backdrop-blur-md border border-white/10 p-6 rounded-xl space-y-4 shadow-xl">
+                                            <div className="flex items-center gap-3 border-b border-white/10 pb-3">
+                                                <div className="h-10 w-10 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-400/30">
+                                                    <span className="text-lg font-bold text-indigo-300">
                                                         {preferences.name ? preferences.name[0].toUpperCase() : "O"}
                                                     </span>
                                                 </div>
                                                 <div>
-                                                    <h2 className="text-emerald-300 font-bold tracking-wider text-lg">
+                                                    <h2 className="text-white font-bold tracking-wider text-lg font-serif">
                                                         {preferences.name || "OPERATOR"}
                                                     </h2>
-                                                    <p className="text-emerald-600 text-xs font-mono uppercase">
+                                                    <p className="text-indigo-400 text-xs font-mono uppercase tracking-widest">
                                                         Level 1 Initiate
                                                     </p>
                                                 </div>
@@ -431,7 +548,7 @@ const DashboardShell: React.FC = () => {
 
                                                 {/* Ascendant */}
                                                 <div className="flex items-center justify-between group">
-                                                    <div className="flex items-center gap-2 text-purple-400">
+                                                    <div className="flex items-center gap-2 text-fuchsia-400">
                                                         <Compass size={18} />
                                                         <span className="text-sm font-medium">Rising</span>
                                                     </div>
@@ -439,7 +556,7 @@ const DashboardShell: React.FC = () => {
                                                         <div className="text-white font-bold">
                                                             {natalChart.ascendant?.sign}
                                                         </div>
-                                                        <div className="text-[10px] text-purple-400/60 uppercase tracking-widest">
+                                                        <div className="text-[10px] text-fuchsia-400/60 uppercase tracking-widest">
                                                             {ARCHETYPES[natalChart.ascendant?.sign || 'Aries']}
                                                         </div>
                                                     </div>
@@ -451,7 +568,7 @@ const DashboardShell: React.FC = () => {
                                         <CosmicInsightPanel chart={natalChart} />
                                     </>
                                   ) : (
-                                    <div className="text-center text-emerald-500/50 animate-pulse">
+                                    <div className="text-center text-indigo-400/50 animate-pulse font-serif">
                                         Calibrating Astral Sensors...
                                     </div>
                                   )}
@@ -482,6 +599,7 @@ const DashboardShell: React.FC = () => {
                         <NumerologyView 
                             birthDate={preferences.birthDate || ""} 
                             fullName={preferences.fullName || preferences.name || ""} 
+                            commonName={preferences.name}
                         />
                     )}
                     {activeView === 'rituals' && (
@@ -509,6 +627,14 @@ const DashboardShell: React.FC = () => {
                             <ChatInterface />
                         </div>
                     )}
+
+                    {activeView === 'celebrities' && (
+                        <CelebrityMatchView userChart={natalChart as NatalChartData} />
+                    )}
+
+                    {activeView === 'admin' && (
+                        <AdminView />
+                    )}
                 </motion.div>
             </AnimatePresence>
         </main>
@@ -534,6 +660,7 @@ const DashboardShell: React.FC = () => {
                     onClose={() => setSelectedNum(null)}
                     number={selectedNum.number}
                     type={selectedNum.type}
+                    source={selectedNum.source}
                 />
             )}
             {isReplayingFlyby && (
@@ -547,6 +674,48 @@ const DashboardShell: React.FC = () => {
                     isOpen={isCodexOpen} 
                     onClose={() => setIsCodexOpen(false)} 
                 />
+            )}
+            {lockedView && (
+                <div 
+                    className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl"
+                    onClick={() => setLockedView(null)}
+                >
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-slate-950 border border-indigo-500/30 p-12 rounded-[3rem] shadow-2xl shadow-indigo-500/10 max-w-md w-full text-center space-y-8 relative overflow-hidden"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-indigo-500/50 to-transparent" />
+                        <div className="flex justify-center">
+                            <div className="p-6 bg-indigo-500/10 rounded-full border border-indigo-500/20 relative">
+                                <LockingRuneIcon size={48} className="text-indigo-400" />
+                                <motion.div 
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
+                                    className="absolute inset-0 border-2 border-dashed border-indigo-500/20 rounded-full"
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-4">
+                            <h2 className="text-2xl font-bold font-serif text-white uppercase tracking-[0.2em]">Mystical Seal Active</h2>
+                            <p className="text-slate-400 text-sm leading-relaxed uppercase tracking-widest">
+                                Your soul current is not yet tuned to the frequencies of <span className="text-indigo-300 font-black">{lockedView}</span>.
+                            </p>
+                            <div className="pt-4 flex flex-col items-center gap-2">
+                                <div className="text-[10px] text-indigo-500 font-black uppercase tracking-[0.3em]">Required Level</div>
+                                <div className="text-3xl font-serif text-white">{VIEW_LEVEL_REQUIREMENTS[lockedView]}</div>
+                                <div className="text-[9px] text-slate-500 uppercase tracking-widest mt-2">{ProgressionService.getLevelTitle(VIEW_LEVEL_REQUIREMENTS[lockedView])}</div>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={() => setLockedView(null)}
+                            className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-[0.2em] rounded-2xl transition-all active:scale-95"
+                        >
+                            Understood
+                        </button>
+                    </motion.div>
+                </div>
             )}
         </AnimatePresence>
       

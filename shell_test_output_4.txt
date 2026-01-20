@@ -1,0 +1,29 @@
+FAIL src/__tests__/DashboardShell.test.tsx
+  ΓùÅ Test suite failed to run
+
+    FirebaseError: Firebase: Error (auth/invalid-api-key).
+
+      15 | const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+      16 | export const db = getFirestore(app);
+    > 17 | export const auth = getAuth(app);
+         |                            ^
+      18 |
+
+      at createErrorInternal (node_modules/@firebase/auth/src/core/util/assert.ts:152:38)
+      at _assert (node_modules/@firebase/auth/src/core/util/assert.ts:177:11)
+      at Component.instanceFactory (node_modules/@firebase/auth/src/core/auth/register.ts:72:9)
+      at Provider.getOrInitializeService (node_modules/@firebase/component/src/provider.ts:318:33)
+      at Provider.initialize (node_modules/@firebase/component/src/provider.ts:242:27)
+      at initializeAuth (node_modules/@firebase/auth/src/core/auth/initialize.ts:66:25)
+      at getAuth (node_modules/@firebase/auth/src/platform_node/index.ts:45:16)
+      at Object.<anonymous> (src/lib/firebase.ts:17:28)
+      at Object.<anonymous> (src/lib/GrimoireService.ts:12:19)
+      at Object.<anonymous> (src/components/RitualVision.tsx:16:26)
+      at Object.<anonymous> (src/components/DashboardShell.tsx:19:62)
+      at Object.<anonymous> (src/__tests__/DashboardShell.test.tsx:51:64)
+
+Test Suites: 1 failed, 1 total
+Tests:       0 total
+Snapshots:   0 total
+Time:        1.509 s
+Ran all test suites matching src/__tests__/DashboardShell.test.tsx.

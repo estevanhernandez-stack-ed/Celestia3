@@ -1,0 +1,71 @@
+import React, { useRef } from 'react';
+import { useFrame, useLoader } from '@react-three/fiber';
+import * as THREE from 'three';
+import { Sphere, MeshDistortMaterial } from '@react-three/drei';
+
+interface PlanetSceneOrbProps {
+  name: string;
+  x: number;
+  y: number;
+  size: number;
+  isHovered?: boolean;
+}
+
+export const PlanetSceneOrb: React.FC<PlanetSceneOrbProps> = ({ name, x, y, size, isHovered = false }) => {
+  const meshRef = useRef<THREE.Mesh>(null);
+  
+  // Normalize names for file paths
+  const fileName = name.toLowerCase().replace(/\s+/g, '');
+  const texturePath = `/assets/planets/${fileName}.png`;
+  
+  // Load texture
+  const texture = useLoader(THREE.TextureLoader, texturePath);
+
+  useFrame((state, delta) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.y += delta * 0.5;
+    }
+  });
+
+  // Calculate scaling based on hover
+  const scale = isHovered ? 1.3 : 1;
+
+  return (
+    <group position={[x, y, 0]} scale={[size * scale, size * scale, size * scale]}>
+      {/* Soft Ambient Glow / Halo */}
+      <Sphere args={[1.2, 32, 32]}>
+        <meshBasicMaterial 
+          color={isHovered ? "#a5b4fc" : "#6366f1"} 
+          transparent 
+          opacity={isHovered ? 0.3 : 0.1}
+          side={THREE.BackSide} 
+        />
+      </Sphere>
+
+      {/* Main Planet Body */}
+      <Sphere ref={meshRef} args={[1, 64, 64]}>
+        <meshStandardMaterial 
+          map={texture}
+          emissive={isHovered ? "#a5b4fc" : "#000000"}
+          emissiveIntensity={isHovered ? 0.5 : 0}
+          roughness={0.7}
+          metalness={0.3}
+        />
+      </Sphere>
+
+      {/* Atmospheric Shimmer on Hover */}
+      {isHovered && (
+        <Sphere args={[1.05, 32, 32]}>
+          <MeshDistortMaterial
+            color="#a5b4fc"
+            transparent
+            opacity={0.2}
+            speed={2}
+            distort={0.3}
+            radius={1}
+          />
+        </Sphere>
+      )}
+    </group>
+  );
+};

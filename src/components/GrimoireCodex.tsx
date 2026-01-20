@@ -17,7 +17,7 @@ interface GrimoireCodexProps {
     onClose: () => void;
 }
 
-const CATEGORIES: { id: KnowledgeCategory, label: string, icon: React.ElementType }[] = [
+const CATEGORIES: { id: KnowledgeCategory, label: string, icon: React.FC<{ size?: number; className?: string }> }[] = [
     { id: 'Zodiac', label: 'Zodiac', icon: Sparkles },
     { id: 'Planets', label: 'Planets', icon: Activity },
     { id: 'Houses', label: 'Houses', icon: Brain },

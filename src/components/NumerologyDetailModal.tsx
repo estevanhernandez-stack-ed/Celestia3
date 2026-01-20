@@ -8,9 +8,10 @@ interface NumerologyDetailModalProps {
     onClose: () => void;
     number: number | null;
     type: 'Life Path' | 'Destiny' | 'Active' | 'Personal Day' | null;
+    source?: string;
 }
 
-const NumerologyDetailModal: React.FC<NumerologyDetailModalProps> = ({ isOpen, onClose, number, type }) => {
+const NumerologyDetailModal: React.FC<NumerologyDetailModalProps> = ({ isOpen, onClose, number, type, source }) => {
     if (!isOpen || number === null || !type) return null;
 
     const details = NumerologyEngine.getRichDetails(number);
@@ -93,7 +94,7 @@ const NumerologyDetailModal: React.FC<NumerologyDetailModalProps> = ({ isOpen, o
                     {/* Footer */}
                     <div className="p-4 bg-black/40 border-t border-indigo-900/30 text-center">
                         <p className="text-[10px] text-indigo-500/40 uppercase tracking-widest">
-                            Calculated from {type === 'Personal Day' ? 'Current Date & Birth Date' : 'Natal Data'}
+                            Calculated from: <span className="text-indigo-400 font-bold">{source || (type === 'Personal Day' ? 'Current Date & Birth Date' : 'Natal Data')}</span>
                         </p>
                     </div>
                 </motion.div>

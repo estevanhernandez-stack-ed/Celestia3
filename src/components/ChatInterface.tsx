@@ -33,7 +33,11 @@ export default function ChatInterface({ initialPrompt, onPromptHandled }: ChatIn
   useEffect(() => {
     if (user) {
       PersistenceService.getHistory(user.uid).then(history => {
-        if (history.length > 0) setMessages(history);
+        if (history.length > 0) {
+          // Deduplicate messages by ID to prevent React key errors
+          const uniqueHistory = Array.from(new Map(history.map(m => [m.id, m])).values());
+          setMessages(uniqueHistory);
+        }
       });
     }
   }, [user]);
@@ -56,7 +60,12 @@ export default function ChatInterface({ initialPrompt, onPromptHandled }: ChatIn
       map[preferences.name] = preferences.phoneticName;
     }
     voiceService.setPronunciations(map);
-  }, [preferences.name, preferences.phoneticName]);
+    
+    // Sync Resonance Volume
+    if (typeof preferences.voiceVolume === 'number') {
+      ResonanceService.setVolume(preferences.voiceVolume * 0.4); // 0.4 is the base master gain
+    }
+  }, [preferences.name, preferences.phoneticName, preferences.voiceVolume]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -110,20 +119,29 @@ export default function ChatInterface({ initialPrompt, onPromptHandled }: ChatIn
       };
       
       setMessages((prev) => [...prev, aiMsg]);
+      setIsLoading(false); // Unlock UI immediately so user can interrupt
       
-      // Speak the response
-      ResonanceService.duck();
-      await voiceService.speak(content, {
-        voiceId: preferences.voiceId,
-        rate: preferences.voiceSpeed,
-        pitch: preferences.voicePitch
-      });
-      ResonanceService.unduck();
-
       if (result.thought_signature) {
         setActiveThought(result.thought_signature);
       }
+
+      // Speak the response asynchronously
+      (async () => {
+        try {
+          ResonanceService.duck();
+          await voiceService.speak(content, {
+            voiceId: preferences.voiceId,
+            rate: preferences.voiceSpeed,
+            pitch: preferences.voicePitch,
+            volume: preferences.voiceVolume ?? 1.0
+          });
+        } finally {
+          ResonanceService.unduck();
+        }
+      })();
+
     } catch (error) {
+      setIsLoading(false);
       ResonanceService.unduck(); // Ensure volume restores on error
       const errorMsg: ChatMessage = { 
         id: "err-" + Date.now(),
@@ -132,8 +150,6 @@ export default function ChatInterface({ initialPrompt, onPromptHandled }: ChatIn
         timestamp: Date.now()
       };
       setMessages((prev) => [...prev, errorMsg]);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -211,7 +227,8 @@ export default function ChatInterface({ initialPrompt, onPromptHandled }: ChatIn
                         await voiceService.speak(m.content, {
                           voiceId: preferences.voiceId,
                           rate: preferences.voiceSpeed,
-                          pitch: preferences.voicePitch
+                          pitch: preferences.voicePitch,
+                          volume: preferences.voiceVolume ?? 1.0
                         });
                         ResonanceService.unduck();
                       }}
@@ -250,7 +267,7 @@ export default function ChatInterface({ initialPrompt, onPromptHandled }: ChatIn
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="CAST YOUR INTENT..."
-              className="w-full bg-emerald-950/10 border border-emerald-900/50 rounded-2xl px-6 py-4 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all text-emerald-100 placeholder:text-emerald-900/60 shadow-inner group-hover:border-emerald-700/50"
+              className="w-full bg-emerald-950/10 border border-emerald-900/50 rounded-2xl pl-6 pr-14 py-4 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all text-emerald-100 placeholder:text-emerald-900/60 shadow-inner group-hover:border-emerald-700/50"
             />
             <button
               onClick={handleSend}

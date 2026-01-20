@@ -12,6 +12,7 @@ export interface SavedChart {
     city: string;
   };
   relationshipType: 'Romantic' | 'Platonic' | 'Business' | 'Family' | 'Child' | 'Other';
+  analysisReport?: string;
 }
 
 export interface UserPreferences {
@@ -29,6 +30,7 @@ export interface UserPreferences {
   phoneticName?: string;
   voiceId?: string;
   voiceSpeed?: number;
+  voiceVolume?: number;
   voicePitch?: number;
   birthDate?: string;
   birthLocation?: {
@@ -44,6 +46,8 @@ export interface UserPreferences {
       timestamp: number;
   };
   savedCharts?: SavedChart[];
+  xp: number;
+  level: number;
 }
 
 export const DEFAULT_PREFERENCES: UserPreferences = {
@@ -60,5 +64,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   phoneticName: "",
   voiceId: "en-US-Journey-F",
   voiceSpeed: 1.0,
+  voiceVolume: 1.0,
   voicePitch: 0.0,
+  xp: 0,
+  level: 1,
 };

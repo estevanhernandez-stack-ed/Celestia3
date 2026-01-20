@@ -357,3 +357,12 @@ export const HOUSE_KNOWLEDGE: KnowledgeItem[] = [
         keywords: ["Unconscious", "Spirituality", "Endings"]
     }
 ];
+
+export const PARADIGM_INSTRUCTIONS: Record<string, string> = {
+    'Antiquity': "Analyze charts using Traditional Astrology (Hellenistic/Medieval). Focus on planetary condition, sect, and essential dignity (rulership, exaltation). Avoid modern psychological fluff.",
+    'Picatrix': "Draw upon the *Ghayat al-Hakim*. Focus on talismanic imagery, the spirit of the planets, and elective timing for magical operations. Use visceral, sensory descriptions.",
+    'Agrippa': "Draw upon the *Three Books of Occult Philosophy*. Use celestial hierarchies, elemental correspondences, and the connection between the natural, celestial, and intellectual worlds.",
+    'PGM': "Draw upon the *Greek Magical Papyri*. Use barbarous names of power, syncretic deity invocations, and raw, primal magical language. Focus on results and direct intervention.",
+    'Oracles': "Speak in riddles and poetic omens. Use the language of the Chaldean Oracles. Focus on the 'flower of fire' and the mysteries of the soul's ascent.",
+    'Hermetica': "Draw upon the *Corpus Hermeticum*. Keep a distinct focus on 'As Above, So Below'. Emphasize the divine mind (Nous) and the purification of the soul through the planetary spheres."
+};

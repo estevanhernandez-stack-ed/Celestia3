@@ -429,50 +429,54 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
                     <Wand2 size={120} className="text-emerald-500" />
                   </div>
 
-                  <div className="flex justify-between items-start mb-6 border-b border-emerald-900/30 pb-4">
-                     <div className="flex-1">
-                       <h3 className="text-3xl font-black flex items-center gap-4 text-white">
+                  <div className="flex flex-col md:flex-row justify-between items-start mb-4 md:mb-6 border-b border-emerald-900/30 pb-4 gap-4">
+                     <div className="flex-1 w-full">
+                       <h3 className="text-xl md:text-3xl font-black flex items-center gap-3 md:gap-4 text-white">
                         <span 
-                          className="w-4 h-4 rounded-full shadow-[0_0_15px_currentColor]"
+                          className="w-3 h-3 md:w-4 md:h-4 rounded-full shadow-[0_0_15px_currentColor] shrink-0"
                           style={{ color: chartData.planets.find(p => p.name === selectedPlanet)?.color }} 
                         />
-                        {selectedPlanet.toUpperCase()} <span className="text-emerald-500 font-light">IN</span> {chartData.planets.find(p => p.name === selectedPlanet)?.sign.toUpperCase()}
-                      </h3>
-                      <div className="flex gap-4 mt-2">
-                        <span className="text-[10px] text-emerald-500/50 tracking-widest uppercase">
-                          Location: {chartData.planets.find(p => p.name === selectedPlanet)?.degree.toFixed(2)}°
+                        <span className="truncate">
+                            {selectedPlanet.toUpperCase()} <span className="text-emerald-500 font-light">IN</span> {chartData.planets.find(p => p.name === selectedPlanet)?.sign.toUpperCase()}
                         </span>
-                        <span className="text-[10px] text-emerald-500/50 tracking-widest uppercase">
-                          Domain: House {chartData.planets.find(p => p.name === selectedPlanet)?.house}
+                      </h3>
+                      <div className="flex flex-wrap gap-2 md:gap-4 mt-2">
+                        <span className="text-[9px] md:text-[10px] text-emerald-500/50 tracking-widest uppercase bg-black/40 px-2 py-1 rounded">
+                          Loc: {chartData.planets.find(p => p.name === selectedPlanet)?.degree.toFixed(2)}°
+                        </span>
+                        <span className="text-[9px] md:text-[10px] text-emerald-500/50 tracking-widest uppercase bg-black/40 px-2 py-1 rounded">
+                          House {chartData.planets.find(p => p.name === selectedPlanet)?.house}
                         </span>
                       </div>
                      </div>
 
                      <button
                        onClick={() => handleVocalize(chartData.planets.find(p => p.name === selectedPlanet)?.interpretation || "")}
-                       className={`p-4 rounded-2xl transition-all border ${
+                       className={`p-3 md:p-4 rounded-2xl transition-all border shrink-0 ${
                          isSpeaking 
                            ? 'bg-emerald-500 text-black border-emerald-400 animate-pulse shadow-[0_0_20px_rgba(16,185,129,0.5)]' 
                            : 'bg-emerald-950/20 text-emerald-500 border-emerald-900/50 hover:bg-emerald-900/40'
                        }`}
                        title={isSpeaking ? "Silence the Oracle" : "Protocol: Listen"}
                      >
-                       {isSpeaking ? <VolumeX size={24} /> : <Volume2 size={24} />}
+                       {isSpeaking ? <VolumeX size={20} className="md:w-6 md:h-6" /> : <Volume2 size={20} className="md:w-6 md:h-6" />}
                      </button>
                   </div>
 
-                  <p className="text-xl text-emerald-50/90 leading-relaxed font-light italic mb-8">
-                    &quot;{chartData.planets.find(p => p.name === selectedPlanet)?.interpretation}&quot;
-                  </p>
+                  <div className="h-32 md:h-auto overflow-y-auto mb-6 scrollbar-hide">
+                    <p className="text-sm md:text-xl text-emerald-50/90 leading-relaxed font-light italic">
+                        &quot;{chartData.planets.find(p => p.name === selectedPlanet)?.interpretation}&quot;
+                    </p>
+                  </div>
                   
                   {isFlybyRunning && (
-                     <div className="flex items-center gap-6">
+                     <div className="flex items-center gap-3 md:gap-6">
                       <button 
                         onClick={prevFlyby}
                         disabled={flybyIndex === 0}
-                        className="p-4 bg-emerald-950/20 hover:bg-emerald-900/40 disabled:opacity-20 rounded-2xl text-emerald-400 transition-all border border-emerald-900/50"
+                        className="p-3 md:p-4 bg-emerald-950/20 hover:bg-emerald-900/40 disabled:opacity-20 rounded-xl md:rounded-2xl text-emerald-400 transition-all border border-emerald-900/50 shrink-0"
                       >
-                        <ChevronLeft size={24} />
+                        <ChevronLeft size={20} className="md:w-6 md:h-6" />
                       </button>
                       <div className="flex-1 h-1 bg-emerald-950 rounded-full overflow-hidden shadow-inner">
                         <motion.div 
@@ -483,10 +487,10 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
                       </div>
                       <button 
                         onClick={nextFlyby}
-                        className="px-8 py-4 bg-emerald-600 hover:bg-emerald-500 rounded-2xl text-black font-black transition-all flex items-center gap-3 shadow-lg shadow-emerald-600/20 group"
+                        className="px-4 py-3 md:px-8 md:py-4 bg-emerald-600 hover:bg-emerald-500 rounded-xl md:rounded-2xl text-black font-black transition-all flex items-center gap-2 md:gap-3 shadow-lg shadow-emerald-600/20 group text-xs md:text-base shrink-0"
                       >
-                        {flybyIndex === chartData.planets.length - 1 ? 'TRANSCEND' : 'NEXT BODY'} 
-                        <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                        {flybyIndex === chartData.planets.length - 1 ? 'TRANSCEND' : 'NEXT'} 
+                        <ChevronRight size={16} className="md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
                       </button>
                     </div>
                   )}

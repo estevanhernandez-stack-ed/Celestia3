@@ -10,6 +10,27 @@ export interface TechnomancerProfile {
     lifePath: NumerologyResult; // Pythagorean (Date)
     destiny: NumerologyResult;  // Pythagorean (Birth Name)
     active: NumerologyResult;   // Chaldean (Chosen Name)
+    soulUrge?: NumerologyResult; // Vowels (Heart)
+    personality?: NumerologyResult; // Consonants (Mask)
+}
+
+export type RelationshipCategory = 'romantic' | 'platonic' | 'business' | 'family';
+export type FamilyRole = 'parent' | 'child' | 'sibling' | 'extended' | 'general';
+
+export interface RelationshipContext {
+    category: RelationshipCategory;
+    role?: FamilyRole;
+}
+
+export interface SynergyResult {
+    overallScore: number;
+    lifePathMatch: { score: number; description: string };
+    destinyMatch: { score: number; description: string };
+    soulUrgeMatch: { score: number; description: string };
+    personalityMatch: { score: number; description: string };
+    synergyNumber: number;
+    context: RelationshipContext;
+    typeInsight: string;
 }
 
 const MASTER_NUMBERS = [11, 22, 33];
@@ -23,7 +44,8 @@ const PYTHAGOREAN_MAP: Record<string, number> = {
     'e': 5, 'n': 5, 'w': 5,
     'f': 6, 'o': 6, 'x': 6,
     'g': 7, 'p': 7, 'y': 7,
-    'h': 8, 'q': 8, 'z': 8
+    'h': 8, 'q': 8, 'z': 8,
+    'i': 9, 'r': 9
 };
 
 // Chaldean System (Ancient, Vibration-based)
@@ -150,73 +172,80 @@ const RICH_ARCHETYPES: Record<number, { title: string, shadow: string, gift: str
     }
 };
 
-const DAILY_PULSE_MAP: Record<number, { message: string, focus: string, color: string, hex: string }> = {
+const DAILY_PULSE_MAP: Record<number, { message: string, focus: string, color: string, hex: string, context: string }> = {
     1: { 
         message: "New beginnings are surging. Plant seeds now for the cycle ahead. Your energy is electric.", 
         focus: "Action", 
         color: "Red",
-        hex: "text-red-400"
+        hex: "text-red-400",
+        context: "Personal Day 1 is the seed-point. Red aligns with the Root Chakra and vitality needed for new starts."
     },
     2: { 
         message: "Patience is your power. Connect, cooperate, and listen to the subtle frequencies.", 
         focus: "Balance", 
         color: "Orange",
-        hex: "text-orange-400"
+        hex: "text-orange-400",
+        context: "Personal Day 2 follows the spark with incubation. Orange reflects the Sacral Chakra's connection and emotional balance."
     },
     3: { 
         message: "Express yourself freely. Creative sparks will fly if you lower your shield.", 
         focus: "Joy", 
         color: "Yellow",
-        hex: "text-yellow-400"
+        hex: "text-yellow-400",
+        context: "Personal Day 3 is about expression. Yellow mirrors the Solar Plexus, radiating confidence and joy."
     },
     4: { 
         message: "Ground your energy. Attend to details and build a foundation for your wilder dreams.", 
         focus: "Order", 
         color: "Green",
-        hex: "text-green-400"
+        hex: "text-green-400",
+        context: "Personal Day 4 demands structure. Green connects to the Heart, grounding you in stabilizing earth energy."
     },
     5: { 
         message: "Expect the unexpected. Break free. Sudden insights or disruptions are shaking up your routine.", 
         focus: "Freedom", 
         color: "Blue",
-        hex: "text-blue-400"
+        hex: "text-blue-400",
+        context: "Personal Day 5 brings change. Blue aligns with the Throat Chakra, encouraging freedom of truth and adaptability."
     },
     6: { 
         message: "Tend to your tribe. Healing, harmony, and responsibility are calling for your heart.", 
         focus: "Love", 
         color: "Indigo",
-        hex: "text-indigo-400"
+        hex: "text-indigo-400",
+        context: "Personal Day 6 focuses on harmony. Indigo represents the Third Eye's insight into responsibility and care."
     },
     7: { 
         message: "Inward reflection reveals universal truths. Step back from the noise and listen.", 
         focus: "Spirit", 
         color: "Violet",
-        hex: "text-violet-400"
+        hex: "text-violet-400",
+        context: "Personal Day 7 is the pause. Violet connects to the Crown, inviting spiritual reflection and solitude."
     },
     8: { 
         message: "Manifestation power is high. Claim your authority and execute your will.", 
         focus: "Power", 
         color: "Gold",
-        hex: "text-amber-400"
+        hex: "text-amber-400",
+        context: "Personal Day 8 is the harvest. Gold symbolizes value, power, and the high-frequency manifestation of the Aura."
     },
     9: { 
         message: "Release what no longer serves. Clear the deck for the new wave incoming.", 
         focus: "Release", 
         color: "White",
-        hex: "text-white"
+        hex: "text-white",
+        context: "Personal Day 9 is the completion. White contains all colors, representing clarity, release, and purification before the next cycle."
     }
 };
 
 export const NumerologyEngine = {
     calculateLifePath: (date: Date | string): NumerologyResult => {
         const d = new Date(date);
-        // Reduce Year
-        const yearSum = d.getFullYear().toString().split('').reduce((a, b) => a + parseInt(b), 0);
-        const monthSum = (d.getMonth() + 1).toString().split('').reduce((a, b) => a + parseInt(b), 0);
-        const daySum = d.getDate().toString().split('').reduce((a, b) => a + parseInt(b), 0);
         
-        // Master number check needs to happen at each stage ideally, but standard life path adds reduced components
-        // Or adds straight across. Let's stick to the "reduce components then sum" method which is common.
+        // Use UTC methods for nominal date values (Birth dates) to ensure consistency across timezones
+        const yearSum = d.getUTCFullYear().toString().split('').reduce((a, b) => a + parseInt(b), 0);
+        const monthSum = (d.getUTCMonth() + 1).toString().split('').reduce((a, b) => a + parseInt(b), 0);
+        const daySum = d.getUTCDate().toString().split('').reduce((a, b) => a + parseInt(b), 0);
         
         const reducedYear = reduceNumber(yearSum).core;
         const reducedMonth = reduceNumber(monthSum).core;
@@ -248,10 +277,10 @@ export const NumerologyEngine = {
 
     calculatePersonalYear: (birthDate: Date | string, targetDate?: Date): number => { // Updated signature
         const d = new Date(birthDate);
-        const t = targetDate || new Date(); // Use target or current
-        const currentYear = t.getFullYear();
-        const month = d.getMonth() + 1;
-        const day = d.getDate();
+        const t = targetDate || new Date();
+        const currentYear = t.getUTCFullYear();
+        const month = d.getUTCMonth() + 1;
+        const day = d.getUTCDate();
         
         const daySum = reduceNumber(day).core;
         const monthSum = reduceNumber(month).core;
@@ -263,7 +292,7 @@ export const NumerologyEngine = {
     // Personal Month = Personal Year + Calendar Month
     calculatePersonalMonth: (personalYear: number, targetDate?: Date): number => {
         const t = targetDate || new Date();
-        const currentMonth = t.getMonth() + 1;
+        const currentMonth = t.getUTCMonth() + 1;
         return reduceNumber(personalYear + currentMonth).core;
     },
 
@@ -280,14 +309,159 @@ export const NumerologyEngine = {
     calculatePersonalDay: (birthDate: Date | string, targetDate?: Date): number => {
         const t = targetDate || new Date();
         const personalYear = NumerologyEngine.calculatePersonalYear(birthDate, t);
-        const currentMonth = t.getMonth() + 1;
-        const currentDay = t.getDate();
+        const currentMonth = t.getUTCMonth() + 1;
+        const currentDay = t.getUTCDate();
         
         return reduceNumber(personalYear + currentMonth + currentDay).core;
     },
 
+    // Soul Urge: Sum of Vowels (Heart's Desire)
+    calculateSoulUrge: (name: string, system: 'pythagorean' | 'chaldean'): NumerologyResult => {
+        const vowels = name.toLowerCase().replace(/[^aeiou]/g, '');
+        const sum = calculateString(vowels, system); // Calculate using only the vowels
+        const final = reduceNumber(sum);
+        return {
+            sum,
+            core: final.core,
+            isMaster: final.isMaster,
+            archetype: ARCHETYPES[final.core] || "The Unknown",
+            source: "Soul Urge"
+        };
+    },
+
+    // Personality: Sum of Consonants (Outer Mask)
+    calculatePersonality: (name: string, system: 'pythagorean' | 'chaldean'): NumerologyResult => {
+        const consonants = name.toLowerCase().replace(/[aeiou\W\d]/g, ''); // Remove vowels and non-letters
+        const sum = calculateString(consonants, system);
+        const final = reduceNumber(sum);
+        return {
+            sum,
+            core: final.core,
+            isMaster: final.isMaster,
+            archetype: ARCHETYPES[final.core] || "The Unknown",
+            source: "Personality"
+        };
+    },
+
+
+
     getDailyPulse: (birthDate: Date | string) => {
+        const t = new Date();
+        const personalYear = NumerologyEngine.calculatePersonalYear(birthDate, t);
+        const currentMonth = t.getMonth() + 1;
+        const currentDay = t.getDate();
+        
         const dayNum = NumerologyEngine.calculatePersonalDay(birthDate);
-        return DAILY_PULSE_MAP[dayNum] || DAILY_PULSE_MAP[1];
+        const pulse = DAILY_PULSE_MAP[dayNum] || DAILY_PULSE_MAP[1];
+        
+        const dynamicContext = `Derived from your Personal Year (${personalYear}) + Month (${currentMonth}) + Day (${currentDay}). ${pulse.context}`;
+        
+        return {
+            ...pulse,
+            context: dynamicContext
+        };
+    },
+
+    calculateCompatibility: (profile1: TechnomancerProfile, profile2: TechnomancerProfile, context: RelationshipContext): SynergyResult => {
+        const lp1 = profile1.lifePath.core;
+        const lp2 = profile2.lifePath.core;
+        
+        const d1 = profile1.destiny.core;
+        const d2 = profile2.destiny.core;
+
+        const su1 = profile1.soulUrge?.core || 0;
+        const su2 = profile2.soulUrge?.core || 0;
+
+        const p1 = profile1.personality?.core || 0;
+        const p2 = profile2.personality?.core || 0;
+
+        const lpMatch = NumerologyEngine.calculateMatchScore(lp1, lp2);
+        const dMatch = NumerologyEngine.calculateMatchScore(d1, d2);
+        const suMatch = NumerologyEngine.calculateMatchScore(su1, su2);
+        const pMatch = NumerologyEngine.calculateMatchScore(p1, p2);
+        
+        const synergyNumber = reduceNumber(lp1 + lp2).core;
+        
+        // Context-aware insight generation
+        let typeInsight = "Your vibrations create a unique resonance.";
+        const isHighMatch = lpMatch.score > 80;
+
+        if (context.category === 'romantic') {
+            if (isHighMatch) typeInsight = "A deeply resonant romantic alignment with high soulful compatibility.";
+            else typeInsight = "A relationship of growth. Dynamic friction sparks passion and evolution.";
+        } else if (context.category === 'business') {
+            typeInsight = lpMatch.score > 70 ? "Strong professional synergy. Efficient execution of shared goals." : "Requires clear role definition to avoid vibrational overlap.";
+        } else if (context.category === 'family') {
+            const roleStr = context.role ? `${context.role.charAt(0).toUpperCase() + context.role.slice(1)}` : 'Familial';
+            if (context.role === 'parent' || context.role === 'child') {
+                typeInsight = `Ancient karmic bond. This ${roleStr} connection focuses on ancestral learning and patterns.`;
+            } else if (context.role === 'sibling') {
+                typeInsight = "Parallel soul journeys. Shared roots with individual vibrational expressions.";
+            } else {
+                typeInsight = "A foundational familial tie rooted in shared energetic heritage.";
+            }
+        } else {
+            typeInsight = "A meeting of minds and spirits. Mutual support on external journeys.";
+        }
+
+        // Weighted overall score
+        const overallScore = Math.round((lpMatch.score * 0.4) + (dMatch.score * 0.3) + (suMatch.score * 0.2) + (pMatch.score * 0.1));
+
+        return {
+            overallScore,
+            lifePathMatch: lpMatch,
+            destinyMatch: dMatch,
+            soulUrgeMatch: suMatch,
+            personalityMatch: pMatch,
+            synergyNumber,
+            context,
+            typeInsight
+        };
+    },
+
+    calculateMatchScore: (n1: number, n2: number) => {
+        // Basic vibrational logic (simplified for Technomancer)
+        const naturalMatches: Record<number, number[]> = {
+            1: [1, 3, 5, 7, 9],
+            2: [2, 4, 6, 8],
+            3: [1, 3, 5, 6, 9],
+            4: [2, 4, 6, 7, 8],
+            5: [1, 3, 5, 7, 9],
+            6: [2, 3, 4, 6, 8, 9],
+            7: [1, 4, 5, 7],
+            8: [2, 4, 6, 8],
+            9: [1, 3, 5, 6, 9],
+            11: [2, 6, 8, 11, 22],
+            22: [4, 6, 8, 22, 11]
+        };
+  
+        // Determine match level
+        const primaryMatches = naturalMatches[n1] || [];
+        const secondaryMatches = naturalMatches[n2] || [];
+        
+        let score = 50; // Neutral baseline
+        let description = "A complex vibration requiring adjustment.";
+  
+        if (n1 === n2) {
+            score = 90;
+            description = "Resonant frequencies. You vibrate in unison.";
+        } else if (primaryMatches.includes(n2) || secondaryMatches.includes(n1)) {
+            score = 85;
+            description = "Harmonic convergence. Your numbers naturally support each other.";
+        } else {
+            const isN1Odd = n1 % 2 !== 0;
+            const isN2Odd = n2 % 2 !== 0;
+            if (isN1Odd === isN2Odd) {
+               score = 70;
+               description = "Compatible polarity. You share a similar rhythm.";
+            } else {
+               score = 40;
+               description = "Dynamic friction. A relationship of growth through challenge.";
+            }
+        }
+  
+        return { score, description };
     }
 };
+
+export const numerologyEngine = NumerologyEngine;

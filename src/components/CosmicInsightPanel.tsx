@@ -122,18 +122,18 @@ const CosmicInsightPanel: React.FC<CosmicInsightPanelProps> = ({ chart }) => {
     if (!chart) return null;
 
     return (
-        <div className="bg-emerald-900/10 border border-emerald-500/20 p-6 rounded-xl relative overflow-hidden flex flex-col max-h-[600px]">
+        <div className="bg-slate-900/40 border border-white/10 p-6 rounded-xl relative overflow-hidden flex flex-col max-h-[600px] shadow-2xl">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6 border-b border-emerald-500/30 pb-4 shrink-0">
+            <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-4 shrink-0">
                 <div className="flex items-center gap-3">
                     <Sparkles className="text-amber-400" size={24} />
-                    <h2 className="text-xl font-bold text-emerald-300 tracking-wider">COSMIC INSIGHT</h2>
+                    <h2 className="text-xl font-bold text-white tracking-widest font-serif">COSMIC INSIGHT</h2>
                 </div>
                 {hasAnalysis && (
                     <div className="flex gap-2">
                         <button 
                             onClick={handleSpeak}
-                            className={`p-2 rounded-full transition-colors ${isPlaying ? 'bg-emerald-500 text-black shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse' : 'hover:bg-emerald-500/20 text-emerald-500'}`}
+                            className={`p-2 rounded-full transition-colors ${isPlaying ? 'bg-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.5)] animate-pulse' : 'hover:bg-white/10 text-indigo-400'}`}
                             title={isPlaying ? "Stop Reading" : "Read Aloud"}
                         >
                             {isPlaying ? <VolumeX size={16} /> : <Volume2 size={16} />}
@@ -141,7 +141,7 @@ const CosmicInsightPanel: React.FC<CosmicInsightPanelProps> = ({ chart }) => {
                         <button 
                             onClick={generateInsight}
                             disabled={isLoading}
-                            className="p-2 hover:bg-emerald-500/20 rounded-full text-emerald-500 transition-colors"
+                            className="p-2 hover:bg-white/10 rounded-full text-indigo-400 transition-colors"
                             title="Re-interpret Chart"
                         >
                             <RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />
@@ -153,19 +153,19 @@ const CosmicInsightPanel: React.FC<CosmicInsightPanelProps> = ({ chart }) => {
             {/* Content */}
             <div className="space-y-8 overflow-y-auto pr-2 custom-scrollbar">
                 {isLoading ? (
-                    <div className="flex flex-col items-center justify-center py-20 animate-pulse text-emerald-500/50">
+                    <div className="flex flex-col items-center justify-center py-20 animate-pulse text-indigo-400/50">
                         <Sparkles className="animate-spin mb-4" size={32} />
-                        <p className="tracking-widest uppercase text-sm">Consulting the Akashic Records...</p>
+                        <p className="tracking-widest uppercase text-sm font-serif">Consulting the Akashic Records...</p>
                     </div>
                 ) : !hasAnalysis ? (
                     <div className="text-center py-12 space-y-4">
-                        <p className="text-emerald-400/80 max-w-md mx-auto">
+                        <p className="text-slate-400 max-w-md mx-auto font-medium">
                             The stars have a story to tell about your arrival. 
                             Unlock the narrative of your soul&apos;s entry into this plane.
                         </p>
                         <button 
                             onClick={generateInsight}
-                            className="bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/50 text-emerald-300 px-6 py-2 rounded-lg transition-all flex items-center gap-2 mx-auto uppercase tracking-widest text-sm font-bold shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+                            className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-lg transition-all flex items-center gap-2 mx-auto uppercase tracking-widest text-sm font-bold shadow-lg shadow-indigo-500/20"
                         >
                             <Sparkles size={16} /> Reveal Destiny
                         </button>
@@ -178,30 +178,31 @@ const CosmicInsightPanel: React.FC<CosmicInsightPanelProps> = ({ chart }) => {
                     >
                         {/* Story Section */}
                         <section className="space-y-2">
-                            <h3 className="text-pink-400 font-bold uppercase tracking-widest text-sm flex items-center gap-2">
+                            <h3 className="text-fuchsia-400 font-bold uppercase tracking-widest text-sm flex items-center gap-2 font-serif">
                                 The Story of Your Birth
                             </h3>
-                            <p className="text-emerald-100/90 leading-relaxed font-serif text-lg">
+                            <p className="text-slate-200 leading-relaxed font-serif text-lg">
                                 {preferences.chartAnalysis?.story}
                             </p>
                         </section>
 
                         {/* Big Three Section */}
                         <section className="space-y-4">
-                            <h3 className="text-amber-400 font-bold uppercase tracking-widest text-sm">
+                            <h3 className="text-amber-400 font-bold uppercase tracking-widest text-sm font-serif">
                                 The Big Three
                             </h3>
-                            <div className="space-y-4 text-emerald-100/80 leading-relaxed text-sm whitespace-pre-wrap">
+                            <div className="space-y-4 text-slate-300 leading-relaxed text-sm whitespace-pre-wrap font-medium">
                                 {preferences.chartAnalysis?.bigThree}
                             </div>
                         </section>
 
                         {/* Cosmic Signature */}
-                        <div className="bg-black/30 border border-emerald-500/30 p-4 rounded-lg">
-                            <h3 className="text-emerald-400 font-bold uppercase tracking-widest text-xs mb-2">
+                        <div className="bg-black/40 border border-indigo-500/30 p-4 rounded-lg relative overflow-hidden">
+                             <div className="absolute inset-0 bg-indigo-500/5 pointer-events-none" />
+                            <h3 className="text-indigo-300 font-bold uppercase tracking-widest text-xs mb-2">
                                 Your Cosmic Signature
                             </h3>
-                            <p className="text-white italic font-medium">
+                            <p className="text-white italic font-serif text-lg">
                                 &quot;{preferences.chartAnalysis?.cosmicSignature}&quot;
                             </p>
                         </div>

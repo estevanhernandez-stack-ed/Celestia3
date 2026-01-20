@@ -67,14 +67,17 @@ class WebSpeechProvider implements VoiceProvider {
 }
 
 // --- Google Cloud TTS Provider ---
+// --- Google Cloud TTS Provider ---
 class GoogleTTSProvider implements VoiceProvider {
   private apiKey: string;
   private ctx: AudioContext | null = null;
   private currentSource: AudioBufferSourceNode | null = null;
   private isStopping = false;
+  private fallback: VoiceProvider | null = null;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, fallback: VoiceProvider | null = null) {
     this.apiKey = apiKey;
+    this.fallback = fallback;
   }
 
   private initCtx() {
@@ -93,57 +96,85 @@ class GoogleTTSProvider implements VoiceProvider {
     this.isStopping = false;
 
     // Split into sentences for pseudo-streaming (low latency)
-    // Matches sentences ending in . ! or ?
     const chunks = cleaned.match(/[^.!?]+[.!?]*/g) || [cleaned];
     const trimmedChunks = chunks.map(c => c.trim()).filter(c => c.length > 0);
 
+    let hasError = false;
+    let currentVoiceId = options?.voiceId || "en-US-Chirp-HD-F"; // Updated to new Chirp HD ID
+
     for (const chunk of trimmedChunks) {
       if (this.isStopping) break;
-      await this.speakChunk(chunk, options);
+      try {
+        await this.speakChunk(chunk, currentVoiceId, options);
+      } catch (error) {
+        console.warn(`TTS failed for voice ${currentVoiceId}.`, error);
+        
+        // Downgrade logic: If Chirp fails, try WaveNet once
+        if (currentVoiceId === "en-US-Chirp-HD-F" || currentVoiceId === "en-US-Journey-F") {
+             console.log("Downgrading to WaveNet...");
+             currentVoiceId = "en-US-Wavenet-F";
+             try {
+                 await this.speakChunk(chunk, currentVoiceId, options);
+                 continue; // Success with WaveNet, continue loop with this voice
+             } catch (retryError) {
+                 console.warn("WaveNet also failed.", retryError);
+             }
+        }
+        
+        hasError = true;
+        break;
+      }
+    }
+
+    // If all API attempts failed, switch to browser fallback
+    if (hasError && this.fallback) {
+        this.stop();
+        return this.fallback.speak(text, options);
     }
   }
 
-  private async speakChunk(text: string, options?: VoiceOptions): Promise<void> {
+  private async speakChunk(text: string, voiceId: string, options?: VoiceOptions): Promise<void> {
     const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${this.apiKey}`;
     
-    try {
-      const response = await fetch(url, {
+    // Removed try-catch to allow errors to propagate
+    const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           input: { text },
-          voice: { languageCode: "en-US", name: options?.voiceId || "en-US-Journey-F" },
+          voice: { languageCode: "en-US", name: voiceId },
           audioConfig: { 
             audioEncoding: "MP3",
             pitch: options?.pitch !== undefined ? options.pitch : 0,
             speakingRate: options?.rate !== undefined ? options.rate : 1.0
           }
         })
-      });
+    });
 
-      if (!response.ok) throw new Error("TTS Failed");
-      const data = await response.json();
-      
-      const audioData = Uint8Array.from(atob(data.audioContent), c => c.charCodeAt(0));
-      const buffer = await this.ctx!.decodeAudioData(audioData.buffer);
+    if (!response.ok) {
+         throw new Error(`TTS API Error: ${response.statusText}`);
+    }
 
-      if (this.isStopping) return;
+    const data = await response.json();
+    if (!data.audioContent) throw new Error("No audio content in response");
+    
+    const audioData = Uint8Array.from(atob(data.audioContent), c => c.charCodeAt(0));
+    const buffer = await this.ctx!.decodeAudioData(audioData.buffer);
 
-      const source = this.ctx!.createBufferSource();
-      source.buffer = buffer;
-      source.connect(this.ctx!.destination);
-      this.currentSource = source;
-      source.start();
+    if (this.isStopping) return;
 
-      return new Promise(r => {
+    const source = this.ctx!.createBufferSource();
+    source.buffer = buffer;
+    source.connect(this.ctx!.destination);
+    this.currentSource = source;
+    source.start();
+
+    return new Promise(r => {
         source.onended = () => {
           if (this.currentSource === source) this.currentSource = null;
           r();
         };
-      });
-    } catch (error) {
-      console.warn("Chunk TTS failed:", error);
-    }
+    });
   }
 
   stop() {
@@ -156,15 +187,20 @@ class GoogleTTSProvider implements VoiceProvider {
       }
       this.currentSource = null;
     }
+    // Also stop fallback if active
+    if (this.fallback) this.fallback.stop();
   }
 
   setPronunciations(map: Record<string, string>) {
     pronunciationMap = map;
+    if (this.fallback) this.fallback.setPronunciations(map);
   }
 }
 
 const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
+const webProvider = new WebSpeechProvider();
 
+// Configured to try Google TTS first, then fall back to Browser TTS
 export const voiceService: VoiceProvider = API_KEY 
-  ? new GoogleTTSProvider(API_KEY) 
-  : new WebSpeechProvider();
+  ? new GoogleTTSProvider(API_KEY, webProvider) 
+  : webProvider;

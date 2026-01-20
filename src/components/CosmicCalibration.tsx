@@ -225,6 +225,18 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
+                  <label className="text-[10px] text-pink-900 uppercase">Volume</label>
+                  <input 
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={preferences.voiceVolume ?? 1.0}
+                    onChange={(e) => updatePreferences({ voiceVolume: parseFloat(e.target.value) })}
+                    className="w-full accent-pink-500"
+                  />
+                </div>
+                <div className="space-y-1">
                   <label className="text-[10px] text-pink-900 uppercase">Speed</label>
                   <input 
                     type="range"
@@ -236,7 +248,7 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
                     className="w-full accent-pink-500"
                   />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 col-span-2">
                   <label className="text-[10px] text-pink-900 uppercase">Pitch</label>
                   <input 
                     type="range"

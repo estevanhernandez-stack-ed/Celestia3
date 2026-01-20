@@ -54,20 +54,20 @@ const AtmosphereController: React.FC<AtmosphereProps> = ({ activeView }) => {
   };
 
   return (
-    <div className="fixed bottom-6 left-6 z-50 flex items-center gap-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-emerald-900/40 hover:border-emerald-500/30 transition-all group">
+    <div className="fixed bottom-6 left-6 z-50 flex items-center gap-4 bg-slate-950/80 backdrop-blur-md px-4 py-2 rounded-full border border-indigo-500/30 hover:border-indigo-400/50 transition-all group shadow-2xl">
       <button 
         onClick={toggleMute}
-        className={`p-2 rounded-full transition-colors ${isMuted ? 'text-emerald-800 hover:text-emerald-500' : 'text-emerald-400 bg-emerald-500/10'}`}
+        className={`p-2 rounded-full transition-colors ${isMuted ? 'text-slate-500 hover:text-indigo-400' : 'text-indigo-400 bg-indigo-500/10'}`}
       >
         {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
       </button>
 
       <div className="flex flex-col w-24">
          <div className="flex justify-between items-center text-[9px] uppercase tracking-widest font-bold mb-1">
-            <span className={isMuted ? "text-emerald-900" : "text-emerald-500"}>
+            <span className={isMuted ? "text-slate-600" : "text-indigo-400"}>
                {activePlanet}
             </span>
-            <span className="text-emerald-800">
+            <span className="text-slate-500">
                {PLANETARY_FREQUENCIES[activePlanet]} Hz
             </span>
          </div>
@@ -78,12 +78,12 @@ const AtmosphereController: React.FC<AtmosphereProps> = ({ activeView }) => {
             step="0.01" 
             value={volume}
             onChange={handleVolumeChange}
-            className="w-full h-1 bg-emerald-900/50 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-2 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-500 disabled:opacity-50"
+            className="w-full h-1 bg-slate-800 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-2 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-500 disabled:opacity-50"
             disabled={isMuted}
          />
       </div>
 
-      <div className={`w-2 h-2 rounded-full ${isMuted ? 'bg-emerald-900' : 'bg-emerald-500 animate-pulse'}`} />
+      <div className={`w-2 h-2 rounded-full ${isMuted ? 'bg-slate-800' : 'bg-indigo-500 animate-pulse'}`} />
     </div>
   );
 };
