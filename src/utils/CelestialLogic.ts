@@ -29,7 +29,7 @@ export const getPlanetaryHour = (date: Date = new Date()) => {
   const hoursPassed = Math.floor(msPassed / (1000 * 60 * 60)); 
   
   const startIndex = CHALDEAN_ORDER.indexOf(dayRuler);
-  let hourRulerIndex = (startIndex + hoursPassed) % 7;
+  const hourRulerIndex = (startIndex + hoursPassed) % 7;
   
   return {
     isDay,

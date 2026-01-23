@@ -28,7 +28,7 @@ export class GeocodingService {
         // 1. First attempt: Search for the part before the comma (if any)
         // If user types "Bedford, Texas", search "Bedford".
         // If "Bedford Texas", search "Bedford Texas".
-        let cleanQuery = query.split(',')[0].trim();
+        const cleanQuery = query.split(',')[0].trim();
 
         const fetchResults = async (q: string) => {
              try {

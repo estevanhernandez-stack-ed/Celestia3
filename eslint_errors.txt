@@ -1,0 +1,324 @@
+
+C:\Celestia222\Celestia 3\src\__tests__\ConfigService.test.ts
+   2:35  warning  'doc' is defined but never used           @typescript-eslint/no-unused-vars
+   2:40  warning  'collection' is defined but never used    @typescript-eslint/no-unused-vars
+  83:29  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Celestia222\Celestia 3\src\__tests__\DashboardShell.test.tsx
+   2:37  warning  'waitFor' is defined but never used           @typescript-eslint/no-unused-vars
+  54:35  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  55:47  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  57:35  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  61:47  error    Component definition is missing display name  react/display-name
+  62:49  error    Component definition is missing display name  react/display-name
+  63:48  error    Component definition is missing display name  react/display-name
+  64:46  error    Component definition is missing display name  react/display-name
+  65:47  error    Component definition is missing display name  react/display-name
+  66:44  error    Component definition is missing display name  react/display-name
+  67:52  error    Component definition is missing display name  react/display-name
+  68:47  error    Component definition is missing display name  react/display-name
+  69:66  error    Component definition is missing display name  react/display-name
+  70:56  error    Component definition is missing display name  react/display-name
+  71:53  error    Component definition is missing display name  react/display-name
+  72:53  error    Component definition is missing display name  react/display-name
+  73:47  error    Component definition is missing display name  react/display-name
+  74:44  error    Component definition is missing display name  react/display-name
+  75:46  error    Component definition is missing display name  react/display-name
+  76:48  error    Component definition is missing display name  react/display-name
+  77:47  error    Component definition is missing display name  react/display-name
+  78:55  error    Component definition is missing display name  react/display-name
+  79:48  error    Component definition is missing display name  react/display-name
+  80:53  error    Component definition is missing display name  react/display-name
+
+C:\Celestia222\Celestia 3\src\__tests__\NatalCompass.test.tsx
+   40:32  error    Component definition is missing display name  react/display-name
+   40:48  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   50:69  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   50:79  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   53:31  warning  '_wh' is assigned a value but never used      @typescript-eslint/no-unused-vars
+   53:46  warning  '_wt' is assigned a value but never used      @typescript-eslint/no-unused-vars
+   53:60  warning  '_i' is assigned a value but never used       @typescript-eslint/no-unused-vars
+   53:73  warning  '_a' is assigned a value but never used       @typescript-eslint/no-unused-vars
+   53:83  warning  '_e' is assigned a value but never used       @typescript-eslint/no-unused-vars
+   53:99  warning  '_t' is assigned a value but never used       @typescript-eslint/no-unused-vars
+   60:37  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   66:26  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   71:21  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   72:17  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   73:14  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  114:46  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  122:46  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  145:46  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  162:46  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+
+C:\Celestia222\Celestia 3\src\__tests__\WelcomeModal.test.tsx
+   8:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   9:47  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  11:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Celestia222\Celestia 3\src\app\page.tsx
+  4:8   warning  'OnboardingExperience' is defined but never used  @typescript-eslint/no-unused-vars
+  5:10  warning  'useSettings' is defined but never used           @typescript-eslint/no-unused-vars
+
+C:\Celestia222\Celestia 3\src\components\CelebrityMatchView.tsx
+  13:66  warning  'userChart' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Celestia222\Celestia 3\src\components\ChatInterface.tsx
+   23:24  warning  'updatePreferences' is assigned a value but never used                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   54:6   warning  React Hook useEffect has missing dependencies: 'isLoading' and 'onPromptHandled'. Either include them or remove the dependency array. If 'onPromptHandled' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+  143:14  warning  'error' is defined but never used                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+
+C:\Celestia222\Celestia 3\src\components\NumerologyDetailModal.tsx
+  3:23  warning  'Zap' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Celestia222\Celestia 3\src\components\TarotDeck.tsx
+  173:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Celestia222\Celestia 3\src\components\TarotExplorer.tsx
+  118:33  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  170:41  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Celestia222\Celestia 3\src\components\TarotSpread.tsx
+  73:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Celestia222\Celestia 3\src\components\onboarding\OnboardingExperience.tsx
+  95:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Celestia222\Celestia 3\src\components\onboarding\OnboardingExperience.tsx:95:9
+  93 |             lng: preferences.birthLocation.lng
+  94 |         };
+> 95 |         setBirthInfo(info);
+     |         ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  96 |         
+  97 |         // Auto-generate
+  98 |         OnboardingService.generateChart(info)  react-hooks/set-state-in-effect
+
+C:\Celestia222\Celestia 3\src\context\SettingsContext.tsx
+  21:11  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Celestia222\Celestia 3\src\context\SettingsContext.tsx:21:11
+  19 |       if (saved) {
+  20 |         try {
+> 21 |           setPreferences(JSON.parse(saved));
+     |           ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  22 |         } catch (e) {
+  23 |           console.error("Failed to load prefs", e);
+  24 |         }  react-hooks/set-state-in-effect
+
+C:\Celestia222\Celestia 3\src\lib\CelebrityService.ts
+  1:10  warning  'NatalChartData' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Celestia222\Celestia 3\src\lib\ChatService.ts
+  231:89  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Celestia222\Celestia 3\src\lib\GeocodingService.ts
+  31:13  error  'cleanQuery' is never reassigned. Use 'const' instead  prefer-const
+
+C:\Celestia222\Celestia 3\src\lib\PersistenceService.ts
+  37:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Celestia222\Celestia 3\src\lib\RitualService.ts
+  59:45  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  74:29  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  88:26  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
+
+C:\Celestia222\Celestia 3\src\lib\SwissEphemerisService.ts
+    3:1   error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free      @typescript-eslint/ban-ts-comment
+    5:1   error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free      @typescript-eslint/ban-ts-comment
+   45:14  error  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+   74:23  error  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+   84:40  error  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+   84:62  error  The `Function` type accepts any function-like value.
+Prefer explicitly defining any function parameters and return type  @typescript-eslint/no-unsafe-function-type
+   94:21  error  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+   96:32  error  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+   97:25  error  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+  103:22  error  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+  122:22  error  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+
+C:\Celestia222\Celestia 3\src\lib\VoiceService.ts
+   85:68  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  185:16  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+
+C:\Celestia222\Celestia 3\src\lib\gemini.ts
+  64:34  warning  'level' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Celestia222\Celestia 3\src\lib\wasm\swisseph-factory-v2.js
+    32:19   warning  'PACKAGE_PATH' is assigned a value but never used                      @typescript-eslint/no-unused-vars
+    47:79   warning  'errback' is defined but never used                                    @typescript-eslint/no-unused-vars
+   149:31   error    Unexpected aliasing of 'this' to local variable                        @typescript-eslint/no-this-alias
+   226:16   warning  'locateFile' is defined but never used                                 @typescript-eslint/no-unused-vars
+   267:34   warning  'url' is defined but never used                                        @typescript-eslint/no-unused-vars
+   278:11   warning  'arguments_' is assigned a value but never used                        @typescript-eslint/no-unused-vars
+   284:34   warning  'HEAPU16' is assigned a value but never used                           @typescript-eslint/no-unused-vars
+   284:60   warning  'HEAPF32' is assigned a value but never used                           @typescript-eslint/no-unused-vars
+   284:69   warning  'HEAPF64' is assigned a value but never used                           @typescript-eslint/no-unused-vars
+   299:11   warning  'runtimeInitialized' is assigned a value but never used                @typescript-eslint/no-unused-vars
+   342:33   warning  'id' is defined but never used                                         @typescript-eslint/no-unused-vars
+   346:36   warning  'id' is defined but never used                                         @typescript-eslint/no-unused-vars
+   389:24   warning  'error' is defined but never used                                      @typescript-eslint/no-unused-vars
+   426:46   warning  'module' is defined but never used                                     @typescript-eslint/no-unused-vars
+   459:13   warning  'ExitStatus' is defined but never used                                 @typescript-eslint/no-unused-vars
+   472:11   warning  'noExitRuntime' is assigned a value but never used                     @typescript-eslint/no-unused-vars
+   760:52   warning  'pos' is defined but never used                                        @typescript-eslint/no-unused-vars
+   769:32   warning  'e' is defined but never used                                          @typescript-eslint/no-unused-vars
+   785:53   warning  'pos' is defined but never used                                        @typescript-eslint/no-unused-vars
+   793:28   warning  'e' is defined but never used                                          @typescript-eslint/no-unused-vars
+   803:24   warning  'tty' is defined but never used                                        @typescript-eslint/no-unused-vars
+   821:28   warning  'tty' is defined but never used                                        @typescript-eslint/no-unused-vars
+   830:28   warning  'tty' is defined but never used                                        @typescript-eslint/no-unused-vars
+   830:33   warning  'optional_actions' is defined but never used                           @typescript-eslint/no-unused-vars
+   830:51   warning  'data' is defined but never used                                       @typescript-eslint/no-unused-vars
+   833:32   warning  'tty' is defined but never used                                        @typescript-eslint/no-unused-vars
+   856:23   warning  'size' is defined but never used                                       @typescript-eslint/no-unused-vars
+   862:17   warning  'mount' is defined but never used                                      @typescript-eslint/no-unused-vars
+  1011:22   warning  'parent' is defined but never used                                     @typescript-eslint/no-unused-vars
+  1011:30   warning  'name' is defined but never used                                       @typescript-eslint/no-unused-vars
+  1021:28   warning  'e' is defined but never used                                          @typescript-eslint/no-unused-vars
+  1024:36   warning  'i' is assigned a value but never used                                 @typescript-eslint/no-unused-vars
+  1041:28   warning  'i' is assigned a value but never used                                 @typescript-eslint/no-unused-vars
+  1159:53   warning  'mmapFlags' is defined but never used                                  @typescript-eslint/no-unused-vars
+  1304:23   error    Unexpected aliasing of 'this' to local variable                        @typescript-eslint/no-this-alias
+  1318:19   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1324:19   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1515:23   warning  'node' is assigned a value but never used                              @typescript-eslint/no-unused-vars
+  1517:24   warning  'e' is defined but never used                                          @typescript-eslint/no-unused-vars
+  1846:24   warning  'e' is defined but never used                                          @typescript-eslint/no-unused-vars
+  2325:59   warning  'pos' is defined but never used                                        @typescript-eslint/no-unused-vars
+  2375:81   warning  'k' is defined but never used                                          @typescript-eslint/no-unused-vars
+  2375:102  warning  'v' is defined but never used                                          @typescript-eslint/no-unused-vars
+  2398:19   warning  'stdin' is assigned a value but never used                             @typescript-eslint/no-unused-vars
+  2399:19   warning  'stdout' is assigned a value but never used                            @typescript-eslint/no-unused-vars
+  2400:19   warning  'stderr' is assigned a value but never used                            @typescript-eslint/no-unused-vars
+  2442:24   warning  'e' is defined but never used                                          @typescript-eslint/no-unused-vars
+  2475:36   warning  'canRead' is defined but never used                                    @typescript-eslint/no-unused-vars
+  2475:45   warning  'canWrite' is defined but never used                                   @typescript-eslint/no-unused-vars
+  2485:28   warning  'e' is defined but never used                                          @typescript-eslint/no-unused-vars
+  2526:25   warning  'stream' is defined but never used                                     @typescript-eslint/no-unused-vars
+  2531:56   warning  'pos' is defined but never used                                        @typescript-eslint/no-unused-vars
+  2537:36   warning  'e' is defined but never used                                          @typescript-eslint/no-unused-vars
+  2553:57   warning  'pos' is defined but never used                                        @typescript-eslint/no-unused-vars
+  2557:36   warning  'e' is defined but never used                                          @typescript-eslint/no-unused-vars
+  2578:28   warning  'e' is defined but never used                                          @typescript-eslint/no-unused-vars
+  2633:27   error    Unexpected aliasing of 'this' to local variable                        @typescript-eslint/no-this-alias
+  2728:60   warning  'prot' is defined but never used                                       @typescript-eslint/no-unused-vars
+  2728:66   warning  'flags' is defined but never used                                      @typescript-eslint/no-unused-vars
+  2775:15   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  2784:15   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  2789:15   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  2794:15   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  2799:15   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  3009:20   warning  'e' is defined but never used                                          @typescript-eslint/no-unused-vars
+  3138:15   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  3201:55   warning  'opts' is defined but never used                                       @typescript-eslint/no-unused-vars
+  3288:11   warning  '___wasm_call_ctors' is assigned a value but never used                @typescript-eslint/no-unused-vars
+  3289:11   warning  '_swe_sol_eclipse_where' is assigned a value but never used            @typescript-eslint/no-unused-vars
+  3290:11   warning  '_swe_calc' is assigned a value but never used                         @typescript-eslint/no-unused-vars
+  3291:11   warning  '_swe_fixstar' is assigned a value but never used                      @typescript-eslint/no-unused-vars
+  3292:11   warning  '_swe_sidtime' is assigned a value but never used                      @typescript-eslint/no-unused-vars
+  3293:11   warning  '_swe_degnorm' is assigned a value but never used                      @typescript-eslint/no-unused-vars
+  3294:11   warning  '_swe_set_topo' is assigned a value but never used                     @typescript-eslint/no-unused-vars
+  3295:11   warning  '_swe_cotrans' is assigned a value but never used                      @typescript-eslint/no-unused-vars
+  3296:11   warning  '_swe_refrac_extended' is assigned a value but never used              @typescript-eslint/no-unused-vars
+  3297:11   warning  '_swe_lun_occult_where' is assigned a value but never used             @typescript-eslint/no-unused-vars
+  3298:11   warning  '_swe_sol_eclipse_how' is assigned a value but never used              @typescript-eslint/no-unused-vars
+  3299:11   warning  '_swe_calc_ut' is assigned a value but never used                      @typescript-eslint/no-unused-vars
+  3300:11   warning  '_swe_azalt' is assigned a value but never used                        @typescript-eslint/no-unused-vars
+  3301:11   warning  '_swe_sol_eclipse_when_glob' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  3302:11   warning  '_swe_lun_occult_when_glob' is assigned a value but never used         @typescript-eslint/no-unused-vars
+  3303:11   warning  '_swe_sol_eclipse_when_loc' is assigned a value but never used         @typescript-eslint/no-unused-vars
+  3304:11   warning  '_swe_rise_trans' is assigned a value but never used                   @typescript-eslint/no-unused-vars
+  3305:11   warning  '_swe_lun_occult_when_loc' is assigned a value but never used          @typescript-eslint/no-unused-vars
+  3306:11   warning  '_swe_azalt_rev' is assigned a value but never used                    @typescript-eslint/no-unused-vars
+  3307:11   warning  '_swe_refrac' is assigned a value but never used                       @typescript-eslint/no-unused-vars
+  3308:11   warning  '_swe_set_lapse_rate' is assigned a value but never used               @typescript-eslint/no-unused-vars
+  3309:11   warning  '_swe_lun_eclipse_how' is assigned a value but never used              @typescript-eslint/no-unused-vars
+  3310:11   warning  '_swe_lun_eclipse_when' is assigned a value but never used             @typescript-eslint/no-unused-vars
+  3311:11   warning  '_swe_lun_eclipse_when_loc' is assigned a value but never used         @typescript-eslint/no-unused-vars
+  3312:11   warning  '_swe_rise_trans_true_hor' is assigned a value but never used          @typescript-eslint/no-unused-vars
+  3313:11   warning  '_swe_pheno' is assigned a value but never used                        @typescript-eslint/no-unused-vars
+  3314:11   warning  '_swe_pheno_ut' is assigned a value but never used                     @typescript-eslint/no-unused-vars
+  3315:11   warning  '_swe_nod_aps' is assigned a value but never used                      @typescript-eslint/no-unused-vars
+  3316:11   warning  '_swe_nod_aps_ut' is assigned a value but never used                   @typescript-eslint/no-unused-vars
+  3317:11   warning  '_swe_get_orbital_elements' is assigned a value but never used         @typescript-eslint/no-unused-vars
+  3318:11   warning  '_swe_orbit_max_min_true_distance' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  3319:11   warning  '_swe_sidtime0' is assigned a value but never used                     @typescript-eslint/no-unused-vars
+  3320:11   warning  '_swe_house_pos' is assigned a value but never used                    @typescript-eslint/no-unused-vars
+  3321:11   warning  '_swe_date_conversion' is assigned a value but never used              @typescript-eslint/no-unused-vars
+  3322:11   warning  '_swe_julday' is assigned a value but never used                       @typescript-eslint/no-unused-vars
+  3323:11   warning  '_swe_revjul' is assigned a value but never used                       @typescript-eslint/no-unused-vars
+  3324:11   warning  '_swe_utc_time_zone' is assigned a value but never used                @typescript-eslint/no-unused-vars
+  3325:11   warning  '_swe_utc_to_jd' is assigned a value but never used                    @typescript-eslint/no-unused-vars
+  3326:11   warning  '_swe_jdet_to_utc' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+  3327:11   warning  '_swe_jdut1_to_utc' is assigned a value but never used                 @typescript-eslint/no-unused-vars
+  3328:11   warning  '_swe_vis_limit_mag' is assigned a value but never used                @typescript-eslint/no-unused-vars
+  3329:11   warning  '_swe_fixstar_mag' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+  3330:11   warning  '_swe_heliacal_pheno_ut' is assigned a value but never used            @typescript-eslint/no-unused-vars
+  3331:11   warning  '_swe_heliacal_ut' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+  3332:11   warning  '_swe_get_planet_name' is assigned a value but never used              @typescript-eslint/no-unused-vars
+  3333:11   warning  '_swe_houses' is assigned a value but never used                       @typescript-eslint/no-unused-vars
+  3334:11   warning  '_swe_houses_armc_ex2' is assigned a value but never used              @typescript-eslint/no-unused-vars
+  3335:11   warning  '_swe_difdeg2n' is assigned a value but never used                     @typescript-eslint/no-unused-vars
+  3336:11   warning  '_swe_houses_ex' is assigned a value but never used                    @typescript-eslint/no-unused-vars
+  3337:11   warning  '_swe_houses_ex2' is assigned a value but never used                   @typescript-eslint/no-unused-vars
+  3338:11   warning  '_swe_set_sid_mode' is assigned a value but never used                 @typescript-eslint/no-unused-vars
+  3339:11   warning  '_swe_get_ayanamsa_ex' is assigned a value but never used              @typescript-eslint/no-unused-vars
+  3340:11   warning  '_swe_houses_armc' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+  3341:11   warning  '_swe_radnorm' is assigned a value but never used                      @typescript-eslint/no-unused-vars
+  3342:11   warning  '_free' is assigned a value but never used                             @typescript-eslint/no-unused-vars
+  3343:11   warning  '_malloc' is assigned a value but never used                           @typescript-eslint/no-unused-vars
+  3344:11   warning  '_swe_version' is assigned a value but never used                      @typescript-eslint/no-unused-vars
+  3345:11   warning  '_swe_set_tid_acc' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+  3346:11   warning  '_swe_set_ephe_path' is assigned a value but never used                @typescript-eslint/no-unused-vars
+  3347:11   warning  '_swe_difrad2n' is assigned a value but never used                     @typescript-eslint/no-unused-vars
+  3348:11   warning  '_swe_close' is assigned a value but never used                        @typescript-eslint/no-unused-vars
+  3349:11   warning  '_swe_set_jpl_file' is assigned a value but never used                 @typescript-eslint/no-unused-vars
+  3350:11   warning  '_swe_get_ayanamsa_ex_ut' is assigned a value but never used           @typescript-eslint/no-unused-vars
+  3351:11   warning  '_swe_get_ayanamsa' is assigned a value but never used                 @typescript-eslint/no-unused-vars
+  3352:11   warning  '_swe_get_ayanamsa_ut' is assigned a value but never used              @typescript-eslint/no-unused-vars
+  3353:11   warning  '_swe_fixstar2' is assigned a value but never used                     @typescript-eslint/no-unused-vars
+  3354:11   warning  '_swe_fixstar2_ut' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+  3355:11   warning  '_swe_fixstar2_mag' is assigned a value but never used                 @typescript-eslint/no-unused-vars
+  3356:11   warning  '_swe_get_ayanamsa_name' is assigned a value but never used            @typescript-eslint/no-unused-vars
+  3357:11   warning  '_swe_time_equ' is assigned a value but never used                     @typescript-eslint/no-unused-vars
+  3358:11   warning  '_swe_fixstar_ut' is assigned a value but never used                   @typescript-eslint/no-unused-vars
+  3359:11   warning  '_swe_deg_midp' is assigned a value but never used                     @typescript-eslint/no-unused-vars
+  3360:11   warning  '_swe_rad_midp' is assigned a value but never used                     @typescript-eslint/no-unused-vars
+  3361:11   warning  '_swe_cotrans_sp' is assigned a value but never used                   @typescript-eslint/no-unused-vars
+  3362:11   warning  '_swe_deltat' is assigned a value but never used                       @typescript-eslint/no-unused-vars
+  3363:11   warning  '_swe_get_tid_acc' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+  3364:11   warning  '_swe_csnorm' is assigned a value but never used                       @typescript-eslint/no-unused-vars
+  3365:11   warning  '_swe_difcsn' is assigned a value but never used                       @typescript-eslint/no-unused-vars
+  3366:11   warning  '_swe_difdegn' is assigned a value but never used                      @typescript-eslint/no-unused-vars
+  3367:11   warning  '_swe_difcs2n' is assigned a value but never used                      @typescript-eslint/no-unused-vars
+  3368:11   warning  '_swe_csroundsec' is assigned a value but never used                   @typescript-eslint/no-unused-vars
+  3369:11   warning  '_swe_d2l' is assigned a value but never used                          @typescript-eslint/no-unused-vars
+  3370:11   warning  '_swe_day_of_week' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+  3371:11   warning  '_swe_cs2timestr' is assigned a value but never used                   @typescript-eslint/no-unused-vars
+  3372:11   warning  '_swe_cs2lonlatstr' is assigned a value but never used                 @typescript-eslint/no-unused-vars
+  3373:11   warning  '_swe_cs2degstr' is assigned a value but never used                    @typescript-eslint/no-unused-vars
+  3374:11   warning  '_swe_split_deg' is assigned a value but never used                    @typescript-eslint/no-unused-vars
+
+C:\Celestia222\Celestia 3\src\utils\CelestialLogic.ts
+  32:7  error  'hourRulerIndex' is never reassigned. Use 'const' instead  prefer-const
+
+C:\Celestia222\Celestia 3\src\utils\astrologyUtils.ts
+    1:10  warning  'NatalChartData' is defined but never used           @typescript-eslint/no-unused-vars
+    1:26  warning  'PlanetPosition' is defined but never used           @typescript-eslint/no-unused-vars
+  114:9   error    'nextDate' is never reassigned. Use 'const' instead  prefer-const
+
+Γ£û 241 problems (64 errors, 177 warnings)
+  3 errors and 0 warnings potentially fixable with the `--fix` option.
+

@@ -1,8 +1,6 @@
 import { NatalChartData, PlanetPosition } from '@/types/astrology';
 import { getZodiacInfo } from '@/utils/astrologyUtils';
-// @ts-ignore
 import SwissEphWrapper from 'swisseph-wasm';
-// @ts-ignore
 import RawFactory from './wasm/swisseph-factory-v2.js';
 
 // Paths to the WASM and Data files (placed in public folder)
@@ -42,7 +40,12 @@ interface SwissEphInstance {
   initSwissEph: () => Promise<void>;
   swe_close: () => void;
   close: () => void;
-  SweModule: any;
+  SweModule: {
+    ccall: (name: string, returnType: string | null, argTypes: string[], args: (number | string | null)[]) => number;
+    _malloc: (size: number) => number;
+    _free: (ptr: number) => void;
+    HEAPF64: Float64Array;
+  };
   set_ephe_path: (path: string) => void;
 }
 
@@ -71,7 +74,7 @@ export class SwissEphemerisService {
         const wasmBinary = await wasmResponse.arrayBuffer();
         const dataBinary = await dataResponse.arrayBuffer();
 
-        const config: any = {
+        const config: Record<string, unknown> = {
             wasmBinary: wasmBinary,
             ALLOW_MEMORY_GROWTH: 1,
             INITIAL_MEMORY: 268435456, // 256MB
@@ -81,7 +84,7 @@ export class SwissEphemerisService {
                  if (path.endsWith('.data')) return SWISS_EPH_DATA_PATH;
                  return path;
             },
-            instantiateWasm: (imports: any, successCallback: Function) => {
+            instantiateWasm: (imports: WebAssembly.Imports, successCallback: (instance: WebAssembly.Instance) => void) => {
                 WebAssembly.instantiate(wasmBinary, imports).then(output => {
                     successCallback(output.instance);
                 });
@@ -91,16 +94,17 @@ export class SwissEphemerisService {
 
         const moduleInstance = await RawFactory(config);
         const wrapper = new SwissEphWrapper();
-        (wrapper as any).SweModule = moduleInstance;
+        const wrapperInstance = wrapper as unknown as { SweModule: unknown; set_ephe_path?: (path: string) => void };
+        wrapperInstance.SweModule = moduleInstance;
 
-        if (typeof (wrapper as any).set_ephe_path === 'function') {
-            (wrapper as any).set_ephe_path('/sweph');
+        if (typeof wrapperInstance.set_ephe_path === 'function') {
+            wrapperInstance.set_ephe_path('/sweph');
         }
 
         swissEph = wrapper as unknown as SwissEphInstance;
 
         // --- MONKEY PATCHES ---
-        (swissEph as any).calc_ut = function(jd: number, planet: number, flags: number) {
+        (swissEph as unknown as { calc_ut: (jd: number, planet: number, flags: number) => Float64Array }).calc_ut = function(this: SwissEphInstance, jd: number, planet: number, flags: number) {
             const resultPtr = this.SweModule._malloc(48);
             const errPtr = this.SweModule._malloc(256);
             try {
@@ -119,7 +123,7 @@ export class SwissEphemerisService {
             }
         };
 
-        (swissEph as any).houses = function(jd: number, lat: number, lng: number, hsys: string | number) {
+        (swissEph as unknown as { houses: (jd: number, lat: number, lng: number, hsys: string | number) => { house: number[]; ascmc: number[] } }).houses = function(this: SwissEphInstance, jd: number, lat: number, lng: number, hsys: string | number) {
             const hsysInt = typeof hsys === 'string' ? hsys.charCodeAt(0) : hsys;
             const cuspsPtr = this.SweModule._malloc(13 * 8);
             const ascmcPtr = this.SweModule._malloc(10 * 8);

@@ -23,15 +23,33 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
     if (initialStep === 'flyby') return 'loading';
     return initialStep;
   });
-  const [birthInfo, setBirthInfo] = useState<OnboardingBirthInfo>({
-    date: '1995-05-15',
-    time: '12:00',
-    location: '',
-    fullName: '',
-    magicName: '',
-    pronouns: '',
-    lat: 40.7128,
-    lng: -74.0060
+  const [birthInfo, setBirthInfo] = useState<OnboardingBirthInfo>(() => {
+    if (initialStep === 'flyby' && preferences.birthDate && preferences.birthLocation) {
+        const d = new Date(preferences.birthDate);
+        const localTime = new Date(d.getTime() - (d.getTimezoneOffset() * 60000));
+        const localISO = localTime.toISOString();
+
+        return {
+            date: localISO.split('T')[0],
+            time: localISO.split('T')[1].slice(0, 5),
+            location: preferences.birthLocation.city || "Unknown",
+            fullName: preferences.fullName || "",
+            magicName: preferences.name || "Traveler",
+            pronouns: preferences.pronouns || "They/Them",
+            lat: preferences.birthLocation.lat,
+            lng: preferences.birthLocation.lng
+        };
+    }
+    return {
+        date: '1995-05-15',
+        time: '12:00',
+        location: '',
+        fullName: '',
+        magicName: '',
+        pronouns: '',
+        lat: 40.7128,
+        lng: -74.0060
+    };
   });
 
   const [chartData, setChartData] = useState<OnboardingChartData | null>(null);
@@ -74,33 +92,14 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
     return () => clearTimeout(timer);
   }, [birthInfo.location]);
 
-  // Hydrate and Auto-Start if Replaying
+  // Handle Chart Generation on Hydration
   useEffect(() => {
-    if (initialStep === 'flyby' && preferences.birthDate && preferences.birthLocation) {
-        const d = new Date(preferences.birthDate);
-        // Convert UTC stored date back to "Local ISO-like" string for form population
-        const localTime = new Date(d.getTime() - (d.getTimezoneOffset() * 60000));
-        const localISO = localTime.toISOString();
-
-        const info: OnboardingBirthInfo = {
-            date: localISO.split('T')[0],
-            time: localISO.split('T')[1].slice(0, 5),
-            location: preferences.birthLocation.city || "Unknown",
-            fullName: preferences.fullName || "",
-            magicName: preferences.name || "Traveler",
-            pronouns: preferences.pronouns || "They/Them",
-            lat: preferences.birthLocation.lat,
-            lng: preferences.birthLocation.lng
-        };
-        setBirthInfo(info);
-        
-        // Auto-generate
-        OnboardingService.generateChart(info)
+    if (initialStep === 'flyby' && !chartData && birthInfo.location) {
+        OnboardingService.generateChart(birthInfo)
             .then(data => {
                 setChartData(data);
                 setStep('flyby');
-                setViewMode('flyby'); // Set view mode to flyby
-                // Auto-start flyby
+                setViewMode('flyby');
                 setIsFlybyRunning(true);
                 setFlybyIndex(0);
                 if (data.planets.length > 0) {
@@ -109,10 +108,10 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
             })
             .catch(err => {
                 console.error("Flyby Replay Error:", err);
-                setStep('input'); // Fallback to input on error
+                setStep('input');
             });
     }
-  }, [initialStep, preferences]);
+  }, [initialStep, chartData, birthInfo]);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -11,20 +11,25 @@ interface SettingsContextType {
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
-
-  useEffect(() => {
+  const [preferences, setPreferences] = useState<UserPreferences>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('celestia_3_prefs');
       if (saved) {
         try {
-          setPreferences(JSON.parse(saved));
+          return JSON.parse(saved);
         } catch (e) {
           console.error("Failed to load prefs", e);
         }
       }
     }
-  }, []);
+    return DEFAULT_PREFERENCES;
+  });
+
+  useEffect(() => {
+    if (preferences !== DEFAULT_PREFERENCES) {
+      localStorage.setItem('celestia_3_prefs', JSON.stringify(preferences));
+    }
+  }, [preferences]);
 
   const updatePreferences = (updates: Partial<UserPreferences>) => {
     setPreferences(prev => {

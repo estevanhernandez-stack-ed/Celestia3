@@ -1,4 +1,4 @@
-import { NatalChartData, PlanetPosition, ZodiacSign } from '@/types/astrology';
+import { ZodiacSign } from '@/types/astrology';
 
 // --- UTILITY FUNCTIONS ---
 const norm360 = (x: number) => {
@@ -111,7 +111,7 @@ export const calculateMoonPhase = (date: Date = new Date()): { phase: string, em
 
 export const getNextMoonPhaseDate = (currentDate: Date = new Date()): { phase: string, date: Date, timeRemaining: string } => {
     const currentPhase = calculateMoonPhase(currentDate).phase;
-    let nextDate = new Date(currentDate.getTime());
+    const nextDate = new Date(currentDate.getTime());
     let iterCount = 0;
     
     // Look ahead up to 8 days with hourly precision
