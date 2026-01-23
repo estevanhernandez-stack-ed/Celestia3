@@ -13,8 +13,16 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+// Initialize Firebase (guard against missing config during build)
+const isConfigValid = !!firebaseConfig.apiKey && firebaseConfig.apiKey !== 'undefined';
+
+const app = getApps().length === 0 
+    ? (isConfigValid ? initializeApp(firebaseConfig) : undefined) 
+    : getApps()[0];
+
+if (!isConfigValid && typeof window !== "undefined") {
+  console.warn("⚠️ [Firebase] Configuration is missing or invalid. Check environment variables.");
+}
 
 // Initialize App Check (Client-side only)
 if (typeof window !== "undefined") {
@@ -34,5 +42,5 @@ if (typeof window !== "undefined") {
   }
 }
 
-export const db = getFirestore(app);
-export const auth = getAuth(app);
+export const db = app ? getFirestore(app) : undefined as unknown as ReturnType<typeof getFirestore>;
+export const auth = app ? getAuth(app) : undefined as unknown as ReturnType<typeof getAuth>;
