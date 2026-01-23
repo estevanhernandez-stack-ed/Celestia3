@@ -1,0 +1,62 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper to check if user is accessing their own document
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // Helper to check if user has admin role
+    function isAdmin() {
+      return request.auth != null && 
+        get(/databases/$(database)/documents/v3_users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // v3_users: Profile management
+    match /v3_users/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) || isAdmin();
+    }
+
+    // v3_system_prompts: Public read for app config
+    match /v3_system_prompts/{promptId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // v3_grimoire: Personal entries
+    match /v3_grimoire/{entryId} {
+      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // v3_memories: Personal context
+    match /v3_memories/{memoryId} {
+      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // v3_rate_limits: Server-managed (Cloud Functions only)
+    match /v3_rate_limits/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if false; // Only Cloud Functions can write via Admin SDK
+    }
+
+    // v3_feedback: User submissions
+    match /v3_feedback/{feedbackId} {
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

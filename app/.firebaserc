@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "celestia3"
+  },
+  "targets": {
+    "celestia3": {
+      "hosting": {
+        "celestia3": [
+          "celestia3"
+        ]
+      }
+    }
+  }
+}
