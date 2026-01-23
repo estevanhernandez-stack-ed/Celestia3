@@ -20,6 +20,28 @@ Celestia 3 is a premium, cosmic-themed web application that synthesizes ancient 
 - **Astrology Engine**: Swiss Ephemeris (via `swiss-ephemeris` WASM/Service)
 - **Security**: Firebase App Check (reCAPTCHA Enterprise), User Rate Limiting
 
+## 📐 Architecture
+
+```mermaid
+graph TD
+    User((User)) --> Client[Next.js Frontend]
+    Client --> SDK[Gemini 3 Direct SDK]
+    Client --> Auth[Firebase Auth]
+    Client --> Store[Firestore / Preferences]
+    
+    subgraph "Secure AI Mesh"
+    SDK --> Tools[Tool Calling: Chart/Rituals]
+    Client --> Proxy[Gemini Cloud Proxy]
+    Proxy --> Secret[Firebase Secrets: API Key]
+    Secret --> G3[Gemini 3 API]
+    end
+    
+    subgraph "Cosmic Logic"
+    Client --> Swiss[Swiss Ephemeris WASM]
+    Swiss --> Natal[Natal/Transit Charts]
+    end
+```
+
 ## 🚀 Getting Started
 
 ### Prerequisites
