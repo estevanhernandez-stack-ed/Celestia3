@@ -1,0 +1,28 @@
+FAIL src/__tests__/NatalCompass.test.tsx
+  ΓùÅ Test suite failed to run
+
+    Cannot find module 'swisseph-wasm' from 'src/lib/SwissEphemerisService.ts'
+
+    Require stack:
+      src/lib/SwissEphemerisService.ts
+      src/components/NatalCompass.tsx
+      src/__tests__/NatalCompass.test.tsx
+
+      10 | const SWISS_EPH_DATA_PATH = '/wasm/swisseph.data';
+      11 |
+    > 12 | const SE_SUN = 0;
+         |                                                              ^
+      13 | const SE_MOON = 1;
+      14 | const SE_MERCURY = 2;
+      15 | const SE_VENUS = 3;
+
+      at Resolver._throwModNotFoundError (node_modules/jest-resolve/build/index.js:863:11)
+      at Object.<anonymous> (src/lib/SwissEphemerisService.ts:12:62)
+      at Object.<anonymous> (src/components/NatalCompass.tsx:18:32)
+      at Object.<anonymous> (src/__tests__/NatalCompass.test.tsx:66:62)
+
+Test Suites: 1 failed, 1 total
+Tests:       0 total
+Snapshots:   0 total
+Time:        1.15 s
+Ran all test suites matching src/__tests__/NatalCompass.test.tsx.

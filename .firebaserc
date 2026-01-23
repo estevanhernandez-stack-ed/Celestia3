@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "celestia-a4a00"
+  },
+  "targets": {
+    "celestia-a4a00": {
+      "hosting": {
+        "celestia-3-0": [
+          "celestia-3-0"
+        ]
+      }
+    }
+  }
+}
