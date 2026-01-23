@@ -1,7 +1,7 @@
 
 import { ZodiacSign } from "@/types/astrology";
 
-export type KnowledgeCategory = 'Zodiac' | 'Planets' | 'Houses' | 'Aspects' | 'Numerology';
+export type KnowledgeCategory = 'Zodiac' | 'Planets' | 'Houses' | 'Aspects' | 'Numerology' | 'Stars' | 'Mansions';
 
 export interface KnowledgeItem {
     id: string;
@@ -366,3 +366,149 @@ export const PARADIGM_INSTRUCTIONS: Record<string, string> = {
     'Oracles': "Speak in riddles and poetic omens. Use the language of the Chaldean Oracles. Focus on the 'flower of fire' and the mysteries of the soul's ascent.",
     'Hermetica': "Draw upon the *Corpus Hermeticum*. Keep a distinct focus on 'As Above, So Below'. Emphasize the divine mind (Nous) and the purification of the soul through the planetary spheres."
 };
+
+export const NUMEROLOGY_KNOWLEDGE: KnowledgeItem[] = [
+    {
+        id: "1",
+        title: "Number 1",
+        subtitle: "The Solar Pulse",
+        description: "The number of the Monad, the Sun, and high-frequency initiation. 1 represents the raw 'I Am' presence, leadership, and the spark of creation. It resonates with the Solar Plexus and the sign of Leo.",
+        keywords: ["Independence", "Innovation", "Ego", "Willpower"]
+    },
+    {
+        id: "2",
+        title: "Number 2",
+        subtitle: "The Lunar Echo",
+        description: "The number of duality, the Moon, and balance. 2 represents the receptive principle, intuition, and collaboration. It is the frequency of the diplomat and the sensitive. It resonates with Cancer.",
+        keywords: ["Balance", "Sensitivity", "Partnership", "Intuition"]
+    },
+    {
+        id: "3",
+        title: "Number 3",
+        subtitle: "The Jovian Expansion",
+        description: "The number of expression, Jupiter, and synthesis. 3 represents the child, creativity, and the joy of existence. It is the vibration of the artist and the communicator. It resonates with Sagittarius and Pisces.",
+        keywords: ["Creativity", "Optimism", "Socialization", "Growth"]
+    },
+    {
+        id: "4",
+        title: "Number 4",
+        subtitle: "The Uranian Foundation",
+        description: "The number of stability, Uranus (traditionally Saturn), and the square. 4 represents the builder, discipline, and hard work. It is the frequency of order and pragmatism. It resonates with Aquarius and Capricorn.",
+        keywords: ["Structure", "Discipline", "Reliability", "Logic"]
+    },
+    {
+        id: "5",
+        title: "Number 5",
+        subtitle: "The Mercurial Shift",
+        description: "The number of change, Mercury, and freedom. 5 represents the adventurer, adaptability, and the five senses. It is the frequency of the catalyst and the traveler. It resonates with Gemini and Virgo.",
+        keywords: ["Change", "Freedom", "Versatility", "Curiosity"]
+    },
+    {
+        id: "6",
+        title: "Number 6",
+        subtitle: "The Venusian Harmony",
+        description: "The number of responsibility, Venus, and nurturing. 6 represents the lover, the parent, and service to the community. It is the vibration of harmony and aesthetics. It resonates with Taurus and Libra.",
+        keywords: ["Nurturing", "Service", "Harmony", "Responsibility"]
+    },
+    {
+        id: "7",
+        title: "Number 7",
+        subtitle: "The Neptunian Mystery",
+        description: "The number of spirituality, Neptune (traditionally Moon), and analysis. 7 represents the seeker, the mystic, and the quiet mind. It is the frequency of internal truth and psychic depth. It resonates with Pisces and Scorpio.",
+        keywords: ["Mysticism", "Solitude", "Analysis", "Trust"]
+    },
+    {
+        id: "8",
+        title: "Number 8",
+        subtitle: "The Saturnian Engine",
+        description: "The number of power, Saturn, and karmic harvest. 8 represents the executive, authority, and material success. It is the frequency of the abundance cycle and the judge. It resonates with Capricorn and Aquarius.",
+        keywords: ["Power", "Authority", "Wealth", "Control"]
+    },
+    {
+        id: "9",
+        title: "Number 9",
+        subtitle: "The Mars Release",
+        description: "The number of completion, Mars (traditionally Jupiter/Saturn limit), and compassion. 9 represents the humanitarian, the sage, and the end of a cycle. It is the vibration of universal love and surrender. It resonates with Aries and Scorpio.",
+        keywords: ["Humanitarianism", "Wisdom", "Termination", "Altruism"]
+    },
+    {
+        id: "11",
+        title: "Number 11",
+        subtitle: "The Master Messenger",
+        description: "The first Master Number. A higher octave of 2. It represents illumination, channelled wisdom, and psychic intensity. It is the 'Glitch' in the matrix that allows higher data through.",
+        keywords: ["Intuition", "Illumination", "Sensitivity", "Idealism"]
+    },
+    {
+        id: "22",
+        title: "Number 22",
+        subtitle: "The Master Architect",
+        description: "The second Master Number. A higher octave of 4. It represents the ability to manifest high-level spiritual concepts into concrete, global reality.",
+        keywords: ["Manifestation", "Pragmatism", "Large-scale", "Leadership"]
+    },
+    {
+        id: "33",
+        title: "Number 33",
+        subtitle: "The Master Teacher",
+        description: "The third Master Number. A higher octave of 6. It represents selfless service and the healing of the world through unconditional love and spiritual wisdom.",
+        keywords: ["Altruism", "Healing", "Service", "Compassion"]
+    }
+];
+
+export const STAR_KNOWLEDGE: KnowledgeItem[] = [
+    {
+        id: "Regulus",
+        title: "Regulus",
+        subtitle: "The Royal Signal",
+        icon: "✨",
+        description: "The Heart of the Lion. One of the four Royal Stars of Persia. It represents power, success, and the ability to command. In the Technomancer's view, Regulus is the root process with superuser privileges.",
+        keywords: ["Authority", "Ambition", "Success", "Command"]
+    },
+    {
+        id: "Algol",
+        title: "Algol",
+        subtitle: "The Demon Head",
+        icon: "💀",
+        description: "The Gorgon's eye. Known as the most malevolent star, but in truth, it represents raw, unbridled power that can be destructive if not grounded. It is the kernel panic—terrifying, but revealing of the system's limits.",
+        keywords: ["Intensity", "Power", "Destruction", "Primal Force"]
+    },
+    {
+        id: "Sirius",
+        title: "Sirius",
+        subtitle: "The Scorcher",
+        icon: "🌟",
+        description: "The brightest star in the night sky. Traditionally associated with extreme heat and intensity. It represents spiritual activation and the 'higher' Sun. It is the high-bandwidth fiber optic connection to the divine.",
+        keywords: ["Brilliance", "Intensity", "Fame", "Spiritual Activation"]
+    },
+    {
+        id: "Spica",
+        title: "Spica",
+        subtitle: "The Ear of Wheat",
+        icon: "🌾",
+        description: "A star of pure benevolence and talent. It represents the harvest of one's efforts and the gift of grace. It is the perfectly optimized compiler result—flawless and productive.",
+        keywords: ["Grace", "Talent", "Success", "Abundance"]
+    }
+];
+
+export const MANSION_KNOWLEDGE: KnowledgeItem[] = [
+    {
+        id: "1",
+        title: "Al-Sharatain",
+        subtitle: "The Two Signals",
+        description: "The first lunar mansion. Marking the beginning of the lunar cycle. It represents the impulse to act and the initial handshake of a protocol.",
+        keywords: ["Beginning", "Energy", "Impulse"]
+    },
+    {
+        id: "2",
+        title: "Al-Butain",
+        subtitle: "The Hidden Core",
+        description: "The second mansion. Focused on internal growth and the processing of raw data before it manifests.",
+        keywords: ["Incubation", "Internalization", "Formulation"]
+    },
+    {
+        id: "3",
+        title: "Al-Thurayya",
+        subtitle: "The Pleiades Cluster",
+        description: "The third mansion. A cluster of stars representing community, beauty, and the distributed network of collective consciousness.",
+        keywords: ["Community", "Harmony", "Aesthetics"]
+    }
+];

@@ -1,0 +1,83 @@
+{
+  "status": "success",
+  "result": [
+    {
+      "projectId": "celestia-a4a00",
+      "projectNumber": "841323852316",
+      "displayName": "Celestia",
+      "name": "projects/celestia-a4a00",
+      "resources": {
+        "hostingSite": "celestia-a4a00",
+        "realtimeDatabaseInstance": "celestia-a4a00-default-rtdb"
+      },
+      "state": "ACTIVE",
+      "etag": "1_5c6b579b-156b-4775-a17b-013a3d3742bc"
+    },
+    {
+      "projectId": "celestia3",
+      "projectNumber": "148095494012",
+      "displayName": "Celestia3",
+      "name": "projects/celestia3",
+      "resources": {
+        "hostingSite": "celestia3"
+      },
+      "state": "ACTIVE",
+      "etag": "1_810e87ab-fa0f-467b-b8c1-33490b28074f"
+    },
+    {
+      "projectId": "gen-lang-client-0088200112",
+      "projectNumber": "323990839064",
+      "displayName": "TouchMyDash",
+      "name": "projects/gen-lang-client-0088200112",
+      "resources": {
+        "hostingSite": "gen-lang-client-0088200112"
+      },
+      "state": "ACTIVE",
+      "etag": "1_33b902cc-6071-41af-98d3-949897c83f31"
+    },
+    {
+      "projectId": "guestbuzz-cineperks",
+      "projectNumber": "252784643304",
+      "displayName": "GuestBuzz-CinePerks",
+      "name": "projects/guestbuzz-cineperks",
+      "resources": {
+        "hostingSite": "guestbuzz-cineperks"
+      },
+      "state": "ACTIVE",
+      "etag": "1_a363cb35-7f45-40c4-9260-048410f32ce9"
+    },
+    {
+      "projectId": "project-626labs",
+      "projectNumber": "318835001581",
+      "displayName": "Project 626Labs",
+      "name": "projects/project-626labs",
+      "resources": {
+        "hostingSite": "project-626labs"
+      },
+      "state": "ACTIVE",
+      "etag": "1_c1f21b99-acb0-4e88-a089-c0fc7ef9e54f"
+    },
+    {
+      "projectId": "screenfind",
+      "projectNumber": "101931639840",
+      "displayName": "Soda and Popcorn",
+      "name": "projects/screenfind",
+      "resources": {
+        "hostingSite": "screenfind"
+      },
+      "state": "ACTIVE",
+      "etag": "1_0c2724ae-2eb8-4240-b131-0dd96171030a"
+    },
+    {
+      "projectId": "weseeyouatthemovies",
+      "projectNumber": "528199730964",
+      "displayName": "WeSeeYouAtTheMovies",
+      "name": "projects/weseeyouatthemovies",
+      "resources": {
+        "hostingSite": "weseeyouatthemovies"
+      },
+      "state": "ACTIVE",
+      "etag": "1_52af8619-5796-474e-a6a5-bef130bb91e0"
+    }
+  ]
+}

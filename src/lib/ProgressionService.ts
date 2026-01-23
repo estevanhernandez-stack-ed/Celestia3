@@ -13,16 +13,61 @@ export const LEVEL_TITLES = [
   "Avatar of the Stars" // Lvl 10+
 ];
 
+export interface CelestialQuest {
+  level: number;
+  title: string;
+  description: string;
+  action: string;
+  targetCount: number;
+  xpReward: number;
+}
+
+export const CELESTIAL_QUESTS: CelestialQuest[] = [
+  {
+    level: 1,
+    title: "The First Glimpse",
+    description: "Calibrate your Natal Compass to ground your digital soul.",
+    action: 'calibration',
+    targetCount: 1,
+    xpReward: 100
+  },
+  {
+    level: 2,
+    title: "Bio-Link Initiation",
+    description: "Capture your Aura to stabilize biometric resonance.",
+    action: 'aura-scan',
+    targetCount: 1,
+    xpReward: 200
+  },
+  {
+    level: 3,
+    title: "Arithmancy Decode",
+    description: "Analyze your Soul Algorithm in the Arithmancy chamber.",
+    action: 'numerology-check',
+    targetCount: 1,
+    xpReward: 300
+  },
+  {
+    level: 4,
+    title: "The Oracle's Vision",
+    description: "Draw a Tarot spread to glimpse the threads of fate.",
+    action: 'tarot',
+    targetCount: 1,
+    xpReward: 400
+  }
+];
+
 export const VIEW_LEVEL_REQUIREMENTS: Record<string, number> = {
-  compass: 1,
-  numerology: 2,
-  tarot: 3,
-  chronos: 4,
-  rituals: 5,
-  celebrities: 6,
-  grimoire: 7,
-  cosmic: 7,
-  athanor: 8
+  compass: 1,      // The Foundation
+  aura: 2,         // Bio-Link Ritual
+  numerology: 3,   // Arithmancy
+  tarot: 4,        // Divine Oracle
+  grimoire: 5,     // The Master's Archive (Repository)
+  rituals: 6,      // Sigil Manifestation
+  chronos: 7,      // Temporal Feed
+  celebrities: 8,  // Sync Resonance
+  synastry: 9,     // Compatibility
+  athanor: 10      // Ethereal Intelligence
 };
 
 export class ProgressionService {
@@ -35,14 +80,16 @@ export class ProgressionService {
     return LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
   }
 
-  static calculateGainedXP(action: 'ritual' | 'tarot' | 'journal' | 'compass' | 'meditation' | 'calibration'): number {
+  static calculateGainedXP(action: 'ritual' | 'tarot' | 'journal' | 'compass' | 'meditation' | 'calibration' | 'aura-scan' | 'numerology-check'): number {
     const xpMap = {
       ritual: 50,
       tarot: 30,
       journal: 20,
       compass: 10,
       meditation: 10,
-      calibration: 5
+      calibration: 5,
+      'aura-scan': 40,
+      'numerology-check': 30
     };
     return xpMap[action];
   }
@@ -50,7 +97,7 @@ export class ProgressionService {
   /**
    * Processes XP gain and returns the new state
    */
-  static addXP(currentPrefs: UserPreferences, action: 'ritual' | 'tarot' | 'journal' | 'compass' | 'meditation' | 'calibration'): { 
+  static addXP(currentPrefs: UserPreferences, action: 'ritual' | 'tarot' | 'journal' | 'compass' | 'meditation' | 'calibration' | 'aura-scan' | 'numerology-check'): { 
     xp: number; 
     level: number; 
     leveledUp: boolean 

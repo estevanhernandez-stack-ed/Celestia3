@@ -9,7 +9,7 @@
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch",
-    "deploy-power": "powershell -Command \"Stop-Process -Name 'node' -Force -ErrorAction SilentlyContinue; Remove-Item -Path .next,.firebase -Recurse -Force -ErrorAction SilentlyContinue; npm run build; firebase deploy --only hosting:celestia-3-0\""
+    "deploy-power": "powershell -Command \"Stop-Process -Name 'node' -Force -ErrorAction SilentlyContinue; Remove-Item -Path .next,.firebase -Recurse -Force -ErrorAction SilentlyContinue; npm run build; firebase deploy --only hosting\""
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

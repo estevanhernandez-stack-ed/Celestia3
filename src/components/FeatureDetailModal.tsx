@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MessageSquare, Sparkles, ArrowRight } from 'lucide-react';
+import { X, MessageSquare, ArrowRight } from 'lucide-react';
 
 interface FeatureData {
   title: string;
@@ -42,7 +42,7 @@ const FeatureDetailModal: React.FC<FeatureDetailModalProps> = ({ isOpen, onClose
             className="relative w-full max-w-lg bg-black border border-emerald-900/50 rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(16,185,129,0.1)]"
           >
             {/* Header / Decorative Top */}
-            <div className="h-2 w-full bg-gradient-to-r from-emerald-900 via-emerald-500 to-emerald-900" />
+            <div className="h-2 w-full bg-linear-to-r from-emerald-900 via-emerald-500 to-emerald-900" />
             
             <button 
               onClick={onClose}
@@ -76,7 +76,7 @@ const FeatureDetailModal: React.FC<FeatureDetailModalProps> = ({ isOpen, onClose
                    {feature.title === 'Destiny Thread' && " This indicates your North Node placement—the spiritual magnetic north that pulls you towards your highest evolutionary growth."}
                  </p>
                  <p className="italic opacity-70">
-                   "To understand this key is to unlock a deeper layer of the simulation."
+                   &quot;To understand this key is to unlock a deeper layer of the simulation.&quot;
                  </p>
               </div>
 

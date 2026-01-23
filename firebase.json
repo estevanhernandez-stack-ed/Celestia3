@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "celestia3",
+    "target": "celestia3",
     "source": ".",
     "ignore": [
       "firebase.json",

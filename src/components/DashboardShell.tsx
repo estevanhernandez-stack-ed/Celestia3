@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import NextImage from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles,
@@ -56,11 +57,11 @@ import { calculateMoonPhase, getNextMoonPhaseDate } from '@/utils/astrologyUtils
 import { Zap } from 'lucide-react';
 import GrimoireCodex from './GrimoireCodex';
 import CelebrityMatchView from './CelebrityMatchView';
-import { ProgressionService, VIEW_LEVEL_REQUIREMENTS } from '@/lib/ProgressionService';
+import { ProgressionService, VIEW_LEVEL_REQUIREMENTS, CELESTIAL_QUESTS } from '@/lib/ProgressionService';
 import AuraScanner from './AuraScanner';
-import { Camera } from 'lucide-react';
+import { Camera, Target } from 'lucide-react';
 
-type DashboardView = 'compass' | 'synastry' | 'tarot' | 'athanor' | 'rituals' | 'chronos' | 'numerology' | 'grimoire' | 'admin' | 'celebrities';
+type DashboardView = 'compass' | 'synastry' | 'tarot' | 'athanor' | 'rituals' | 'chronos' | 'numerology' | 'grimoire' | 'admin' | 'celebrities' | 'aura';
 
 const DashboardShell: React.FC = () => {
   const [activeView, setActiveView] = useState<DashboardView>('compass');
@@ -83,11 +84,11 @@ const DashboardShell: React.FC = () => {
 
   // Check for Welcome
   React.useEffect(() => {
-    if (!preferences.hasSeenWelcome && preferences.hasCompletedOnboarding) {
+    if (!preferences.hasSeenWelcome && preferences.hasCompletedOnboarding && !preferences.dismissWelcomePermanent) {
         // Short delay for effect
         setTimeout(() => setIsWelcomeOpen(true), 1500);
     }
-  }, [preferences.hasSeenWelcome, preferences.hasCompletedOnboarding]);
+  }, [preferences.hasSeenWelcome, preferences.hasCompletedOnboarding, preferences.dismissWelcomePermanent]);
 
   // Handler for Rituals
   const handlePerformRitual = async (intent: string, paradigm: string) => {
@@ -154,19 +155,18 @@ const DashboardShell: React.FC = () => {
      updatePreferences({ xp: progression.xp, level: progression.level });
   };
 
-  // Calculate Natal Chart once for all dashboard components
   React.useEffect(() => {
     async function initChart() {
-      console.log("Shell: Starting Chart Calc for", preferences.birthDate);
       if (preferences.birthDate && preferences.birthLocation) {
         try {
+          console.log("Shell: Starting Chart Calc for", preferences.birthDate);
           const data = await SwissEphemerisService.calculateChart(
             new Date(preferences.birthDate),
             preferences.birthLocation.lat,
             preferences.birthLocation.lng
           );
-          console.log("Shell: Chart Calc Success", data);
           setNatalChart(data);
+          console.log("Shell: Chart Calc Success", data);
         } catch (error) {
           console.error("Dashboard Chart Calibration Failed", error);
         }
@@ -174,19 +174,26 @@ const DashboardShell: React.FC = () => {
         console.log("Shell: Missing birth data");
       }
     }
-    initChart();
+
+    // Delay calculation to ensure smooth initial load animations and WelcomeModal entry
+    const timer = setTimeout(() => {
+        initChart();
+    }, 2000);
+
+    return () => clearTimeout(timer);
   }, [preferences.birthDate, preferences.birthLocation]);
 
   const navItems = [
     { id: 'compass', label: 'Natal Compass', icon: Compass, color: 'text-indigo-400' },
-    { id: 'synastry', label: 'Synastry', icon: Users, color: 'text-fuchsia-400' },
-    { id: 'tarot', label: 'Tarot Oracle', icon: Sparkles, color: 'text-violet-400' },
+    { id: 'aura', label: 'Bio-Link Ritual', icon: Camera, color: 'text-fuchsia-400' },
     { id: 'numerology', label: 'Arithmancy', icon: Hash, color: 'text-cyan-400' },
-    { id: 'chronos', label: 'Chronos', icon: Clock, color: 'text-amber-400' },
-    { id: 'rituals', label: 'Rituals', icon: Flame, color: 'text-orange-500' },
-    { id: 'celebrities', label: 'Celebrity Synergy', icon: Users, color: 'text-rose-400' },
+    { id: 'tarot', label: 'Tarot Oracle', icon: Sparkles, color: 'text-violet-400' },
     { id: 'grimoire', label: 'Grimoire', icon: Book, color: 'text-emerald-300' },
+    { id: 'rituals', label: 'Rituals', icon: Flame, color: 'text-orange-500' },
+    { id: 'chronos', label: 'Chronos', icon: Clock, color: 'text-amber-400' },
+    { id: 'celebrities', label: 'Celebrity Synergy', icon: Users, color: 'text-rose-400' },
     { id: 'codex', label: 'Cosmic Codex', icon: BookOpen, color: 'text-indigo-300' },
+    { id: 'synastry', label: 'Synastry', icon: Users, color: 'text-fuchsia-400' },
     { id: 'athanor', label: 'Athanor AI', icon: MessageSquare, color: 'text-blue-400' },
     { id: 'admin', label: 'Sanctum Control', icon: Shield, color: 'text-cyan-400' },
   ];
@@ -309,18 +316,53 @@ const DashboardShell: React.FC = () => {
                         />
                     </div>
                 </div>
-
-                <div className="text-right hidden md:block">
+                <div className="text-right hidden xl:block">
                     <div className="text-[10px] text-indigo-400/80 uppercase tracking-widest">Operator</div>
-                    <div className="text-sm font-bold text-white">{preferences?.name || "Initiate"}</div>
+                    <div className="text-sm font-bold text-white leading-tight">{preferences?.name || "Initiate"}</div>
                 </div>
+
+                {/* Quest Tracker */}
+                {(() => {
+                    const currentQuest = CELESTIAL_QUESTS.find(q => q.level === (preferences.level || 1));
+                    if (!currentQuest) return null;
+                    return (
+                        <div className="hidden lg:flex items-center gap-3 px-4 py-1.5 bg-emerald-500/5 rounded-xl border border-emerald-500/20 group cursor-default">
+                            <div className="p-1.5 bg-emerald-500/10 rounded-lg group-hover:bg-emerald-500/20 transition-colors">
+                                <Target size={14} className="text-emerald-400" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] text-emerald-500 font-black uppercase tracking-widest leading-none mb-1">Active Quest</span>
+                                <span className="text-[11px] text-white font-medium tracking-wide whitespace-nowrap">{currentQuest.title}</span>
+                            </div>
+                        </div>
+                    );
+                })()}
+                
+                {/* Profile Avatar Button */}
                 <button 
-                    onClick={() => setIsAuraCamOpen(true)}
-                    className="p-2 hover:bg-white/10 rounded-full transition-colors text-fuchsia-400 hover:text-white"
-                    title="Bio-Link Ritual"
+                    onClick={() => setIsCalibrationOpen(true)}
+                    className="relative group profile-avatar-transition"
                 >
-                    <Camera size={20} />
+                    <div className="h-10 w-10 rounded-full border-2 border-indigo-500/20 group-hover:border-indigo-500/50 transition-all overflow-hidden bg-slate-900 flex items-center justify-center shadow-lg shadow-indigo-500/10 active:scale-90 relative">
+                        {preferences.profilePictureUrl ? (
+                            <NextImage 
+                                src={preferences.profilePictureUrl} 
+                                alt="Operator Avatar" 
+                                className="w-full h-full object-cover"
+                                width={40}
+                                height={40}
+                                unoptimized
+                            />
+                        ) : (
+                            <span className="text-lg font-bold font-serif text-indigo-300">
+                                {preferences.name ? preferences.name[0].toUpperCase() : "O"}
+                            </span>
+                        )}
+                    </div>
+                    {/* Status Indicator */}
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-slate-950 rounded-full shadow-sm" />
                 </button>
+
                 <button 
                     onClick={() => setIsCalibrationOpen(true)}
                     className="p-2 hover:bg-white/10 rounded-full transition-colors text-indigo-400 hover:text-white"
@@ -459,7 +501,7 @@ const DashboardShell: React.FC = () => {
                                          return (
                                          <button 
                                             key={i} 
-                                            onClick={() => setSelectedNum({number: num.val, type: num.label as any, source: num.source})}
+                                            onClick={() => setSelectedNum({number: num.val, type: num.label as "Life Path" | "Destiny" | "Active" | "Personal Day", source: num.source})}
                                             className={`relative overflow-hidden rounded-2xl border ${num.borderColor} ${num.bg} p-6 flex flex-col items-start justify-between min-h-[160px] hover:scale-[1.02] transition-all group text-left w-full hover:shadow-2xl hover:shadow-${num.color.replace('text-', '')}/20`}
                                          >
                                              {/* Header */}
@@ -518,7 +560,7 @@ const DashboardShell: React.FC = () => {
                                                         {preferences.name || "OPERATOR"}
                                                     </h2>
                                                     <p className="text-indigo-400 text-xs font-mono uppercase tracking-widest">
-                                                        Level 1 Initiate
+                                                        Level {preferences.level || 1} {ProgressionService.getLevelTitle(preferences.level || 1)}
                                                     </p>
                                                 </div>
                                             </div>
@@ -548,10 +590,10 @@ const DashboardShell: React.FC = () => {
                                                     </div>
                                                     <div className="text-right">
                                                         <div className="text-white font-bold">
-                                                            {natalChart.planets.find(p => p.name === 'Moon')?.sign}
+                                                            {natalChart?.planets.find(p => p.name === 'Moon')?.sign}
                                                         </div>
                                                         <div className="text-[10px] text-slate-400/60 uppercase tracking-widest">
-                                                            {ARCHETYPES[natalChart.planets.find(p => p.name === 'Moon')?.sign || 'Aries']}
+                                                            {ARCHETYPES[natalChart?.planets.find(p => p.name === 'Moon')?.sign || 'Aries']}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -564,10 +606,10 @@ const DashboardShell: React.FC = () => {
                                                     </div>
                                                     <div className="text-right">
                                                         <div className="text-white font-bold">
-                                                            {natalChart.ascendant?.sign}
+                                                            {natalChart?.ascendant?.sign}
                                                         </div>
                                                         <div className="text-[10px] text-fuchsia-400/60 uppercase tracking-widest">
-                                                            {ARCHETYPES[natalChart.ascendant?.sign || 'Aries']}
+                                                            {ARCHETYPES[natalChart?.ascendant?.sign || 'Aries']}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -642,6 +684,37 @@ const DashboardShell: React.FC = () => {
                         <CelebrityMatchView userChart={natalChart as NatalChartData} />
                     )}
 
+                    {activeView === 'aura' && (
+                        <AuraScanner 
+                            isEmbedded={true}
+                            onClose={() => setActiveView('compass')}
+                            natalChart={natalChart}
+                            city={preferences.birthLocation?.city}
+                            onSave={async (capture) => {
+                                // Persist to Grimoire
+                                if (user?.uid) {
+                                    await GrimoireService.saveEntry(user.uid, {
+                                        userId: user.uid,
+                                        type: 'aura',
+                                        title: `Aura Capture: ${new Date(capture.date).toLocaleDateString()}`,
+                                        content: {
+                                            imageUrl: capture.imageUrl,
+                                            analysis: capture.analysis,
+                                            colors: capture.colors,
+                                            city: capture.city,
+                                            resonance: capture.resonance
+                                        },
+                                        tags: ['aura', 'ritual']
+                                    });
+                                }
+                                
+                                // Add XP
+                                const progression = ProgressionService.addXP(preferences, 'aura-scan');
+                                updatePreferences({ xp: progression.xp, level: progression.level });
+                            }}
+                        />
+                    )}
+
                     {activeView === 'admin' && (
                         <AdminView />
                     )}
@@ -660,7 +733,13 @@ const DashboardShell: React.FC = () => {
             {isWelcomeOpen && (
                 <WelcomeModal
                     isOpen={isWelcomeOpen}
-                    onClose={() => setIsWelcomeOpen(false)}
+                    onClose={(dontShowAgain) => {
+                        setIsWelcomeOpen(false);
+                        updatePreferences({ 
+                            hasSeenWelcome: true,
+                            dismissWelcomePermanent: dontShowAgain 
+                        });
+                    }}
                     userName={preferences.name || "Initiate"}
                 />
             )}
@@ -688,6 +767,8 @@ const DashboardShell: React.FC = () => {
             {isAuraCamOpen && (
                 <AuraScanner 
                     onClose={() => setIsAuraCamOpen(false)}
+                    natalChart={natalChart}
+                    city={preferences.birthLocation?.city}
                     onSave={async (capture) => {
                         // Persist to Grimoire
                         if (user?.uid) {
@@ -698,14 +779,16 @@ const DashboardShell: React.FC = () => {
                                 content: {
                                     imageUrl: capture.imageUrl,
                                     analysis: capture.analysis,
-                                    colors: capture.colors
+                                    colors: capture.colors,
+                                    city: capture.city,
+                                    resonance: capture.resonance
                                 },
                                 tags: ['aura', 'ritual']
                             });
                         }
                         
                         // Add XP
-                        const progression = ProgressionService.addXP(preferences, 'ritual');
+                        const progression = ProgressionService.addXP(preferences, 'aura-scan');
                         updatePreferences({ xp: progression.xp, level: progression.level });
                         setIsAuraCamOpen(false);
                     }}
@@ -734,14 +817,21 @@ const DashboardShell: React.FC = () => {
                             </div>
                         </div>
                         <div className="space-y-4">
-                            <h2 className="text-2xl font-bold font-serif text-white uppercase tracking-[0.2em]">Mystical Seal Active</h2>
-                            <p className="text-slate-400 text-sm leading-relaxed uppercase tracking-widest">
+                            <h2 className="text-2xl font-bold font-serif text-white uppercase tracking-[0.2em]">Talisman Locked Gate</h2>
+                            <p className="text-slate-400 text-[11px] leading-relaxed uppercase tracking-widest">
                                 Your soul current is not yet tuned to the frequencies of <span className="text-indigo-300 font-black">{lockedView}</span>.
                             </p>
-                            <div className="pt-4 flex flex-col items-center gap-2">
-                                <div className="text-[10px] text-indigo-500 font-black uppercase tracking-[0.3em]">Required Level</div>
-                                <div className="text-3xl font-serif text-white">{VIEW_LEVEL_REQUIREMENTS[lockedView]}</div>
-                                <div className="text-[9px] text-slate-500 uppercase tracking-widest mt-2">{ProgressionService.getLevelTitle(VIEW_LEVEL_REQUIREMENTS[lockedView])}</div>
+                            
+                            <div className="py-2 px-4 bg-indigo-500/5 border border-indigo-500/10 rounded-xl">
+                                <p className="text-[9px] text-indigo-400 font-medium italic">
+                                    &quot;Perform exploration tasks in the Natal Compass or Oracle to level up and unlock this talisman.&quot;
+                                </p>
+                            </div>
+
+                            <div className="pt-2 flex flex-col items-center gap-1">
+                                <div className="text-[9px] text-indigo-500 font-black uppercase tracking-[0.3em]">Required Level</div>
+                                <div className="text-2xl font-serif text-white font-black">{lockedView ? VIEW_LEVEL_REQUIREMENTS[lockedView] : 0}</div>
+                                <div className="text-[8px] text-slate-500 uppercase tracking-widest">{lockedView ? ProgressionService.getLevelTitle(VIEW_LEVEL_REQUIREMENTS[lockedView]) : ''}</div>
                             </div>
                         </div>
                         <button 

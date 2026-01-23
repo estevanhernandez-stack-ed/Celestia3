@@ -193,7 +193,7 @@ const RitualControlPanel: React.FC<RitualControlPanelProps> = ({ onPerformRitual
                     className={`w-full py-6 rounded-2xl font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-2xl ${
                       !intent.trim() || isPerforming
                         ? 'bg-slate-800/50 text-slate-600 cursor-not-allowed border border-white/5'
-                        : 'bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:from-indigo-500 hover:to-fuchsia-500 text-white shadow-indigo-500/20 hover:shadow-indigo-500/40'
+                        : 'bg-linear-to-r from-indigo-600 to-fuchsia-600 hover:from-indigo-500 hover:to-fuchsia-500 text-white shadow-indigo-500/20 hover:shadow-indigo-500/40'
                     }`}
                   >
                         <Scroll size={18} />

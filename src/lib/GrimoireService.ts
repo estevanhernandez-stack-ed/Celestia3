@@ -13,7 +13,7 @@ import { db } from "./firebase";
 import { GrimoireEntry } from "@/types/grimoire";
 
 export class GrimoireService {
-  private static COLLECTION = "grimoire";
+  private static COLLECTION = "v3_grimoire";
   private static LOCAL_STORAGE_KEY = "celestia_grimoire_cache";
 
   static async saveEntry(userId: string, entry: Omit<GrimoireEntry, 'id' | 'date'>): Promise<string> {

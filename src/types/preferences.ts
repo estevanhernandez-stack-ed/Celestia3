@@ -7,6 +7,8 @@ export interface AuraCapture {
   date: string;
   analysis: string;
   colors: string[];
+  city?: string;
+  resonance?: string;
 }
 
 export interface SavedChart {
@@ -56,6 +58,8 @@ export interface UserPreferences {
   savedCharts?: SavedChart[];
   xp: number;
   level: number;
+  dismissWelcomePermanent?: boolean;
+  profilePictureUrl?: string; // URL from Aura capture or Google auth
 }
 
 export const DEFAULT_PREFERENCES: UserPreferences = {
@@ -76,4 +80,6 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   voicePitch: 0.0,
   xp: 0,
   level: 1,
+  dismissWelcomePermanent: false,
+  profilePictureUrl: "", // Defaults to initial-based avatar
 };

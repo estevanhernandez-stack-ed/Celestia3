@@ -1,19 +1,23 @@
 "use client";
 
 import React, { useState, useRef, useCallback } from 'react';
+import NextImage from 'next/image';
 import Webcam from 'react-webcam';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Camera, Zap, Sparkles, Download, Save, RefreshCw } from 'lucide-react';
 import { AuraCapture } from '@/types/preferences';
 import { technomancerModel } from '@/lib/gemini';
+import { NatalChartData } from '@/types/astrology';
 
 interface AuraScannerProps {
     onClose: () => void;
     onSave: (capture: AuraCapture) => void;
     isEmbedded?: boolean;
+    natalChart?: NatalChartData | null;
+    city?: string;
 }
 
-const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded = false }) => {
+const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded = false, natalChart, city }) => {
     const webcamRef = useRef<Webcam>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [step, setStep] = useState<'intro' | 'scanning' | 'result'>('intro');
@@ -31,7 +35,9 @@ const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded =
             imageUrl: capturedImage,
             date: new Date().toISOString(),
             analysis: auraAnalysis,
-            colors: auraColors
+            colors: auraColors,
+            city,
+            resonance: natalChart ? `Sun in ${natalChart.planets.find(p => p.name === 'Sun')?.sign}, Moon in ${natalChart.planets.find(p => p.name === 'Moon')?.sign}` : undefined
         };
         onSave(capture);
         onClose();
@@ -107,7 +113,7 @@ const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded =
         setAuraColors(colors);
         setLoadingAnalysis(false);
 
-        const img = new Image();
+        const img = new window.Image();
         img.src = imageSrc;
         img.onload = () => {
             const canvas = canvasRef.current!;
@@ -243,7 +249,17 @@ const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded =
             currentY += dateSize + (finalWidth * 0.015);
             ctx.font = `${dateSize}px sans-serif`;
             ctx.fillStyle = '#64748b';
-            ctx.fillText(new Date().toLocaleDateString().toUpperCase(), canvas.width / 2, currentY);
+            const locationString = city ? `${city.toUpperCase()} • ` : '';
+            ctx.fillText(`${locationString}${new Date().toLocaleDateString().toUpperCase()}`, canvas.width / 2, currentY);
+
+            if (natalChart) {
+                currentY += dateSize + (finalWidth * 0.025);
+                ctx.font = `bold ${dateSize}px sans-serif`;
+                ctx.fillStyle = '#6366f1';
+                const sun = natalChart.planets.find(p => p.name === 'Sun')?.sign;
+                const moon = natalChart.planets.find(p => p.name === 'Moon')?.sign;
+                ctx.fillText(`☉ ${sun?.toUpperCase()}  ☽ ${moon?.toUpperCase()}`, canvas.width / 2, currentY);
+            }
 
             if (analysis) {
                 currentY += bodySize + (finalWidth * 0.025);
@@ -268,19 +284,23 @@ const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded =
             const finalImageUrl = canvas.toDataURL('image/jpeg', 0.85);
             setCapturedImage(finalImageUrl);
         };
-    }, [analyzeAura]);
+    }, [analyzeAura, city, natalChart]);
 
     const containerClass = isEmbedded 
-        ? "relative w-full h-full min-h-[600px] flex flex-col items-center justify-center bg-transparent"
+        ? "relative w-full h-full min-h-[500px] flex flex-col items-center justify-center bg-transparent p-0"
         : "fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 bg-black/60 backdrop-blur-sm";
+
+    const contentClass = isEmbedded
+        ? "relative w-full h-full bg-slate-950/50 border border-indigo-500/20 rounded-[2rem] shadow-2xl overflow-hidden flex flex-col"
+        : "relative w-full max-w-2xl bg-slate-950 border border-indigo-500/30 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]";
 
     return (
         <div className={containerClass} onClick={!isEmbedded ? onClose : undefined}>
             <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                initial={!isEmbedded ? { opacity: 0, scale: 0.9, y: 20 } : { opacity: 0 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="relative w-full max-w-2xl bg-slate-950 border border-indigo-500/30 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                exit={!isEmbedded ? { opacity: 0, scale: 0.9, y: 20 } : { opacity: 0 }}
+                className={contentClass}
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -289,12 +309,14 @@ const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded =
                         <Camera className="text-indigo-400" size={20} />
                         <h2 className="text-xl font-serif font-black tracking-widest text-white uppercase">Bio-Link Ritual</h2>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white">
-                        <X size={20} />
-                    </button>
+                    {!isEmbedded && (
+                        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white">
+                            <X size={20} />
+                        </button>
+                    )}
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center justify-center min-h-[500px]">
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-8 flex flex-col items-center justify-center min-h-[400px]">
                     <canvas ref={canvasRef} className="hidden" />
 
                     <AnimatePresence mode="wait">
@@ -379,7 +401,14 @@ const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded =
                                 ) : (
                                     <>
                                         <div className="bg-white p-4 shadow-2xl rotate-1 transform hover:rotate-0 transition-transform duration-500 max-w-sm rounded-sm">
-                                            <img src={capturedImage!} alt="Aura" className="w-full h-auto" />
+                                            <NextImage 
+                                                src={capturedImage!} 
+                                                alt="Aura" 
+                                                className="w-full h-auto" 
+                                                width={400} 
+                                                height={533} 
+                                                unoptimized
+                                            />
                                         </div>
 
                                         <div className="text-center space-y-6">

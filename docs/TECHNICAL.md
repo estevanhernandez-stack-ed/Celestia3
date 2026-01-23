@@ -6,34 +6,39 @@ Celestia 3 is a production-grade spiritual-technical nexus built on a hybrid AI-
 
 We utilize a **Hybrid Mesh** to balance performance, security, and advanced capabilities:
 
-1.  **Direct SDK (Technomancer Core)**:
-    - **Usage**: Advanced chat interactions involving **Function Calling (Tools)**.
-    - **Capabilities**: The AI can autonomously `trigger_resonance` (Web Audio), `search_spotify`, or query ethereal knowledge.
-    - **Security**: Protected by mandatory Firebase Authentication checks.
+1. **Direct SDK (Technomancer Core)**:
+   - **Usage**: Advanced chat interactions involving **Function Calling (Tools)**.
+   - **Capabilities**: The AI can autonomously `trigger_resonance` (Web Audio), `search_spotify`, or query ethereal knowledge.
+   - **Security**: Protected by mandatory Firebase Authentication checks.
 
-2.  **Cloud Proxy (Athanor Bridge)**:
-    - **Usage**: High-frequency text generation and standard rituals.
-    - **Architecture**: Client makes a request to a Firebase Cloud Function -> Proxy validates user rate limits -> Proxy retrieves `GEMINI_API_KEY` from **Firebase Secret Manager** -> Proxy executes request to Google AI.
-    - **Benefits**: Zero exposure of API keys on the frontend and global rate limiting (20 requests/minute/user).
+2. **Cloud Proxy (Athanor Bridge)**:
+   - **Usage**: High-frequency text generation and standard rituals.
+   - **Architecture**: Client makes a request to a Firebase Cloud Function -> Proxy validates user rate limits -> Proxy retrieves `GEMINI_API_KEY` from **Firebase Secret Manager** -> Proxy executes request to Google AI.
+   - **Benefits**: Zero exposure of API keys on the frontend and global rate limiting (20 requests/minute/user).
 
 ## 🌌 Cosmic Logic Engines
 
 ### 1. Arithmancy (Numerology)
+
 A custom-built TypeScript engine that calculates:
+
 - **Daily Pulse**: Periodically computed resonance based on birth data.
 - **Destiny Threads**: Life path and expression number derivations.
 
 ### 2. Natal Compass (Swiss Ephemeris)
+
 Integrates the `swiss-ephemeris` library via WASM.
+
 - **Precision**: Calculates planetary longitudes, house cusps, and aspects with arc-second accuracy.
 - **Bi-Wheels**: Dynamic Synastry generation by mapping two disparate celestial datasets onto a single concentric coordinate system.
 - **Custom WASM Patches**: To achieve research-grade precision, we implemented a custom memory bridge:
-    - **Memory Tracking**: Direct interface with Emscripten `HEAPF64` to retrieve raw coordinates.
-    - **`ccall` Bridging**: Optimized `calc_ut` and `houses` functions for direct communication with the C-compiled core.
+  - **Memory Tracking**: Direct interface with Emscripten `HEAPF64` to retrieve raw coordinates.
+  - **`ccall` Bridging**: Optimized `calc_ut` and `houses` functions for direct communication with the C-compiled core.
 
 ## 📜 AI Codex Integration
 
 The Technomancer Assistant is "fine-tuned" via a **High-Context RAG-light** system:
+
 - **Codex Awareness**: The agent is seeded with the architectural knowledge of the `GrimoireCodex`, allowing it to reference specific esoteric paradigms (Picatrix, Agrippa) when performing rituals.
 - **State-Aware Reasoning**: Gemini 3 analyzes the user's current Progression Level and Natal Chart to personalize every incantation.
 
@@ -44,5 +49,6 @@ The Technomancer Assistant is "fine-tuned" via a **High-Context RAG-light** syst
 - **Progression Service**: A secure, server-side-ready logic gate that controls feature access based on XP and Level milestones.
 
 ## 🚀 Future Roadmap
+
 - **Decentralized Chronicle**: Moving user journals to encrypted IPFS storage.
 - **Aura-Procedural Models**: Fine-tuning Gemini models on esoteric datasets (Hermeticism, Vedic Astrology).

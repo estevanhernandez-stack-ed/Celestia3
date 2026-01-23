@@ -13,6 +13,7 @@ import {
   PLANET_KNOWLEDGE, 
   HOUSE_KNOWLEDGE, 
   ASPECT_KNOWLEDGE,
+  NUMEROLOGY_KNOWLEDGE,
   KnowledgeItem
 } from './KnowledgeBaseData';
 
@@ -40,6 +41,7 @@ ${formatSection("ZODIAC ARQUETYPES", ZODIAC_KNOWLEDGE)}
 ${formatSection("PLANETARY FORCES", PLANET_KNOWLEDGE)}
 ${formatSection("HOUSES OF LIFE", HOUSE_KNOWLEDGE)}
 ${formatSection("ASPECTS", ASPECT_KNOWLEDGE)}
+${formatSection("ARITHMANCY & VIBRATIONS", NUMEROLOGY_KNOWLEDGE)}
   `.trim();
 };
 
@@ -225,6 +227,48 @@ ${prefs.activeParadigms.map(p => {
   }
 
   // ... (generateNatalInterpretation method remains unchanged) ...
+
+  static async generateArithmancyInterpretation(prefs: UserPreferences, numerologyData: any): Promise<string> {
+    const rawPrompt = await ConfigService.getPrompt('arithmancy_natal_integration');
+    
+    let chartData = "Natal chart data is unavailable. Focus on the mathematical vibrations.";
+    if (prefs.birthDate && prefs.birthLocation) {
+        try {
+            const chart = await SwissEphemerisService.calculateChart(
+                new Date(prefs.birthDate),
+                prefs.birthLocation.lat,
+                prefs.birthLocation.lng
+            );
+            chartData = chart.planets.map(p => 
+                `${p.name}: ${p.sign} ${p.degree.toFixed(2)}°${p.retrograde ? ' (Retrograde)' : ''}`
+            ).join('\n') + `\nAscendant: ${chart.ascendant?.sign} ${chart.ascendant?.degree.toFixed(2)}°`;
+        } catch (e) {
+            console.error("SwissEph failed during Arithmancy interpretation:", e);
+        }
+    }
+
+    const prompt = rawPrompt
+        .replace(/{{name}}/g, prefs.name)
+        .replace(/{{knowledgeContext}}/g, KNOWLEDGE_CONTEXT)
+        .replace(/{{lifePath}}/g, String(numerologyData.lifePath.core))
+        .replace(/{{lifePathArchetype}}/g, numerologyData.lifePath.archetype)
+        .replace(/{{destiny}}/g, String(numerologyData.destiny.core))
+        .replace(/{{destinyArchetype}}/g, numerologyData.destiny.archetype)
+        .replace(/{{soulUrge}}/g, String(numerologyData.soulUrge?.core || "Unknown"))
+        .replace(/{{soulUrgeArchetype}}/g, numerologyData.soulUrge?.archetype || "Unknown")
+        .replace(/{{personality}}/g, String(numerologyData.personality?.core || "Unknown"))
+        .replace(/{{personalityArchetype}}/g, numerologyData.personality?.archetype || "Unknown")
+        .replace(/{{chartData}}/g, chartData);
+
+    try {
+      const result = await technomancerModel.generateContent(prompt);
+      const response = await result.response;
+      return response.text();
+    } catch (error) {
+       console.error("Arithmancy Interpretation Failed", error);
+       return "The frequencies are currently mismatched. The Technomancer is unable to synthesize the digital and celestial signals at this moment.";
+    }
+  }
 
   static async generateNatalInterpretation(name: string, chartData: string): Promise<{ story: string, bigThree: string, cosmicSignature: string }> {
     const rawPrompt = await ConfigService.getPrompt('natal_interpretation');

@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import NextImage from 'next/image';
 import { Book, Trash2, Calendar, ChevronDown, ChevronRight } from 'lucide-react';
 import { GrimoireService } from '@/lib/GrimoireService';
-import { GrimoireEntry, TarotEntryContent } from '@/types/grimoire';
+import { GrimoireEntry, TarotEntryContent, RitualEntryContent, AuraEntryContent, InsightEntryContent } from '@/types/grimoire';
 import { useAuth } from '@/context/AuthContext';
 
 export default function GrimoireView() {
@@ -68,8 +69,13 @@ export default function GrimoireView() {
             {/* Header */}
             <div className="p-4 flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className={`p-2 rounded-lg ${entry.type === 'tarot' ? 'bg-indigo-500/10 text-indigo-400' : 'bg-red-500/10 text-red-400'}`}>
-                  {entry.type === 'tarot' ? '🔮' : '🔥'}
+                <div className={`p-2 rounded-lg ${
+                  entry.type === 'tarot' ? 'bg-indigo-500/10 text-indigo-400' : 
+                  entry.type === 'aura' ? 'bg-purple-500/10 text-purple-400' : 
+                  entry.type === 'insight' ? 'bg-cyan-500/10 text-cyan-400' :
+                  'bg-red-500/10 text-red-400'
+                }`}>
+                  {entry.type === 'tarot' ? '🔮' : entry.type === 'aura' ? '✨' : entry.type === 'insight' ? '🧠' : '🔥'}
                 </div>
                 <div>
                   <h3 className="font-bold text-emerald-100 uppercase tracking-wide text-sm">{entry.title}</h3>
@@ -124,11 +130,63 @@ export default function GrimoireView() {
                         <div className="space-y-4">
                            <div className="p-3 bg-red-950/30 rounded border border-red-500/10">
                               <span className="block text-[9px] uppercase text-red-500 font-bold mb-1">Intent</span>
-                              {entry.content.intent}
+                              {(entry.content as RitualEntryContent).intent}
                            </div>
                            <div className="text-xs text-red-200/60">
-                              Result: {entry.content.result}
+                              Result: {(entry.content as RitualEntryContent).result}
                            </div>
+                        </div>
+                     )}
+
+                     {entry.type === 'aura' && (
+                        <div className="space-y-6 flex flex-col items-center py-4">
+                            <div className="w-64 h-[280px] bg-[#fdfaf2] p-3 pb-8 rounded-sm shadow-2xl -rotate-1 relative border border-black/5 flex flex-col group hover:rotate-0 transition-transform duration-500">
+                                <div className="relative flex-1 bg-black/10 overflow-hidden">
+                                     <NextImage 
+                                        src={(entry.content as AuraEntryContent).imageUrl} 
+                                        alt="Aura Capture" 
+                                        className="object-cover transition-transform duration-700 group-hover:scale-110"
+                                        fill
+                                        unoptimized
+                                    />
+                                </div>
+                                <div className="mt-3 px-1">
+                                    <div className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-0.5">
+                                        {(entry.content as AuraEntryContent).city || "NEBULA COORDS"}
+                                    </div>
+                                    <div className="text-[11px] font-black text-slate-800 uppercase tracking-tighter leading-none">
+                                        {(entry.content as AuraEntryContent).resonance || "SPECTRAL RESONANCE"}
+                                    </div>
+                                </div>
+                                <div className="absolute bottom-2 right-3 text-[8px] font-mono text-slate-300">
+                                    {new Date(entry.date).toLocaleDateString()}
+                                </div>
+                            </div>
+                            <div className="text-center italic font-serif text-purple-300 max-w-lg leading-relaxed px-4">
+                                &quot;{(entry.content as AuraEntryContent).analysis}&quot;
+                            </div>
+                        </div>
+                     )}
+
+                     {entry.type === 'insight' && (
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-3 gap-2">
+                                <div className="p-3 bg-cyan-950/30 rounded-xl border border-cyan-500/10 text-center">
+                                    <span className="block text-[9px] uppercase text-cyan-500 font-bold mb-1">Life Path</span>
+                                    <span className="text-xl font-black text-cyan-200">{(entry.content as InsightEntryContent).profile.lifePath}</span>
+                                </div>
+                                <div className="p-3 bg-blue-950/30 rounded-xl border border-blue-500/10 text-center">
+                                    <span className="block text-[9px] uppercase text-blue-500 font-bold mb-1">Destiny</span>
+                                    <span className="text-xl font-black text-blue-200">{(entry.content as InsightEntryContent).profile.destiny}</span>
+                                </div>
+                                <div className="p-3 bg-indigo-950/30 rounded-xl border border-indigo-500/10 text-center">
+                                    <span className="block text-[9px] uppercase text-indigo-500 font-bold mb-1">Soul Urge</span>
+                                    <span className="text-xl font-black text-indigo-200">{(entry.content as InsightEntryContent).profile.soulUrge}</span>
+                                </div>
+                            </div>
+                            <div className="mt-4 p-4 rounded-xl bg-cyan-950/10 border border-cyan-500/5 whitespace-pre-wrap text-cyan-100/70 leading-relaxed">
+                                {(entry.content as InsightEntryContent).analysis}
+                            </div>
                         </div>
                      )}
                   </div>

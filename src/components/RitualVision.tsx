@@ -30,7 +30,7 @@ const RitualVision: React.FC<RitualVisionProps> = ({ isOpen, thought, sigilSvg, 
         content: {
             intent: context.intent,
             paradigm: context.paradigm,
-            result: incantation // Storing incantation as the primary result text
+            result: incantation || "No incantation recorded."
         }
     });
     setIsSaved(true);
@@ -135,8 +135,17 @@ const RitualVision: React.FC<RitualVisionProps> = ({ isOpen, thought, sigilSvg, 
 
 export default RitualVision;
 
+interface Particle {
+    id: number;
+    x: number;
+    y: number;
+    duration: number;
+    delay: number;
+    yOffset: number;
+}
+
 const ParticleField = () => {
-    const [particles, setParticles] = React.useState<any[]>([]);
+    const [particles, setParticles] = React.useState<Particle[]>([]);
 
     React.useEffect(() => {
         setParticles([...Array(20)].map((_, i) => ({

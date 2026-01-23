@@ -11,7 +11,7 @@ import { db } from "./firebase";
 import { ChatMessage } from "@/types/chat";
 
 export class PersistenceService {
-  private static COLLECTION_NAME = "memories";
+  private static COLLECTION_NAME = "v3_memories";
   private static LOCAL_STORAGE_KEY = "celestia_memories_cache";
 
   static async saveMessage(userId: string, role: "user" | "model", content: string, thoughtSignature?: string): Promise<string> {

@@ -2,9 +2,15 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RelationshipCategory, FamilyRole, NumerologyEngine, SynergyResult } from '@/utils/NumerologyEngine';
-import { Brain, Zap, Fingerprint, Clock, Layers, Heart, User, Search, RefreshCw, Users, Shield, Briefcase, Smile } from 'lucide-react';
+import { RelationshipCategory, FamilyRole, NumerologyEngine } from '@/utils/NumerologyEngine';
+import { Brain, Zap, Fingerprint, Clock, Layers, Heart, User, Search, RefreshCw, Users, Shield, Briefcase, Smile, Sparkles } from 'lucide-react';
 import { numerologyEngine } from '@/utils/NumerologyEngine';
+import { ChatService } from '@/lib/ChatService';
+import { useSettings } from '@/context/SettingsContext';
+import { useAuth } from '@/context/AuthContext';
+import { GrimoireService } from '@/lib/GrimoireService';
+import { ProgressionService } from '@/lib/ProgressionService';
+import { Save, Check } from 'lucide-react';
 
 interface NumerologyViewProps {
     birthDate: string; // ISO string
@@ -27,6 +33,15 @@ const NumerologyView: React.FC<NumerologyViewProps> = ({ birthDate, fullName, co
     // Sandbox State
     const [sandboxInput, setSandboxInput] = useState("");
     const [sandboxSystem, setSandboxSystem] = useState<'chaldean' | 'pythagorean'>('chaldean');
+
+    // AI Interpretation State
+    const { preferences } = useSettings();
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [interpretation, setInterpretation] = useState<string | null>(null);
+    const { user } = useAuth();
+    const [isSaving, setIsSaving] = useState(false);
+    const [savedToGrimoire, setSavedToGrimoire] = useState(false);
+    const { updatePreferences } = useSettings();
 
     // Sandbox Calculation
     const sandboxResults = React.useMemo(() => {
@@ -84,6 +99,21 @@ const NumerologyView: React.FC<NumerologyViewProps> = ({ birthDate, fullName, co
     };
 
     const resetTime = () => setForecastDate(new Date());
+
+    const handleDecipher = async () => {
+        if (!profile) return;
+        setIsGenerating(true);
+        setInterpretation(null);
+        try {
+            const result = await ChatService.generateArithmancyInterpretation(preferences, profile);
+            setInterpretation(result);
+            setSavedToGrimoire(false);
+        } catch (error) {
+            console.error("Decipher failed:", error);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
     if (!profile) return <div className="text-center text-emerald-500 animate-pulse mt-20">Calculating Soul Algorithms...</div>;
 
@@ -240,6 +270,107 @@ const NumerologyView: React.FC<NumerologyViewProps> = ({ birthDate, fullName, co
                         </div>
                     </motion.div>
                 ))}
+            </div>
+
+            {/* AI Decipher Button */}
+            <div className="mt-12 flex flex-col items-center gap-6 w-full max-w-4xl shrink-0">
+                {!interpretation && !isGenerating ? (
+                    <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handleDecipher}
+                        className="px-8 py-4 bg-linear-to-r from-indigo-600 to-purple-600 rounded-2xl text-white font-bold uppercase tracking-[0.2em] text-sm shadow-xl shadow-indigo-500/20 flex items-center gap-3 group border border-indigo-400/30"
+                    >
+                        <Sparkles size={20} className="group-hover:rotate-12 transition-transform" />
+                        Decipher Soul Algorithm
+                    </motion.button>
+                ) : isGenerating ? (
+                    <div className="flex flex-col items-center gap-4 text-indigo-400 animate-pulse">
+                        <RefreshCw size={32} className="animate-spin" />
+                        <span className="text-xs font-mono uppercase tracking-widest text-center px-4">
+                            Synthesizing natal data with mathematical vibrations...<br/>
+                            This ritual requires extreme focus.
+                        </span>
+                    </div>
+                ) : (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="w-full bg-slate-900/60 border border-indigo-500/30 rounded-4xl p-8 md:p-12 relative overflow-hidden"
+                    >
+                        {/* Background Effect */}
+                        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+                            <Sparkles size={120} className="text-indigo-500" />
+                        </div>
+
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
+                                <Sparkles size={24} className="text-indigo-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-white tracking-widest uppercase font-serif">Technomancer Synthesis</h3>
+                                <p className="text-[10px] text-indigo-400 font-mono tracking-widest">SOUL_ALGORITHM_DECODED</p>
+                            </div>
+                        </div>
+
+                        <div className="prose prose-invert max-w-none prose-sm md:prose-base prose-headings:text-indigo-400 prose-headings:font-serif prose-headings:uppercase prose-headings:tracking-widest prose-p:text-slate-300 prose-p:leading-relaxed prose-strong:text-white prose-strong:font-bold">
+                            {interpretation?.split('\n').map((line, i) => {
+                                if (line.startsWith('### ')) return <h3 key={i} className="text-lg font-bold mt-8 mb-4">{line.replace('### ', '')}</h3>;
+                                if (line.startsWith('**')) return <p key={i} className="mb-4"><strong>{line.replace(/\*\*/g, '')}</strong></p>;
+                                if (line.trim() === '') return <div key={i} className="h-4" />;
+                                return <p key={i} className="mb-4 text-slate-300 leading-relaxed">{line}</p>;
+                            })}
+                        </div>
+
+                        <div className="flex justify-between items-center mt-8 pt-8 border-t border-white/5">
+                            <button 
+                                onClick={() => setInterpretation(null)}
+                                className="text-[10px] text-slate-500 hover:text-white uppercase tracking-widest underline underline-offset-4 decoration-slate-800"
+                            >
+                                Reset Signal
+                            </button>
+
+                            <button
+                                onClick={async () => {
+                                    if (!user || !interpretation || !profile) return;
+                                    setIsSaving(true);
+                                    try {
+                                        await GrimoireService.saveEntry(user.uid, {
+                                            userId: user.uid,
+                                            type: 'insight',
+                                            title: `Soul Algorithm: ${preferences.name || "Initiate"}`,
+                                            content: {
+                                                analysis: interpretation,
+                                                profile: {
+                                                    lifePath: profile.lifePath.core,
+                                                    destiny: profile.destiny.core,
+                                                    soulUrge: profile.soulUrge.core
+                                                }
+                                            },
+                                            tags: ['numerology', 'soul-algorithm']
+                                        });
+                                        setSavedToGrimoire(true);
+                                        const progression = ProgressionService.addXP(preferences, 'numerology-check');
+                                        updatePreferences({ xp: progression.xp, level: progression.level });
+                                    } catch (e) {
+                                        console.error("Save failed", e);
+                                    } finally {
+                                        setIsSaving(false);
+                                    }
+                                }}
+                                disabled={isSaving || savedToGrimoire}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                    savedToGrimoire 
+                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                                    : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20'
+                                }`}
+                            >
+                                {savedToGrimoire ? <Check size={14} /> : isSaving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
+                                {savedToGrimoire ? 'Saved to Grimoire' : isSaving ? 'Saving...' : 'Record to Grimoire'}
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
             </div>
 
             {/* Deep Layers (Soul Urge & Personality) */}
@@ -458,7 +589,7 @@ const NumerologyView: React.FC<NumerologyViewProps> = ({ birthDate, fullName, co
 
                                 {synergyData && (
                                     <div className="mt-8 space-y-6">
-                                        <div className="p-6 rounded-2xl bg-gradient-to-br from-fuchsia-950/20 to-slate-900/40 border border-fuchsia-500/30">
+                                        <div className="p-6 rounded-2xl bg-linear-to-br from-fuchsia-950/20 to-slate-900/40 border border-fuchsia-500/30">
                                             <div className="flex justify-between items-center mb-4">
                                                 <div>
                                                     <div className="text-[10px] text-fuchsia-400 uppercase tracking-widest mb-1">Archetypal Resonance</div>

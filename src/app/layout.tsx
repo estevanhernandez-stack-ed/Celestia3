@@ -6,6 +6,9 @@ import { AuthProvider } from "@/context/AuthContext";
 export const metadata: Metadata = {
   title: "Celestia 3 | Technomancer's Brain",
   description: "NASA-Level Astrological AI & Ritual Engine",
+  icons: {
+    icon: "/favicon.png",
+  }
 };
 
 export default function RootLayout({
