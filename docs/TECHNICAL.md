@@ -27,6 +27,15 @@ A custom-built TypeScript engine that calculates:
 Integrates the `swiss-ephemeris` library via WASM.
 - **Precision**: Calculates planetary longitudes, house cusps, and aspects with arc-second accuracy.
 - **Bi-Wheels**: Dynamic Synastry generation by mapping two disparate celestial datasets onto a single concentric coordinate system.
+- **Custom WASM Patches**: To achieve research-grade precision, we implemented a custom memory bridge:
+    - **Memory Tracking**: Direct interface with Emscripten `HEAPF64` to retrieve raw coordinates.
+    - **`ccall` Bridging**: Optimized `calc_ut` and `houses` functions for direct communication with the C-compiled core.
+
+## 📜 AI Codex Integration
+
+The Technomancer Assistant is "fine-tuned" via a **High-Context RAG-light** system:
+- **Codex Awareness**: The agent is seeded with the architectural knowledge of the `GrimoireCodex`, allowing it to reference specific esoteric paradigms (Picatrix, Agrippa) when performing rituals.
+- **State-Aware Reasoning**: Gemini 3 analyzes the user's current Progression Level and Natal Chart to personalize every incantation.
 
 ## 🛡 Security & Scalability
 

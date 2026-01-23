@@ -164,6 +164,11 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
                     onChange={(e) => updatePreferences({ birthDate: new Date(e.target.value).toISOString() })}
                     className="w-full bg-black border border-emerald-900 rounded-lg p-2 text-sm text-emerald-200 focus:border-emerald-500 outline-none"
                   />
+                  {preferences.birthDate && (
+                    <p className="text-[9px] text-emerald-500/50 mt-1 font-mono uppercase">
+                      UTC Anchor: {new Date(preferences.birthDate).toISOString()}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] text-emerald-700 uppercase">City / Location</label>

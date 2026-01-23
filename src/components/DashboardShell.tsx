@@ -57,6 +57,8 @@ import { Zap } from 'lucide-react';
 import GrimoireCodex from './GrimoireCodex';
 import CelebrityMatchView from './CelebrityMatchView';
 import { ProgressionService, VIEW_LEVEL_REQUIREMENTS } from '@/lib/ProgressionService';
+import AuraScanner from './AuraScanner';
+import { Camera } from 'lucide-react';
 
 type DashboardView = 'compass' | 'synastry' | 'tarot' | 'athanor' | 'rituals' | 'chronos' | 'numerology' | 'grimoire' | 'admin' | 'celebrities';
 
@@ -65,6 +67,7 @@ const DashboardShell: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isTarotExplorationOpen, setIsTarotExplorationOpen] = useState(false);
   const [isCodexOpen, setIsCodexOpen] = useState(false);
+  const [isAuraCamOpen, setIsAuraCamOpen] = useState(false);
 
   const [isCalibrationOpen, setIsCalibrationOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
@@ -311,6 +314,13 @@ const DashboardShell: React.FC = () => {
                     <div className="text-[10px] text-indigo-400/80 uppercase tracking-widest">Operator</div>
                     <div className="text-sm font-bold text-white">{preferences?.name || "Initiate"}</div>
                 </div>
+                <button 
+                    onClick={() => setIsAuraCamOpen(true)}
+                    className="p-2 hover:bg-white/10 rounded-full transition-colors text-fuchsia-400 hover:text-white"
+                    title="Bio-Link Ritual"
+                >
+                    <Camera size={20} />
+                </button>
                 <button 
                     onClick={() => setIsCalibrationOpen(true)}
                     className="p-2 hover:bg-white/10 rounded-full transition-colors text-indigo-400 hover:text-white"
@@ -673,6 +683,32 @@ const DashboardShell: React.FC = () => {
                 <GrimoireCodex 
                     isOpen={isCodexOpen} 
                     onClose={() => setIsCodexOpen(false)} 
+                />
+            )}
+            {isAuraCamOpen && (
+                <AuraScanner 
+                    onClose={() => setIsAuraCamOpen(false)}
+                    onSave={async (capture) => {
+                        // Persist to Grimoire
+                        if (user?.uid) {
+                            await GrimoireService.saveEntry(user.uid, {
+                                userId: user.uid,
+                                type: 'aura',
+                                title: `Aura Capture: ${new Date(capture.date).toLocaleDateString()}`,
+                                content: {
+                                    imageUrl: capture.imageUrl,
+                                    analysis: capture.analysis,
+                                    colors: capture.colors
+                                },
+                                tags: ['aura', 'ritual']
+                            });
+                        }
+                        
+                        // Add XP
+                        const progression = ProgressionService.addXP(preferences, 'ritual');
+                        updatePreferences({ xp: progression.xp, level: progression.level });
+                        setIsAuraCamOpen(false);
+                    }}
                 />
             )}
             {lockedView && (

@@ -1,6 +1,14 @@
 export type KnowledgeLevel = 'Beginner' | 'Intermediate' | 'Advanced';
 export type Paradigm = 'Antiquity' | 'Picatrix' | 'Agrippa' | 'PGM' | 'Oracles' | 'Hermetica';
 
+export interface AuraCapture {
+  id: string;
+  imageUrl: string;
+  date: string;
+  analysis: string;
+  colors: string[];
+}
+
 export interface SavedChart {
   id: string;
   name: string;
