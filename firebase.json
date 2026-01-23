@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "celestia-3-0",
+    "site": "celestia3",
     "source": ".",
     "ignore": [
       "firebase.json",
@@ -10,5 +10,14 @@
     "frameworksBackend": {
       "region": "us-central1"
     }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs20",
+    "codebase": "celestia3"
   }
 }
