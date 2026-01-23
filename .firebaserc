@@ -3,16 +3,6 @@
     "default": "celestia3"
   },
   "targets": {
-    "celestia-a4a00": {
-      "hosting": {
-        "celestia-3-0": [
-          "celestia-3-0"
-        ],
-        "celestia3": [
-          "celestia3"
-        ]
-      }
-    },
     "celestia3": {
       "hosting": {
         "celestia3": [
