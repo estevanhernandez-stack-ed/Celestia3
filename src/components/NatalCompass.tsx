@@ -298,7 +298,7 @@ const NatalCompass: React.FC<NatalCompassProps> = ({ chart: externalChart }) => 
                 strokeOpacity="0.3"
             />
 
-            <circle cx={cx} cy={cy} r="4" fill="#6366f1" className="shadow-[0_0_20px_#818cf8]" />
+            <circle cx={cx} cy={cy} r="4" fill="#fbbf24" className="shadow-[0_0_20px_#fcd34d]" />
             <circle cx={cx} cy={cy} r="2" fill="#fff" className="animate-pulse" />
         </g>
       </svg>
@@ -316,8 +316,8 @@ const NatalCompass: React.FC<NatalCompassProps> = ({ chart: externalChart }) => 
                   exit={{ opacity: 0, scale: 0.8, y: 5 }}
                   style={{ 
                     position: 'absolute',
-                    left: p.x,
-                    top: p.y - 30,
+                    left: `${(p.x / 500) * 100}%`,
+                    top: `${((p.y - 30) / 500) * 100}%`,
                     transform: 'translateX(-50%)'
                   }}
                   className="px-2 py-1 bg-black/80 backdrop-blur-md border border-indigo-500/50 rounded-lg shadow-xl whitespace-nowrap"

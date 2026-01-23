@@ -49,7 +49,7 @@ export const CELESTIAL_QUESTS: CelestialQuest[] = [
   },
   {
     level: 4,
-    title: "The Oracle's Vision",
+    title: "The Tarot Vision",
     description: "Draw a Tarot spread to glimpse the threads of fate.",
     action: 'tarot',
     targetCount: 1,
@@ -61,7 +61,7 @@ export const VIEW_LEVEL_REQUIREMENTS: Record<string, number> = {
   compass: 1,      // The Foundation
   aura: 2,         // Bio-Link Ritual
   numerology: 3,   // Arithmancy
-  tarot: 4,        // Divine Oracle
+  tarot: 4,        // Tarot Deck
   grimoire: 5,     // The Master's Archive (Repository)
   rituals: 6,      // Sigil Manifestation
   chronos: 7,      // Temporal Feed

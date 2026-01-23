@@ -187,7 +187,7 @@ const DashboardShell: React.FC = () => {
     { id: 'compass', label: 'Natal Compass', icon: Compass, color: 'text-indigo-400' },
     { id: 'aura', label: 'Bio-Link Ritual', icon: Camera, color: 'text-fuchsia-400' },
     { id: 'numerology', label: 'Arithmancy', icon: Hash, color: 'text-cyan-400' },
-    { id: 'tarot', label: 'Tarot Oracle', icon: Sparkles, color: 'text-violet-400' },
+    { id: 'tarot', label: 'Tarot Deck', icon: Sparkles, color: 'text-violet-400' },
     { id: 'grimoire', label: 'Grimoire', icon: Book, color: 'text-emerald-300' },
     { id: 'rituals', label: 'Rituals', icon: Flame, color: 'text-orange-500' },
     { id: 'chronos', label: 'Chronos', icon: Clock, color: 'text-amber-400' },
@@ -824,7 +824,7 @@ const DashboardShell: React.FC = () => {
                             
                             <div className="py-2 px-4 bg-indigo-500/5 border border-indigo-500/10 rounded-xl">
                                 <p className="text-[9px] text-indigo-400 font-medium italic">
-                                    &quot;Perform exploration tasks in the Natal Compass or Oracle to level up and unlock this talisman.&quot;
+                                    &quot;Perform exploration tasks in the Natal Compass or Athanor to level up and unlock this talisman.&quot;
                                 </p>
                             </div>
 

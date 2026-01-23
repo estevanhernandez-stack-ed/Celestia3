@@ -456,7 +456,7 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
                            ? 'bg-emerald-500 text-black border-emerald-400 animate-pulse shadow-[0_0_20px_rgba(16,185,129,0.5)]' 
                            : 'bg-emerald-950/20 text-emerald-500 border-emerald-900/50 hover:bg-emerald-900/40'
                        }`}
-                       title={isSpeaking ? "Silence the Oracle" : "Protocol: Listen"}
+                       title={isSpeaking ? "Silence the Athanor" : "Protocol: Listen"}
                      >
                        {isSpeaking ? <VolumeX size={20} className="md:w-6 md:h-6" /> : <Volume2 size={20} className="md:w-6 md:h-6" />}
                      </button>

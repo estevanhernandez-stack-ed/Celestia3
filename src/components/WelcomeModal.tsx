@@ -76,7 +76,7 @@ export default function WelcomeModal({ isOpen, onClose, userName }: WelcomeModal
               <div className="w-8 h-8 rounded-xl bg-purple-500/5 flex items-center justify-center border border-purple-500/10 text-purple-400 group-hover:bg-purple-500/10 transition-colors">
                 <Sparkles size={16} />
               </div>
-              <h3 className="text-purple-100 font-black uppercase tracking-widest text-[9px]">The Oracle</h3>
+              <h3 className="text-purple-100 font-black uppercase tracking-widest text-[9px]">Athanor & Tarot</h3>
               <p className="text-[10px] text-slate-500 leading-relaxed font-medium">
                 AI-synthesized <span className="text-slate-400">Tarot & Arithmancy</span> for temporal navigation.
               </p>
@@ -126,7 +126,7 @@ export default function WelcomeModal({ isOpen, onClose, userName }: WelcomeModal
             <div className="flex gap-8">
                 {[
                     { step: "01", title: "Calibrate", desc: "Set your birth coordinates." },
-                    { step: "02", title: "Synthesize", desc: "Seed the Codex via Oracle." },
+                    { step: "02", title: "Synthesize", desc: "Seed the Codex via Athanor." },
                     { step: "03", title: "Transmute", desc: "Perform rites to lock intent." }
                 ].map((p, i) => (
                     <motion.div 

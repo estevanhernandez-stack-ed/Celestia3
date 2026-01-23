@@ -119,7 +119,7 @@ export default function GrimoireView() {
                          </div>
                          {(entry.content as TarotEntryContent).interpretation && (
                            <div className="mt-4 pt-4 border-t border-white/5">
-                             <h4 className="text-[10px] uppercase font-bold text-indigo-400 mb-2">Oracle Interpretation</h4>
+                             <h4 className="text-[10px] uppercase font-bold text-indigo-400 mb-2">Athanor Interpretation</h4>
                              <p className="whitespace-pre-wrap">{(entry.content as TarotEntryContent).interpretation}</p>
                            </div>
                          )}

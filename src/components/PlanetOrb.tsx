@@ -30,14 +30,32 @@ export const PlanetSceneOrb: React.FC<PlanetSceneOrbProps> = ({ name, x, y, size
   // Calculate scaling based on hover
   const scale = isHovered ? 1.3 : 1;
 
+  // Halo Color Mapping
+  const getHaloColor = () => {
+    if (name === 'Sun') return "#fcd34d"; // Golden Sun
+    if (isHovered) return "#a5b4fc"; // Hovered highlight
+    
+    // Thematic defaults based on common planet colors
+    const lowerName = name.toLowerCase();
+    if (lowerName === 'moon') return "#f1f5f9";
+    if (lowerName === 'mars') return "#f87171";
+    if (lowerName === 'venus') return "#fbbf24";
+    if (lowerName === 'mercury') return "#94a3b8";
+    if (lowerName === 'jupiter') return "#d97706";
+    
+    return "#6366f1"; // Default Indigo
+  };
+
+  const haloColor = getHaloColor();
+
   return (
     <group position={[x, y, 0]} scale={[size * scale, size * scale, size * scale]}>
       {/* Soft Ambient Glow / Halo */}
       <Sphere args={[1.2, 32, 32]}>
         <meshBasicMaterial 
-          color={isHovered ? "#a5b4fc" : "#6366f1"} 
+          color={haloColor} 
           transparent 
-          opacity={isHovered ? 0.3 : 0.1}
+          opacity={isHovered ? 0.35 : 0.15}
           side={THREE.BackSide} 
         />
       </Sphere>
