@@ -42,5 +42,8 @@ if (typeof window !== "undefined") {
   }
 }
 
+import { getFunctions } from "firebase/functions";
+
 export const db = app ? getFirestore(app) : undefined as unknown as ReturnType<typeof getFirestore>;
 export const auth = app ? getAuth(app) : undefined as unknown as ReturnType<typeof getAuth>;
+export const functions = app ? getFunctions(app) : undefined as unknown as ReturnType<typeof getFunctions>;

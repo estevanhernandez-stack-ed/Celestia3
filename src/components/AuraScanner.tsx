@@ -307,7 +307,7 @@ const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded =
                 <div className="p-6 border-b border-white/5 flex items-center justify-between bg-black/20">
                     <div className="flex items-center gap-3">
                         <Camera className="text-indigo-400" size={20} />
-                        <h2 className="text-xl font-serif font-black tracking-widest text-white uppercase">Bio-Link Ritual</h2>
+                        <h2 className="text-xl font-serif font-black tracking-widest text-white uppercase">Aura Cam</h2>
                     </div>
                     {!isEmbedded && (
                         <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white">
@@ -352,8 +352,12 @@ const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded =
                                     className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black tracking-[0.2em] uppercase text-sm transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-3 group"
                                 >
                                     <Zap size={18} className="group-hover:animate-bounce" />
-                                    Initiate Link
+                                    Initiate Aura Link
                                 </button>
+
+                                <p className="text-[10px] text-indigo-400/50 uppercase tracking-[0.3em] font-bold">
+                                    Hover your hands over the keyboard to connect with the oracle
+                                </p>
                             </motion.div>
                         )}
 
@@ -367,16 +371,22 @@ const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded =
                                     ref={webcamRef}
                                     audio={false}
                                     screenshotFormat="image/jpeg"
-                                    className="absolute inset-0 w-full h-full object-cover opacity-30 blur-md"
+                                    className="absolute inset-0 w-full h-full object-cover opacity-40"
                                     mirrored={true}
                                 />
+                                <div className="absolute inset-0 bg-linear-to-b from-transparent via-indigo-950/20 to-indigo-950/60" />
                                 <div className="z-10 flex flex-col items-center space-y-4">
                                     <div className="text-8xl font-black text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.5)] font-serif">
                                         {countdown}
                                     </div>
-                                    <div className="text-indigo-300 tracking-[0.4em] text-xs font-black animate-pulse flex items-center gap-2">
-                                        <Sparkles size={14} />
-                                        SYNCING BIO-RHYTHMS
+                                    <div className="text-indigo-300 tracking-[0.4em] text-xs font-black animate-pulse flex flex-col items-center gap-4">
+                                        <div className="flex items-center gap-2">
+                                            <Sparkles size={14} />
+                                            SYNCING BIO-RHYTHMS
+                                        </div>
+                                        <div className="text-[10px] text-white/40 tracking-[0.2em] normal-case bg-black/40 px-4 py-2 rounded-full backdrop-blur-md border border-white/5">
+                                            Keep your hands near the interface...
+                                        </div>
                                     </div>
                                 </div>
                                 <motion.div

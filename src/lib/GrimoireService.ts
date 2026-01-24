@@ -2,7 +2,7 @@ import {
   collection, 
   addDoc, 
   query, 
-  where, 
+  where,
   orderBy, 
   getDocs, 
   deleteDoc,
@@ -19,7 +19,7 @@ export class GrimoireService {
   static async saveEntry(userId: string, entry: Omit<GrimoireEntry, 'id' | 'date'>): Promise<string> {
     try {
       if (userId !== 'dev-user-local') {
-        const docRef = await addDoc(collection(db, this.COLLECTION), {
+        const docRef = await addDoc(collection(db, "v3_users", userId, "grimoire"), {
           ...entry,
           date: serverTimestamp(),
         });
@@ -45,12 +45,35 @@ export class GrimoireService {
     try {
       if (userId !== 'dev-user-local') {
         const q = query(
-          collection(db, this.COLLECTION),
-          where("userId", "==", userId),
+          collection(db, "v3_users", userId, "grimoire"),
           orderBy("date", "desc")
         );
 
-        const snapshot = await getDocs(q);
+        let snapshot = await getDocs(q);
+        
+        // Lazy Migration Check: If subcollection is empty, check old global collection
+        if (snapshot.empty) {
+          const oldQ = query(
+            collection(db, this.COLLECTION),
+            where("userId", "==", userId)
+          );
+          const oldSnapshot = await getDocs(oldQ);
+          
+          if (!oldSnapshot.empty) {
+            console.log(`[Migration] Moving ${oldSnapshot.size} entries for user ${userId}`);
+            for (const docSnap of oldSnapshot.docs) {
+              const data = docSnap.data();
+              // Copy to subcollection
+              await addDoc(collection(db, "v3_users", userId, "grimoire"), {
+                ...data,
+                date: data.date || serverTimestamp(),
+              });
+            }
+            // Refresh the new snapshot
+            snapshot = await getDocs(q);
+          }
+        }
+
         if (!snapshot.empty) {
           return snapshot.docs.map(doc => ({
             id: doc.id,
@@ -66,11 +89,11 @@ export class GrimoireService {
     return this.getLocalCache().sort((a, b) => b.date - a.date);
   }
 
-  static async deleteEntry(id: string) {
+  static async deleteEntry(userId: string, id: string) {
       // Try Firestore
       try {
           if (!id.startsWith('local-')) {
-            await deleteDoc(doc(db, this.COLLECTION, id));
+            await deleteDoc(doc(db, "v3_users", userId, "grimoire", id));
             return;
           }
       } catch (e) {

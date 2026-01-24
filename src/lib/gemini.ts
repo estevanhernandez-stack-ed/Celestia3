@@ -1,69 +1,49 @@
-import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+import { functions } from "./firebase";
+import { httpsCallable } from "firebase/functions";
 
-const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
+// Mock implementation of the Gemini model that routes through our Firebase Proxy
+// This resolves the 403 "unregistered caller" error by providing identity via Firebase Auth
+const proxyCall = async (data: any) => {
+  if (!functions) throw new Error("Firebase Functions not initialized");
+  const call = httpsCallable(functions, 'geminiProxy');
+  const result = await call(data);
+  return result.data as any;
+};
 
-export const genAI = new GoogleGenerativeAI(apiKey);
-
-export const technomancerModel = genAI.getGenerativeModel({
-  model: "gemini-3-pro-preview",
-  generationConfig: {},
-  tools: [
-    {
-      functionDeclarations: [
-        {
-          name: "trigger_resonance",
-          description: "Generates a procedural planetary frequency (Hertz) to ground a ritual based on the Cosmic Octave.",
-          parameters: {
-            type: SchemaType.OBJECT,
-            properties: {
-              planet: {
-                type: SchemaType.STRING,
-                description: "The planet (Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto, Earth).",
-              },
-              duration: {
-                type: SchemaType.NUMBER,
-                description: "Duration in milliseconds.",
-              }
-            },
-            required: ["planet"]
-          }
-        },
-        {
-          name: "search_spotify_resonance",
-          description: "Searches for Spotify playlists or tracks that match a specific magical intent or planetary vibe.",
-          parameters: {
-            type: SchemaType.OBJECT,
-            properties: {
-              query: {
-                type: SchemaType.STRING,
-                description: "The magical intent or vibe to search for (e.g. 'Venusian Love').",
-              }
-            },
-            required: ["query"]
-          }
-        },
-        {
-          name: "search_ethereal_knowledge",
-          description: "Searches for external knowledge, current events, or esoteric references.",
-          parameters: {
-            type: SchemaType.OBJECT,
-            properties: {
-              query: {
-                type: SchemaType.STRING,
-                description: "The search query.",
-              }
-            },
-            required: ["query"]
-          }
-        }
-      ]
+export const technomancerModel = {
+  generateContent: async (args: any) => {
+    // Normalize arguments (can be string, array of parts, or object)
+    let contents = [];
+    if (typeof args === 'string') {
+      contents = [{ role: 'user', parts: [{ text: args }] }];
+    } else if (Array.isArray(args)) {
+      contents = [{ role: 'user', parts: args }];
+    } else if (args.contents) {
+      contents = args.contents;
     }
-  ]
-});
+
+    const result = await proxyCall({
+      model: "gemini-3-pro-preview",
+      contents,
+      generationConfig: args.generationConfig || {},
+      systemInstruction: args.systemInstruction || undefined
+    });
+
+    // Mock the response structure expected by the SDK
+    return {
+      response: {
+        text: () => {
+          return result.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        },
+        candidates: result.candidates
+      }
+    };
+  }
+};
 
 export const getThinkingModel = (level: "high" | "low" | "none" = "high") => {
-  return genAI.getGenerativeModel({
-    model: "gemini-3-pro-preview",
-    generationConfig: {},
-  });
+  return technomancerModel;
 };
+
+// Re-export SchemaType if needed, but we might not need the actual SDK on the client anymore
+export { SchemaType } from "@google/generative-ai";

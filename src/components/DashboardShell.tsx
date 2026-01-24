@@ -183,9 +183,11 @@ const DashboardShell: React.FC = () => {
     return () => clearTimeout(timer);
   }, [preferences.birthDate, preferences.birthLocation]);
 
+  const isAdmin = user?.uid === 'xfytXgoLE8gRc9FpJxTZEx8hfgy2' || user?.uid === 'dev-user-local';
+  
   const navItems = [
     { id: 'compass', label: 'Natal Compass', icon: Compass, color: 'text-indigo-400' },
-    { id: 'aura', label: 'Bio-Link Ritual', icon: Camera, color: 'text-fuchsia-400' },
+    { id: 'aura', label: 'Aura Cam', icon: Camera, color: 'text-fuchsia-400' },
     { id: 'numerology', label: 'Arithmancy', icon: Hash, color: 'text-cyan-400' },
     { id: 'tarot', label: 'Tarot Deck', icon: Sparkles, color: 'text-violet-400' },
     { id: 'grimoire', label: 'Grimoire', icon: Book, color: 'text-emerald-300' },
@@ -195,12 +197,16 @@ const DashboardShell: React.FC = () => {
     { id: 'codex', label: 'Cosmic Codex', icon: BookOpen, color: 'text-indigo-300' },
     { id: 'synastry', label: 'Synastry', icon: Users, color: 'text-fuchsia-400' },
     { id: 'athanor', label: 'Athanor AI', icon: MessageSquare, color: 'text-blue-400' },
-    { id: 'admin', label: 'Sanctum Control', icon: Shield, color: 'text-cyan-400' },
-  ];
+  ].filter(Boolean);
+
+  if (isAdmin) {
+    navItems.push({ id: 'admin', label: 'Sanctum Control', icon: Shield, color: 'text-cyan-400' });
+  }
 
   const userLevel = preferences.level || 1;
 
   const handleViewChange = (view: string) => {
+    if (view === 'admin' && !isAdmin) return;
     const req = VIEW_LEVEL_REQUIREMENTS[view];
     if (req && userLevel < req) {
       setLockedView(view);
@@ -715,7 +721,7 @@ const DashboardShell: React.FC = () => {
                         />
                     )}
 
-                    {activeView === 'admin' && (
+                    {activeView === 'admin' && isAdmin && (
                         <AdminView />
                     )}
                 </motion.div>

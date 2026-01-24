@@ -2,7 +2,7 @@ import {
   collection, 
   addDoc, 
   query, 
-  where, 
+  where,
   orderBy, 
   getDocs, 
   serverTimestamp
@@ -17,8 +17,7 @@ export class PersistenceService {
   static async saveMessage(userId: string, role: "user" | "model", content: string, thoughtSignature?: string): Promise<string> {
     try {
       if (userId !== 'dev-user-local') {
-        const docRef = await addDoc(collection(db, this.COLLECTION_NAME), {
-          userId,
+        const docRef = await addDoc(collection(db, "v3_users", userId, "memories"), {
           role,
           content,
           thought_signature: thoughtSignature || null,
@@ -34,7 +33,7 @@ export class PersistenceService {
     const localHistory = JSON.parse(localStorage.getItem(this.LOCAL_STORAGE_KEY) || "[]");
     const newMessage: ChatMessage = {
       id: `local-${crypto.randomUUID()}`,
-      role: role as any,
+      role: role as "user" | "model",
       content,
       timestamp: Date.now(),
       thought_signature: thoughtSignature,
@@ -48,12 +47,33 @@ export class PersistenceService {
     try {
       if (userId !== 'dev-user-local') {
         const q = query(
-          collection(db, this.COLLECTION_NAME),
-          where("userId", "==", userId),
+          collection(db, "v3_users", userId, "memories"),
           orderBy("timestamp", "asc")
         );
 
-        const querySnapshot = await getDocs(q);
+        let querySnapshot = await getDocs(q);
+
+        // Lazy Migration Check
+        if (querySnapshot.empty) {
+          const oldQ = query(
+            collection(db, this.COLLECTION_NAME),
+            where("userId", "==", userId),
+            orderBy("timestamp", "asc")
+          );
+          const oldSnapshot = await getDocs(oldQ);
+          if (!oldSnapshot.empty) {
+            console.log(`[Migration] Moving ${oldSnapshot.size} memories for user ${userId}`);
+            for (const docSnap of oldSnapshot.docs) {
+              const data = docSnap.data();
+              await addDoc(collection(db, "v3_users", userId, "memories"), {
+                ...data,
+                timestamp: data.timestamp || serverTimestamp(),
+              });
+            }
+            querySnapshot = await getDocs(q);
+          }
+        }
+
         if (!querySnapshot.empty) {
           return querySnapshot.docs.map(doc => {
             const data = doc.data();

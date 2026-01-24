@@ -33,11 +33,11 @@ export const CELESTIAL_QUESTS: CelestialQuest[] = [
   },
   {
     level: 2,
-    title: "Bio-Link Initiation",
+    title: "Aura Cam Activation",
     description: "Capture your Aura to stabilize biometric resonance.",
     action: 'aura-scan',
     targetCount: 1,
-    xpReward: 200
+    xpReward: 210 // Increased from 200 so 1 Aura Scan (40 + 210 = 250) promotion from Level 2 -> 3 is guaranteed.
   },
   {
     level: 3,
@@ -59,7 +59,7 @@ export const CELESTIAL_QUESTS: CelestialQuest[] = [
 
 export const VIEW_LEVEL_REQUIREMENTS: Record<string, number> = {
   compass: 1,      // The Foundation
-  aura: 2,         // Bio-Link Ritual
+  aura: 2,         // Aura Cam
   numerology: 3,   // Arithmancy
   tarot: 4,        // Tarot Deck
   grimoire: 5,     // The Master's Archive (Repository)
@@ -80,18 +80,18 @@ export class ProgressionService {
     return LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
   }
 
-  static calculateGainedXP(action: 'ritual' | 'tarot' | 'journal' | 'compass' | 'meditation' | 'calibration' | 'aura-scan' | 'numerology-check'): number {
-    const xpMap = {
+  static calculateGainedXP(action: 'ritual' | 'tarot' | 'journal' | 'compass' | 'meditation' | 'calibration' | 'aura-scan' | 'numerology-check', currentLevel: number = 1): number {
+    const baseXP = {
       ritual: 50,
       tarot: 30,
       journal: 20,
       compass: 10,
       meditation: 10,
       calibration: 5,
-      'aura-scan': 40,
+      'aura-scan': currentLevel > 3 ? 5 : 40, // Significant diminishing returns after Level 3
       'numerology-check': 30
     };
-    return xpMap[action];
+    return baseXP[action];
   }
 
   /**
@@ -102,7 +102,7 @@ export class ProgressionService {
     level: number; 
     leveledUp: boolean 
   } {
-    let newXP = (currentPrefs.xp || 0) + this.calculateGainedXP(action);
+    let newXP = (currentPrefs.xp || 0) + this.calculateGainedXP(action, currentPrefs.level);
     let newLevel = currentPrefs.level || 1;
     let leveledUp = false;
 

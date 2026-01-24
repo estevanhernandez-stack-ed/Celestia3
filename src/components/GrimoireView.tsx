@@ -28,7 +28,7 @@ export default function GrimoireView() {
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (window.confirm("Burn this page from the Grimoire?")) {
-        await GrimoireService.deleteEntry(id);
+        if (user) await GrimoireService.deleteEntry(user.uid, id);
         setEntries(prev => prev.filter(en => en.id !== id));
     }
   };

@@ -290,7 +290,7 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
                                       );
                                     })
                                   ) : (
-                                    <p className="text-[10px] text-slate-600 italic">No aura captures found in your Grimoire. Perform a Bio-Link Ritual to expand your gallery.</p>
+                                    <p className="text-[10px] text-slate-600 italic">No aura captures found in your Grimoire. Perform an Aura Cam scan to expand your gallery.</p>
                                   )}
                               </div>
                           </div>
