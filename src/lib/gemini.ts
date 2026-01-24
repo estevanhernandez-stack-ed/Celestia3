@@ -1,5 +1,7 @@
 import { functions } from "./firebase";
 import { httpsCallable } from "firebase/functions";
+import { ConfigService } from "./ConfigService";
+import { KnowledgeService } from "./KnowledgeService";
 
 interface GeminiPart {
   text?: string;
@@ -59,11 +61,23 @@ export const technomancerModel = {
       systemInstruction = args.systemInstruction;
     }
 
+    const directive = await ConfigService.getGlobalDirective();
+    let masterSystemInstruction = `${directive.persona}\n\n[MASTER DIRECTIVE]\n${directive.masterDirective}\n\n[DEFAULT FORMAT]\n${directive.defaultFormat}`;
+
+    if (directive.isKnowledgeSyncEnabled) {
+      const knowledge = KnowledgeService.getGlobalKnowledgeContext(directive.knowledgeFocus);
+      masterSystemInstruction += `\n\n[GLOBAL KNOWLEDGE BASE]\n${knowledge}`;
+    }
+
+    if (systemInstruction) {
+      masterSystemInstruction += `\n\n[TASK SPECIFIC INSTRUCTIONS]\n${systemInstruction}`;
+    }
+
     const result = await proxyCall({
       model: "gemini-3-pro-preview",
       contents,
       generationConfig,
-      systemInstruction
+      systemInstruction: masterSystemInstruction
     });
 
     // Mock the response structure expected by the SDK

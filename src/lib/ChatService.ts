@@ -8,14 +8,6 @@ import { ConfigService } from "@/lib/ConfigService";
 import { ResonanceService } from "@/lib/ResonanceService";
 import { SpotifyService } from "@/lib/SpotifyService";
 import { SearchService } from "@/lib/SearchService";
-import { 
-  ZODIAC_KNOWLEDGE, 
-  PLANET_KNOWLEDGE, 
-  HOUSE_KNOWLEDGE, 
-  ASPECT_KNOWLEDGE,
-  NUMEROLOGY_KNOWLEDGE,
-  KnowledgeItem
-} from './KnowledgeBaseData';
 
 interface NumerologyPoint {
     core: string | number;
@@ -40,24 +32,6 @@ import {
 
 export type { ProtocolChatMessage as ChatMessage };
 
-// Helper to format knowledge for the AI context
-const formatKnowledgeBase = (): string => {
-  const formatSection = (title: string, items: KnowledgeItem[]) => {
-    return `[ARCHIVES: ${title}]\n` + items.map(item => 
-      `- ${item.title} (${item.subtitle}): ${item.description} Keywords: ${item.keywords.join(', ')}`
-    ).join('\n');
-  };
-
-  return `
-${formatSection("ZODIAC ARQUETYPES", ZODIAC_KNOWLEDGE)}
-${formatSection("PLANETARY FORCES", PLANET_KNOWLEDGE)}
-${formatSection("HOUSES OF LIFE", HOUSE_KNOWLEDGE)}
-${formatSection("ASPECTS", ASPECT_KNOWLEDGE)}
-${formatSection("ARITHMANCY & VIBRATIONS", NUMEROLOGY_KNOWLEDGE)}
-  `.trim();
-};
-
-const KNOWLEDGE_CONTEXT = formatKnowledgeBase();
 
 // Helper to retrieve active paradigm content
 const getParadigmContent = (paradigm: string): string => {
@@ -125,11 +99,6 @@ Active Paradigms: ${paradigms}
 High Entropy Mode: ${prefs.highEntropyMode ? 'ENABLED' : 'DISABLED'}
 Intent: ${prefs.intent}
 [END_PREFERENCES]
-
-[COSMIC_CODEX_KNOWLEDGE_BASE]
-The following is the canonical knowledge from the Celestia Archives. Use these definitions, metaphors, and technomancer subtitles when explaining concepts.
-${KNOWLEDGE_CONTEXT}
-[END_KNOWLEDGE_BASE]
 
 [ACTIVE_MAGICAL_PARADIGMS]
 The User has UNLOCKED the following archival texts. You MUST integrate these specific concepts, vocal styles, and ritual technologies into your response where relevant.
@@ -261,7 +230,6 @@ ${prefs.activeParadigms.map(p => {
 
     const prompt = rawPrompt
         .replace(/{{name}}/g, prefs.name)
-        .replace(/{{knowledgeContext}}/g, KNOWLEDGE_CONTEXT)
         .replace(/{{lifePath}}/g, String(numerologyData.lifePath.core))
         .replace(/{{lifePathArchetype}}/g, numerologyData.lifePath.archetype)
         .replace(/{{destiny}}/g, String(numerologyData.destiny.core))
@@ -286,7 +254,6 @@ ${prefs.activeParadigms.map(p => {
     const rawPrompt = await ConfigService.getPrompt('natal_interpretation');
     const prompt = rawPrompt
         .replace(/{{name}}/g, name)
-        .replace(/{{knowledgeContext}}/g, KNOWLEDGE_CONTEXT)
         .replace(/{{chartData}}/g, chartData);
 
     try {
@@ -319,7 +286,6 @@ ${prefs.activeParadigms.map(p => {
   ): Promise<string> {
     const rawPrompt = await ConfigService.getPrompt('synastry_report');
     const prompt = rawPrompt
-        .replace(/{{knowledgeContext}}/g, KNOWLEDGE_CONTEXT)
         .replace(/{{p1Name}}/g, p1Name)
         .replace(/{{p1Date}}/g, p1Date)
         .replace(/{{p1Chart}}/g, p1Chart)

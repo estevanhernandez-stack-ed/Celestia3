@@ -12,9 +12,11 @@ import {
     AlertCircle,
     Monitor,
     FileCode,
-    Sparkles
+    Sparkles,
+    Cpu,
+    BookOpen
 } from 'lucide-react';
-import { ConfigService, SystemPrompt } from '@/lib/ConfigService';
+import { ConfigService, SystemPrompt, GlobalDirective } from '@/lib/ConfigService';
 import { useSettings } from '@/context/SettingsContext';
 import { ProgressionService } from '@/lib/ProgressionService';
 import { Zap as ZapIcon, Trash2, Award, ArrowUpCircle } from 'lucide-react';
@@ -24,7 +26,9 @@ const AdminView: React.FC = () => {
     const [selectedPrompt, setSelectedPrompt] = useState<SystemPrompt | null>(null);
     const [editContent, setEditContent] = useState("");
     const [isSaving, setIsSaving] = useState(false);
-    const [activeTab, setActiveTab] = useState<'prompts' | 'tools' | 'logs' | 'debug'>('prompts');
+    const [activeTab, setActiveTab] = useState<'prompts' | 'tools' | 'logs' | 'debug' | 'architect'>('prompts');
+    const [directive, setDirective] = useState<GlobalDirective | null>(null);
+    const [isDirectiveSaving, setIsDirectiveSaving] = useState(false);
     const { preferences, updatePreferences } = useSettings();
 
     const loadPrompts = useCallback(async () => {
@@ -36,9 +40,15 @@ const AdminView: React.FC = () => {
         }
     }, [selectedPrompt]);
 
+    const loadDirective = useCallback(async () => {
+        const d = await ConfigService.getGlobalDirective();
+        setDirective(d);
+    }, []);
+
     useEffect(() => {
         loadPrompts();
-    }, [loadPrompts]);
+        loadDirective();
+    }, [loadPrompts, loadDirective]);
 
     const handleSave = async () => {
         if (!selectedPrompt) return;
@@ -73,6 +83,7 @@ const AdminView: React.FC = () => {
                 <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
                     {[
                         { id: 'prompts', icon: FileCode, label: 'Prompts' },
+                        { id: 'architect', icon: Sparkles, label: 'Architect' },
                         { id: 'tools', icon: Settings, label: 'Tools' },
                         { id: 'debug', icon: ZapIcon, label: 'DevTools' },
                         { id: 'logs', icon: Database, label: 'Logs' }
@@ -119,7 +130,107 @@ const AdminView: React.FC = () => {
                 )}
 
                 {/* Main Content - Editor */}
-                <div className="flex-1 flex flex-col bg-black/20 p-6 overflow-hidden">
+                <div className="flex-1 flex flex-col bg-black/20 p-6 overflow-hidden relative">
+                    {activeTab === 'architect' && directive && (
+                        <motion.div 
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="h-full flex flex-col gap-6 overflow-y-auto custom-scrollbar pr-2"
+                        >
+                            <div className="flex items-center justify-between sticky top-0 bg-slate-950/20 backdrop-blur-md z-10 py-2">
+                                <div className="flex items-center gap-3">
+                                    <Cpu size={20} className="text-indigo-400" />
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white uppercase tracking-widest font-serif">Persona Architect</h3>
+                                        <p className="text-[10px] text-indigo-400 uppercase tracking-widest font-mono">Master AI Configuration</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={async () => {
+                                        setIsDirectiveSaving(true);
+                                        await ConfigService.saveGlobalDirective(directive);
+                                        setIsDirectiveSaving(false);
+                                    }}
+                                    disabled={isDirectiveSaving}
+                                    className="flex items-center gap-2 px-8 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-indigo-500/20 active:scale-95"
+                                >
+                                    {isDirectiveSaving ? <RefreshCw className="animate-spin" size={16} /> : <Save size={16} />}
+                                    {isDirectiveSaving ? 'Encoding...' : 'Commit Directive'}
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-8 pb-10">
+                                {/* Persona Block */}
+                                <div className="space-y-3">
+                                    <label className="text-[10px] text-slate-500 uppercase tracking-[0.3em] font-bold flex items-center gap-2">
+                                        <Monitor size={12} /> The Persona Essence
+                                    </label>
+                                    <textarea
+                                        value={directive.persona}
+                                        onChange={(e) => setDirective({ ...directive, persona: e.target.value })}
+                                        className="w-full h-32 bg-slate-900/50 border border-white/10 rounded-2xl p-5 font-mono text-sm text-indigo-100 focus:outline-none focus:border-indigo-500/50 transition-all resize-none"
+                                        placeholder="Who is the AI?"
+                                    />
+                                </div>
+
+                                {/* Master Directive */}
+                                <div className="space-y-3">
+                                    <label className="text-[10px] text-slate-500 uppercase tracking-[0.3em] font-bold flex items-center gap-2">
+                                        <Lock size={12} /> Prime Directive
+                                    </label>
+                                    <textarea
+                                        value={directive.masterDirective}
+                                        onChange={(e) => setDirective({ ...directive, masterDirective: e.target.value })}
+                                        className="w-full h-32 bg-slate-900/50 border border-white/10 rounded-2xl p-5 font-mono text-sm text-amber-100/80 focus:outline-none focus:border-amber-500/50 transition-all resize-none"
+                                        placeholder="Core rules the AI must follow..."
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    {/* Knowledge Focus */}
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] text-slate-500 uppercase tracking-[0.3em] font-bold flex items-center gap-2">
+                                            <BookOpen size={12} /> Knowledge Focus
+                                        </label>
+                                        <input
+                                            value={directive.knowledgeFocus}
+                                            onChange={(e) => setDirective({ ...directive, knowledgeFocus: e.target.value })}
+                                            className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-5 py-4 font-mono text-sm text-emerald-100 focus:outline-none focus:border-emerald-500/50 transition-all"
+                                            placeholder="Ancient texts to emphasize..."
+                                        />
+                                    </div>
+
+                                    {/* Default Format */}
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] text-slate-500 uppercase tracking-[0.3em] font-bold flex items-center gap-2">
+                                            <FileCode size={12} /> Output Protocol
+                                        </label>
+                                        <input
+                                            value={directive.defaultFormat}
+                                            onChange={(e) => setDirective({ ...directive, defaultFormat: e.target.value })}
+                                            className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-5 py-4 font-mono text-sm text-fuchsia-100 focus:outline-none focus:border-fuchsia-500/50 transition-all"
+                                            placeholder="Markdown, JSON, Riddle, etc..."
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Knowledge Sync Toggle */}
+                                <div className="p-6 bg-indigo-500/5 border border-indigo-500/10 rounded-3xl flex items-center justify-between">
+                                    <div className="space-y-1">
+                                        <h4 className="text-sm font-bold text-white uppercase tracking-wider">Global Knowledge Sync</h4>
+                                        <p className="text-[10px] text-indigo-400 uppercase tracking-widest font-mono">Injects Cosmic Codex into all packets</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => setDirective({ ...directive, isKnowledgeSyncEnabled: !directive.isKnowledgeSyncEnabled })}
+                                        className={`w-14 h-8 rounded-full transition-all relative ${directive.isKnowledgeSyncEnabled ? 'bg-indigo-600' : 'bg-slate-800'}`}
+                                    >
+                                        <div className={`absolute top-1 w-6 h-6 rounded-full bg-white transition-all ${directive.isKnowledgeSyncEnabled ? 'left-7' : 'left-1'}`} />
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+
                     {activeTab === 'prompts' && selectedPrompt && (
                         <motion.div 
                             initial={{ opacity: 0, y: 10 }}
