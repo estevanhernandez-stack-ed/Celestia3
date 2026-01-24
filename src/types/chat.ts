@@ -4,6 +4,7 @@ export interface ChatMessage {
   content: string;
   timestamp: number;
   thought_signature?: string;
+  voice_transcript?: string;
   ritual_data?: Record<string, unknown>;
 }
 

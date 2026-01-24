@@ -129,7 +129,7 @@ export default function ChatInterface({ initialPrompt, onPromptHandled }: ChatIn
       (async () => {
         try {
           ResonanceService.duck();
-          await voiceService.speak(content, {
+          await voiceService.speak(result.voiceText, {
             voiceId: preferences.voiceId,
             rate: preferences.voiceSpeed,
             pitch: preferences.voicePitch,
@@ -224,7 +224,7 @@ export default function ChatInterface({ initialPrompt, onPromptHandled }: ChatIn
                       onClick={async (e) => {
                         e.stopPropagation();
                         ResonanceService.duck();
-                        await voiceService.speak(m.content, {
+                        await voiceService.speak(m.voice_transcript || m.content, {
                           voiceId: preferences.voiceId,
                           rate: preferences.voiceSpeed,
                           pitch: preferences.voicePitch,

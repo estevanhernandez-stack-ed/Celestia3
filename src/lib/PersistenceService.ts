@@ -14,13 +14,14 @@ export class PersistenceService {
   private static COLLECTION_NAME = "v3_memories";
   private static LOCAL_STORAGE_KEY = "celestia_memories_cache";
 
-  static async saveMessage(userId: string, role: "user" | "model", content: string, thoughtSignature?: string): Promise<string> {
+  static async saveMessage(userId: string, role: "user" | "model", content: string, thoughtSignature?: string, voiceTranscript?: string): Promise<string> {
     try {
       if (userId !== 'dev-user-local') {
         const docRef = await addDoc(collection(db, "v3_users", userId, "memories"), {
           role,
           content,
           thought_signature: thoughtSignature || null,
+          voice_transcript: voiceTranscript || null,
           timestamp: serverTimestamp(),
         });
         return docRef.id;
@@ -37,6 +38,7 @@ export class PersistenceService {
       content,
       timestamp: Date.now(),
       thought_signature: thoughtSignature,
+      voice_transcript: voiceTranscript,
     };
     localHistory.push(newMessage);
     localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(localHistory));
@@ -83,6 +85,7 @@ export class PersistenceService {
               content: data.content,
               timestamp: data.timestamp?.toMillis() || Date.now(),
               thought_signature: data.thought_signature,
+              voice_transcript: data.voice_transcript,
             };
           });
         }

@@ -164,8 +164,24 @@ ${prefs.activeParadigms.map(p => {
       }
 
       let text = "";
+      let voiceText = "";
       try {
-        text = response.text();
+        const rawText = response.text();
+        
+        // Attempt to parse as Hypophetes JSON if suspicious
+        if (rawText.trim().startsWith('{')) {
+          try {
+            const data = JSON.parse(rawText);
+            text = data.talisman_visual || data.text || rawText;
+            voiceText = data.voice_transcript || data.audio || text;
+          } catch {
+            text = rawText;
+            voiceText = rawText;
+          }
+        } else {
+          text = rawText;
+          voiceText = rawText;
+        }
       } catch {
         // Gemini refused to generate text
       }
@@ -173,6 +189,7 @@ ${prefs.activeParadigms.map(p => {
       // If text is effectively empty or whitespace, use fallback
       if (!text || text.trim() === "") {
          text = specificFallback || "*The frequencies shift in response to your presence.*";
+         voiceText = text;
       }
       
       // Interface for Gemini response parts to avoid 'any'
@@ -196,10 +213,11 @@ ${prefs.activeParadigms.map(p => {
       
       // Persist to Akashic Records
       await PersistenceService.saveMessage(userId, "user", message);
-      await PersistenceService.saveMessage(userId, "model", text, thought);
+      await PersistenceService.saveMessage(userId, "model", text, thought, voiceText);
 
       return {
         text,
+        voiceText,
         thought_signature: thought,
       };
     } catch (error) {

@@ -10,7 +10,9 @@ export interface RitualResult {
   vision: {
     incantation: string;
     thought: string;
+    voice_transcript?: string;
   };
+  talisman_visual?: string;
   context: {
     intent: string;
     paradigm: string;
@@ -65,7 +67,7 @@ ${chartContext}
 
       // Persist to Akashic Records
       if (data.vision?.thought) {
-          await PersistenceService.saveMessage(userId, "model", `Ritual Performed: ${data.vision.incantation}`, data.vision.thought);
+          await PersistenceService.saveMessage(userId, "model", `Ritual Performed: ${data.vision.incantation}`, data.vision.thought, data.voice_transcript);
       }
 
       return data as unknown as RitualResult;
@@ -84,7 +86,7 @@ ${chartContext}
     }
   }
 
-  private static extractJson(text: string): Record<string, any> {
+  private static extractJson(text: string): any {
     if (!text) throw new Error("Empty response");
 
     // Strategy 1: Look for markdown code blocks
