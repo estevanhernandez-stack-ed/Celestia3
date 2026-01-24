@@ -310,27 +310,30 @@ const NatalCompass: React.FC<NatalCompassProps> = ({ chart: externalChart }) => 
           return (
             <AnimatePresence key={`label-${p.name}`}>
               {isHovered && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8, y: 5 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.8, y: 5 }}
+                <div
+                  className="absolute pointer-events-none"
                   style={{ 
-                    position: 'absolute',
                     left: `${(p.x / 500) * 100}%`,
-                    top: `${((p.y - 30) / 500) * 100}%`,
-                    transform: 'translateX(-50%)'
+                    top: `${(p.y / 500) * 100}%`,
+                    transform: 'translate(-50%, -100%)'
                   }}
-                  className="px-2 py-1 bg-black/80 backdrop-blur-md border border-indigo-500/50 rounded-lg shadow-xl whitespace-nowrap"
                 >
-                  <div className="flex flex-col items-center">
-                    <span className="text-[9px] text-indigo-300 font-black uppercase tracking-widest leading-none mb-1">{p.name}</span>
-                    <span className="text-[8px] text-white/70 font-mono leading-none">
-                      {p.sign} {Math.floor(p.degree)}° {Math.floor((p.degree % 1) * 60)}&apos;
-                    </span>
-                  </div>
-                  {/* Small Arrow */}
-                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-black border-r border-b border-indigo-500/50 rotate-45" />
-                </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8, y: 5 }}
+                    animate={{ opacity: 1, scale: 1, y: -12 }}
+                    exit={{ opacity: 0, scale: 0.8, y: 5 }}
+                    className="px-2 py-1 bg-black/90 backdrop-blur-md border border-indigo-500/50 rounded-lg shadow-xl whitespace-nowrap relative min-w-[60px]"
+                  >
+                    <div className="flex flex-col items-center">
+                      <span className="text-[9px] text-indigo-300 font-bold uppercase tracking-widest leading-none mb-1">{p.name}</span>
+                      <span className="text-[8px] text-white/90 font-mono leading-none">
+                        {p.sign} {Math.floor(p.degree)}° {Math.floor((p.degree % 1) * 60)}&apos;
+                      </span>
+                    </div>
+                    {/* Small Arrow */}
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-black border-r border-b border-indigo-500/50 rotate-45" />
+                  </motion.div>
+                </div>
               )}
             </AnimatePresence>
           );

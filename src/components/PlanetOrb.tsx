@@ -46,6 +46,14 @@ export const PlanetSceneOrb: React.FC<PlanetSceneOrbProps> = ({ name, x, y, size
     return "#6366f1"; // Default Indigo
   };
 
+  // Emissive / Glow Color Mapping
+  const getEmissiveColor = () => {
+    if (name === 'Sun') return "#fcd34d"; // Warm Gold
+    if (isHovered) return "#a5b4fc"; // Default Hover Blue
+    return "#000000";
+  };
+
+  const emissiveColor = getEmissiveColor();
   const haloColor = getHaloColor();
 
   return (
@@ -64,8 +72,8 @@ export const PlanetSceneOrb: React.FC<PlanetSceneOrbProps> = ({ name, x, y, size
       <Sphere ref={meshRef} args={[1, 64, 64]}>
         <meshStandardMaterial 
           map={texture}
-          emissive={isHovered ? "#a5b4fc" : "#000000"}
-          emissiveIntensity={isHovered ? 0.5 : 0}
+          emissive={emissiveColor}
+          emissiveIntensity={isHovered ? 0.8 : 0.1}
           roughness={0.7}
           metalness={0.3}
         />
@@ -75,11 +83,11 @@ export const PlanetSceneOrb: React.FC<PlanetSceneOrbProps> = ({ name, x, y, size
       {isHovered && (
         <Sphere args={[1.05, 32, 32]}>
           <MeshDistortMaterial
-            color="#a5b4fc"
+            color={emissiveColor}
             transparent
-            opacity={0.2}
+            opacity={0.3}
             speed={2}
-            distort={0.3}
+            distort={0.4}
             radius={1}
           />
         </Sphere>
