@@ -95,7 +95,7 @@ const DashboardShell: React.FC = () => {
     if (!user) return;
     setIsPerformingRitual(true);
     try {
-        const result = await RitualService.performRitual(user.uid, intent, paradigm);
+        const result = await RitualService.performRitual(user.uid, intent, paradigm, preferences.allowEntropy, preferences);
         setRitualResult(result);
         
         // Persist to Grimoire
@@ -154,6 +154,13 @@ const DashboardShell: React.FC = () => {
      const progression = ProgressionService.addXP(preferences, 'tarot');
      updatePreferences({ xp: progression.xp, level: progression.level });
   };
+
+  const moonInfo = React.useMemo(() => {
+    return {
+        current: calculateMoonPhase(),
+        next: getNextMoonPhaseDate()
+    };
+  }, []); // Calculate once on mount, or could depend on a "system hour" state if needed
 
   React.useEffect(() => {
     async function initChart() {
@@ -291,13 +298,13 @@ const DashboardShell: React.FC = () => {
 
                 {/* Moon Phase Widget */}
                 <div className="hidden lg:flex items-center gap-3 px-3 py-1 bg-white/5 rounded-full border border-white/10">
-                    <span className="text-lg">{calculateMoonPhase().emoji}</span>
+                    <span className="text-lg">{moonInfo.current.emoji}</span>
                     <div className="flex flex-col leading-none">
                         <span className="text-[10px] text-fuchsia-300 font-bold uppercase tracking-widest">
-                            {calculateMoonPhase().phase}
+                            {moonInfo.current.phase}
                         </span>
                         <span className="text-[9px] text-slate-400">
-                            {getNextMoonPhaseDate().phase} in {getNextMoonPhaseDate().timeRemaining}
+                            {moonInfo.next.phase} in {moonInfo.next.timeRemaining}
                         </span>
                     </div>
                 </div>
@@ -696,6 +703,7 @@ const DashboardShell: React.FC = () => {
                             onClose={() => setActiveView('compass')}
                             natalChart={natalChart}
                             city={preferences.birthLocation?.city}
+                            allowEntropy={preferences.allowEntropy}
                             onSave={async (capture) => {
                                 // Persist to Grimoire
                                 if (user?.uid) {
@@ -775,6 +783,7 @@ const DashboardShell: React.FC = () => {
                     onClose={() => setIsAuraCamOpen(false)}
                     natalChart={natalChart}
                     city={preferences.birthLocation?.city}
+                    allowEntropy={preferences.allowEntropy}
                     onSave={async (capture) => {
                         // Persist to Grimoire
                         if (user?.uid) {

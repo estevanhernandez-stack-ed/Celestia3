@@ -8,6 +8,21 @@ import {
     MANSION_KNOWLEDGE,
     KnowledgeItem
 } from "./KnowledgeBaseData";
+import { 
+    AGRIPPA_LORE, 
+    PGM_LORE, 
+    PICATRIX_LORE, 
+    ANTIQUITY_LORE, 
+    ORACLES_LORE, 
+    HERMETICA_LORE,
+    TECHNOMANCY_LORE
+} from "./MagicalTexts";
+
+export interface QueryCriteria {
+    intent?: string;
+    planet?: string;
+    mechanism?: string;
+}
 
 export class KnowledgeService {
     /**
@@ -36,6 +51,54 @@ export class KnowledgeService {
     private static formatSection(title: string, items: KnowledgeItem[]): string {
         return `[COSMIC CODEX: ${title.toUpperCase()}]\n` + items.map(item => 
             `- ${item.title} (${item.subtitle}): ${item.description} Keywords: ${item.keywords?.join(', ')}`
+        ).join('\n');
+    }
+
+    /**
+     * Returns the entire magical archive for long-context Gemini-3 processing.
+     */
+    static getTotalArchive(): string {
+        const libraries = [
+            { name: 'AGRIPPA', lore: AGRIPPA_LORE },
+            { name: 'PGM', lore: PGM_LORE },
+            { name: 'PICATRIX', lore: PICATRIX_LORE },
+            { name: 'ANTIQUITY', lore: ANTIQUITY_LORE },
+            { name: 'ORACLES', lore: ORACLES_LORE },
+            { name: 'HERMETICA', lore: HERMETICA_LORE },
+            { name: 'TECHNOMANCY', lore: TECHNOMANCY_LORE }
+        ];
+
+        return libraries.map(lib => 
+            `=== SOURCE ARCHIVE: ${lib.name} ===\n` + 
+            lib.lore.map(entry => `> [${entry.id}] (${entry.mechanism}): ${entry.content}`).join('\n')
+        ).join('\n\n');
+    }
+
+    /**
+     * Filters magical lore based on current intent or celestial weather.
+     */
+    static queryMagicalLore(criteria: QueryCriteria): string {
+        const allLore = [
+            ...AGRIPPA_LORE,
+            ...PGM_LORE,
+            ...PICATRIX_LORE,
+            ...ANTIQUITY_LORE,
+            ...ORACLES_LORE,
+            ...HERMETICA_LORE,
+            ...TECHNOMANCY_LORE
+        ];
+
+        const filtered = allLore.filter(entry => {
+            const matchIntent = criteria.intent ? entry.intentTags.some(t => t.toLowerCase() === criteria.intent?.toLowerCase()) : true;
+            const matchPlanet = criteria.planet ? entry.planetaryAssociations.some(p => p.toLowerCase() === criteria.planet?.toLowerCase()) : true;
+            const matchMechanism = criteria.mechanism ? entry.mechanism.toLowerCase() === criteria.mechanism?.toLowerCase() : true;
+            return matchIntent && matchPlanet && matchMechanism;
+        });
+
+        if (filtered.length === 0) return "";
+
+        return `[RELEVANT MAGICAL TRADITIONS]\n` + filtered.map(f => 
+            `* [${f.source}] ${f.id}: ${f.content} (${f.mechanism.toUpperCase()} protocol)`
         ).join('\n');
     }
 

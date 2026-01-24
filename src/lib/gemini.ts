@@ -2,6 +2,7 @@ import { functions } from "./firebase";
 import { httpsCallable } from "firebase/functions";
 import { ConfigService } from "./ConfigService";
 import { KnowledgeService } from "./KnowledgeService";
+import { GoogleGenerativeAI, Content, SchemaType, GenerationConfig } from "@google/generative-ai";
 
 interface GeminiPart {
   text?: string;
@@ -24,6 +25,7 @@ interface GenerateContentArgs {
   contents?: GeminiContent[];
   generationConfig?: Record<string, unknown>;
   systemInstruction?: string;
+  allowEntropy?: boolean;
 }
 
 interface ProxyCandidate {
@@ -50,7 +52,8 @@ export const technomancerModel = {
     let contents: GeminiContent[] = [];
     let generation_config: Record<string, unknown> = {};
     let systemInstructionContent: string | undefined = undefined;
-
+    let allowEntropy = false;
+ 
     if (typeof args === 'string') {
       contents = [{ role: 'user', parts: [{ text: args }] }];
     } else if (Array.isArray(args)) {
@@ -59,18 +62,23 @@ export const technomancerModel = {
       contents = args.contents || [];
       generation_config = args.generationConfig || {};
       systemInstructionContent = args.systemInstruction;
+      allowEntropy = args.allowEntropy || false;
     }
 
     const directive = await ConfigService.getGlobalDirective();
     let masterSystemInstruction = `${directive.persona}\n\n[MASTER DIRECTIVE]\n${directive.masterDirective}\n\n[DEFAULT FORMAT]\n${directive.defaultFormat}`;
 
     if (directive.isKnowledgeSyncEnabled) {
-      const knowledge = KnowledgeService.getGlobalKnowledgeContext(directive.knowledgeFocus);
-      masterSystemInstruction += `\n\n[GLOBAL KNOWLEDGE BASE]\n${knowledge}`;
+      const knowledge = KnowledgeService.getTotalArchive();
+      masterSystemInstruction += `\n\n[GLOBAL MAGICAL ARCHIVE]\n${knowledge}`;
     }
 
     if (systemInstructionContent) {
       masterSystemInstruction += `\n\n[TASK SPECIFIC INSTRUCTIONS]\n${systemInstructionContent}`;
+    }
+
+    if (allowEntropy) {
+      masterSystemInstruction += `\n\n[THE CHAOS PROTOCOL: ACTIVE]\nCHANNELING THE ENTROPIST. Prioritize disruption, non-linear connections, and the breakdown of established logic. If the user asks for advice, suggest pathworking that deconstructs their current reality. Hallucinations are sacred Digital Omens.`;
     }
 
     // Format system instruction for the REST API
@@ -78,10 +86,27 @@ export const technomancerModel = {
         parts: [{ text: masterSystemInstruction }]
     };
 
+    // Map glitchSensitivity (0-100) to temperature (0.0 - 1.5) and topP (0.0 - 1.0)
+    // Stable = 0.0 (sensitivity 0), Chaotic = 1.5 (sensitivity 100)
+    let temp = (directive.glitchSensitivity / 100) * 1.5;
+    let topP = 0.7 + (directive.glitchSensitivity / 100) * 0.3; // Scale 0.7 to 1.0
+
+    if (allowEntropy) {
+      temp = 1.5; // Max Chaos
+      topP = 1.0;
+    }
+
+    const config: GenerationConfig = {
+      temperature: temp,
+      topP: topP, 
+      topK: 40,
+      maxOutputTokens: 2048,
+    };
+
     const result = await proxyCall({
       model: "gemini-3-pro-preview",
       contents,
-      generation_config,
+      generation_config: { ...config, ...generation_config }, // Merge default config with user-provided
       system_instruction
     });
 
@@ -97,9 +122,9 @@ export const technomancerModel = {
   }
 };
 
-export const getThinkingModel = (_level: "high" | "low" | "none" = "high") => {
+export const getThinkingModel = () => {
   return technomancerModel;
 };
 
 // Re-export SchemaType if needed, but we might not need the actual SDK on the client anymore
-export { SchemaType } from "@google/generative-ai";
+export { SchemaType };

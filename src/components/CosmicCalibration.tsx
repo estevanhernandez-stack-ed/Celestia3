@@ -444,35 +444,43 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
 
                 {activeTab === 'system' && (
                   <div className="space-y-12">
-                     <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <section className="grid grid-cols-1 gap-6">
                         <button 
-                          onClick={() => updatePreferences({ highEntropyMode: !preferences.highEntropyMode })}
-                          className={`flex flex-col items-center gap-3 p-8 rounded-4xl border transition-all ${
-                            preferences.highEntropyMode 
+                          onClick={() => updatePreferences({ allowEntropy: !preferences.allowEntropy })}
+                          className={`flex flex-col items-start gap-4 p-8 rounded-[2.5rem] border transition-all relative overflow-hidden group ${
+                            preferences.allowEntropy 
                               ? 'border-purple-500 bg-purple-500/10 text-purple-200' 
                               : 'border-white/5 bg-black/40 text-slate-600 hover:border-white/10'
                           }`}
                         >
-                          <Zap size={32} className={preferences.highEntropyMode ? 'animate-pulse' : ''} />
-                          <div className="text-center">
-                            <span className="text-xs uppercase font-black tracking-widest">High Entropy</span>
-                            <p className="text-[9px] mt-1 opacity-60">LOOSEN THE PROBABILITIES</p>
+                          <div className="flex items-center gap-4 w-full justify-between">
+                            <div className="flex items-center gap-4">
+                              <Zap size={32} className={preferences.allowEntropy ? 'animate-pulse text-purple-400' : 'text-slate-700'} />
+                              <div className="text-left">
+                                <span className="text-lg font-black uppercase tracking-tighter">Entropy Mode</span>
+                                <p className="text-[10px] font-mono tracking-widest opacity-60">PROTOCOL: CHAOS_INVOCATION</p>
+                              </div>
+                            </div>
+                            <div className={`px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest border transition-all ${
+                                preferences.allowEntropy ? 'bg-purple-500 text-white border-purple-400' : 'bg-transparent border-slate-700 text-slate-700'
+                            }`}>
+                                {preferences.allowEntropy ? 'ACTIVE' : 'DORMANT'}
+                            </div>
                           </div>
-                        </button>
+                          
+                          <p className="text-[11px] leading-relaxed opacity-60 max-w-md text-left">
+                            Invite the **Entropist** to dismantle stagnant logic. Surrender binary certainty to randomized algorithms and sacred liminality.
+                          </p>
 
-                        <button 
-                          onClick={() => updatePreferences({ isKidMode: !preferences.isKidMode })}
-                          className={`flex flex-col items-center gap-3 p-8 rounded-4xl border transition-all ${
-                            preferences.isKidMode 
-                              ? 'border-yellow-500 bg-yellow-500/10 text-yellow-200' 
-                              : 'border-white/5 bg-black/40 text-slate-600 hover:border-white/10'
-                          }`}
-                        >
-                          <div className="text-3xl">✨</div>
-                          <div className="text-center">
-                            <span className="text-xs uppercase font-black tracking-widest">Kid Mode</span>
-                            <p className="text-[9px] mt-1 opacity-60">SIMPLIFIED MYSTICISM</p>
-                          </div>
+                          {preferences.allowEntropy && (
+                            <motion.div 
+                                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                                className="absolute inset-0 pointer-events-none"
+                            >
+                                <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-purple-500 to-transparent animate-glitch-line" />
+                                <div className="absolute bottom-0 right-0 w-px h-full bg-linear-to-b from-transparent via-purple-500 to-transparent animate-glitch-line-v" />
+                            </motion.div>
+                          )}
                         </button>
                      </section>
 

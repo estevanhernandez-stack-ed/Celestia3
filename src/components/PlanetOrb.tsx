@@ -59,7 +59,7 @@ export const PlanetSceneOrb: React.FC<PlanetSceneOrbProps> = ({ name, x, y, size
   return (
     <group position={[x, y, 0]} scale={[size * scale, size * scale, size * scale]}>
       {/* Soft Ambient Glow / Halo */}
-      <Sphere args={[1.2, 32, 32]}>
+      <Sphere args={[1.2, 16, 16]}>
         <meshBasicMaterial 
           color={haloColor} 
           transparent 
@@ -69,7 +69,7 @@ export const PlanetSceneOrb: React.FC<PlanetSceneOrbProps> = ({ name, x, y, size
       </Sphere>
 
       {/* Main Planet Body */}
-      <Sphere ref={meshRef} args={[1, 64, 64]}>
+      <Sphere ref={meshRef} args={[1, 24, 24]}>
         <meshStandardMaterial 
           map={texture}
           emissive={emissiveColor}
@@ -81,7 +81,7 @@ export const PlanetSceneOrb: React.FC<PlanetSceneOrbProps> = ({ name, x, y, size
 
       {/* Atmospheric Shimmer on Hover */}
       {isHovered && (
-        <Sphere args={[1.05, 32, 32]}>
+        <Sphere args={[1.05, 16, 16]}>
           <MeshDistortMaterial
             color={emissiveColor}
             transparent

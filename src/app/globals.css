@@ -1,1 +1,29 @@
 @import "tailwindcss";
+
+@layer utilities {
+  @keyframes glitch-line {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  @keyframes glitch-line-v {
+    0% {
+      transform: translateY(-100%);
+    }
+    100% {
+      transform: translateY(100%);
+    }
+  }
+
+  .animate-glitch-line {
+    animation: glitch-line 2s linear infinite;
+  }
+
+  .animate-glitch-line-v {
+    animation: glitch-line-v 3s linear infinite;
+  }
+}

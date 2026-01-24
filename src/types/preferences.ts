@@ -32,10 +32,9 @@ export interface UserPreferences {
   bio?: string;
   intent: 'General' | 'Love' | 'Career' | 'Growth';
   knowledgeLevel: KnowledgeLevel;
-  highEntropyMode: boolean;
+  allowEntropy: boolean;
   useSwissEph: boolean;
   activeParadigms: Paradigm[];
-  isKidMode: boolean;
   hasCompletedOnboarding: boolean;
   phoneticName?: string;
   voiceId?: string;
@@ -67,10 +66,9 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   pronouns: "They/Them",
   intent: "General",
   knowledgeLevel: "Intermediate",
-  highEntropyMode: false,
+  allowEntropy: false,
   useSwissEph: true,
   activeParadigms: ['Antiquity', 'Picatrix', 'Agrippa', 'PGM', 'Oracles', 'Hermetica'],
-  isKidMode: false,
   hasCompletedOnboarding: false,
   hasSeenWelcome: false,
   phoneticName: "",

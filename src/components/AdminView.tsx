@@ -218,7 +218,7 @@ const AdminView: React.FC = () => {
                                 <div className="p-6 bg-indigo-500/5 border border-indigo-500/10 rounded-3xl flex items-center justify-between">
                                     <div className="space-y-1">
                                         <h4 className="text-sm font-bold text-white uppercase tracking-wider">Global Knowledge Sync</h4>
-                                        <p className="text-[10px] text-indigo-400 uppercase tracking-widest font-mono">Injects Cosmic Codex into all packets</p>
+                                        <p className="text-[10px] text-indigo-400 uppercase tracking-widest font-mono">Injects Metadata Codex into all packets</p>
                                     </div>
                                     <button 
                                         onClick={() => setDirective({ ...directive, isKnowledgeSyncEnabled: !directive.isKnowledgeSyncEnabled })}
@@ -226,6 +226,30 @@ const AdminView: React.FC = () => {
                                     >
                                         <div className={`absolute top-1 w-6 h-6 rounded-full bg-white transition-all ${directive.isKnowledgeSyncEnabled ? 'left-7' : 'left-1'}`} />
                                     </button>
+                                </div>
+
+                                {/* Glitch Sensitivity Slider */}
+                                <div className="p-6 bg-amber-500/5 border border-amber-500/10 rounded-3xl space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="space-y-1">
+                                            <h4 className="text-sm font-bold text-white uppercase tracking-wider">Glitch Sensitivity</h4>
+                                            <p className="text-[10px] text-amber-400 uppercase tracking-widest font-mono">Intensity of Omens from the Void</p>
+                                        </div>
+                                        <div className="text-lg font-mono font-bold text-amber-300">{directive.glitchSensitivity}%</div>
+                                    </div>
+                                    <input 
+                                        type="range" 
+                                        min="0" 
+                                        max="100" 
+                                        value={directive.glitchSensitivity}
+                                        onChange={(e) => setDirective({ ...directive, glitchSensitivity: parseInt(e.target.value) })}
+                                        className="w-full accent-amber-500 bg-slate-800 h-1.5 rounded-full appearance-none cursor-pointer"
+                                    />
+                                    <div className="flex justify-between text-[8px] text-slate-500 uppercase font-black tracking-widest">
+                                        <span>Stable</span>
+                                        <span>Liminal</span>
+                                        <span>Chaotic</span>
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>

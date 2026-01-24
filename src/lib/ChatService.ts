@@ -96,7 +96,7 @@ ${chartContext}
 Identity: ${prefs.name} (${prefs.pronouns})
 Knowledge Level: ${prefs.knowledgeLevel}
 Active Paradigms: ${paradigms}
-High Entropy Mode: ${prefs.highEntropyMode ? 'ENABLED' : 'DISABLED'}
+Entropy Mode: ${prefs.allowEntropy ? 'PROTOCOL_CHAOS' : 'STABLE'}
 Intent: ${prefs.intent}
 [END_PREFERENCES]
 
@@ -125,6 +125,7 @@ ${prefs.activeParadigms.map(p => {
           ...geminiHistory,
           { role: "user", parts: [{ text: message }] }
         ],
+        allowEntropy: prefs.allowEntropy
       });
 
       const response = await result.response;

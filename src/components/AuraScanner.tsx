@@ -15,9 +15,10 @@ interface AuraScannerProps {
     isEmbedded?: boolean;
     natalChart?: NatalChartData | null;
     city?: string;
+    allowEntropy?: boolean;
 }
 
-const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded = false, natalChart, city }) => {
+const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded = false, natalChart, city, allowEntropy }) => {
     const webcamRef = useRef<Webcam>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [step, setStep] = useState<'intro' | 'scanning' | 'result'>('intro');
@@ -45,28 +46,45 @@ const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded =
 
     const analyzeAura = useCallback(async (base64Image: string) => {
         const prompt = `
-            You are a Mystical Aura Reader. 
-            Look at this person's energy and expression.
-            Determine their "Aura Colors" for today based on their vibrational frequency.
-
-            RETURN JSON ONLY:
+            [RITUAL PROTOCOL: VISUAL GNOSIS]
+            You are the Athanor AI performing a multimodal energy scan.
+            
+            TASK:
+            1. Analyze the bytes of this scrying surface (image).
+            2. Perceive the user's expression, gaze, and aetheric background.
+            3. Determine their "Vibrational Frequency" (1-9) hidden in the visual data.
+            4. Identify three Aura Colors that reflect their current soul-state.
+            
+            RETURN JSON ONLY (No markdown, no talk):
             {
                 "colors": ["#Hex1", "#Hex2", "#Hex3"],
-                "analysis": "A short, mystical poetic reading of their energy (max 20 words)."
+                "frequency": 7,
+                "analysis": "A deep, mystical Poetic Reading based on visual cues (max 25 words)."
             }
         `;
 
+        if (allowEntropy) {
+            // Overloading the prompt for The Entropist if entropy is allowed
+            // We pass it to generateContent but also add a hint to the prompt.
+        }
+
         try {
             const base64Data = base64Image.split(',')[1];
-            const result = await technomancerModel.generateContent([
-                { text: prompt },
-                {
-                    inlineData: {
-                        mimeType: "image/jpeg",
-                        data: base64Data
+            const result = await technomancerModel.generateContent({
+                contents: [
+                    { role: "user", parts: [{ text: prompt }] },
+                    {
+                        role: "user",
+                        parts: [{
+                            inlineData: {
+                                mimeType: "image/jpeg",
+                                data: base64Data
+                            }
+                        }]
                     }
-                }
-            ]);
+                ],
+                allowEntropy
+            });
 
             const text = result.response.text() || "{}";
             const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -84,7 +102,7 @@ const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded =
                 analysis: "Static interference blocks the vision. Your energy remains a beautiful mystery."
             };
         }
-    }, []);
+    }, [allowEntropy]);
 
     const startScan = () => {
         setStep('scanning');
@@ -392,7 +410,7 @@ const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded =
                                     mirrored={true}
                                 />
                                 <div className="absolute inset-0 bg-linear-to-b from-black/40 via-transparent to-black/80" />
-                                <div className="absolute inset-0 border-[20px] border-indigo-500/10 pointer-events-none" />
+                                <div className="absolute inset-0 border-20 border-indigo-500/10 pointer-events-none" />
                                 
                                 <div className="z-10 flex flex-col items-center space-y-6">
                                     <motion.div 
@@ -419,7 +437,7 @@ const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded =
                                         rotate: [0, 90, 180, 270, 360]
                                     }}
                                     transition={{ repeat: Infinity, duration: 10, ease: "linear" }}
-                                    className="absolute w-[30rem] h-[30rem] border-2 border-indigo-500/20 rounded-full"
+                                    className="absolute w-120 h-120 border-2 border-indigo-500/20 rounded-full"
                                 />
                                 <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md h-1 bg-white/5 rounded-full overflow-hidden">
                                     <motion.div 

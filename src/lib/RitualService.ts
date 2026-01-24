@@ -1,6 +1,9 @@
 import { technomancerModel } from "./gemini";
 import { PersistenceService } from "./PersistenceService";
 import { ConfigService } from "./ConfigService";
+import { UserPreferences, DEFAULT_PREFERENCES } from "@/types/preferences";
+import { getPlanetaryHour } from "@/utils/CelestialLogic";
+import { calculateMoonPhase } from "@/utils/astrologyUtils";
 
 export interface RitualResult {
   sigil: string;
@@ -15,13 +18,38 @@ export interface RitualResult {
 }
 
 export class RitualService {
-  static async performRitual(userId: string, intent: string, paradigm: string): Promise<RitualResult> {
+  static async performRitual(userId: string, intent: string, paradigm: string, allowEntropy: boolean = false, prefs: UserPreferences = DEFAULT_PREFERENCES): Promise<RitualResult> {
+    const weather = getPlanetaryHour();
+    const moon = calculateMoonPhase();
+    
+    let chartContext = "";
+    if (prefs.birthDate && prefs.birthLocation) {
+        chartContext = `[USER_NATAL_DATA]\nBorn: ${prefs.birthDate} at ${prefs.birthLocation.city}\nUse this to calculate Almuten Figuris resonance.`;
+    }
+
+    const cosmicContext = `
+[CELESTIAL_WEATHER]
+- Planetary Hour: ${weather.hourNumber} (Ruler: ${weather.hourRuler})
+- Moon Phase: ${moon.phase} (${moon.emoji})
+- Current Time: ${new Date().toISOString()}
+
+[USER_PREFERENCES]
+- Identity: ${prefs.name}
+- Knowledge: ${prefs.knowledgeLevel}
+${chartContext}
+`;
+
     const rawPrompt = await ConfigService.getPrompt('ritual_generation');
-    const prompt = rawPrompt
+    const prompt = (rawPrompt + "\n\n" + cosmicContext)
       .replace(/{{paradigm}}/g, paradigm)
       .replace(/{{intent}}/g, intent);
 
-    const result = await technomancerModel.generateContent(prompt);
+    const result = await technomancerModel.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      allowEntropy
+    });
+    // In gemini.ts, generateContent handles normalizing string inputs to parts. 
+    // Here we pass an object to specify allowEntropy.
     const response = await result.response;
     const text = response.text();
     
@@ -40,7 +68,7 @@ export class RitualService {
           await PersistenceService.saveMessage(userId, "model", `Ritual Performed: ${data.vision.incantation}`, data.vision.thought);
       }
 
-      return data;
+      return data as unknown as RitualResult;
     } catch (error) {
       console.error("Ritual Parsing Failed:", error);
       
@@ -56,7 +84,7 @@ export class RitualService {
     }
   }
 
-  private static extractJson(text: string): any {
+  private static extractJson(text: string): Record<string, any> {
     if (!text) throw new Error("Empty response");
 
     // Strategy 1: Look for markdown code blocks
@@ -69,36 +97,7 @@ export class RitualService {
       }
     }
 
-    // Strategy 2: Improved balanced brace matching
-    // Finds all top-level balanced blocks and tries to parse them
-    const potentialObjects: any[] = [];
-    let stack = 0;
-    let startIdx = -1;
-
-    for (let i = 0; i < text.length; i++) {
-        if (text[i] === '{') {
-            if (stack === 0) startIdx = i;
-            stack++;
-        } else if (text[i] === '}') {
-            stack--;
-            if (stack === 0 && startIdx !== -1) {
-                const potential = text.substring(startIdx, i + 1);
-                try {
-                    potentialObjects.push(JSON.parse(potential));
-                } catch (err) {
-                    // Partial parse failure, keep looking
-                }
-            }
-            if (stack < 0) stack = 0; // Reset on extra closing braces
-        }
-    }
-
-    // Return the last found object (usually the most complete one in LLM outputs)
-    if (potentialObjects.length > 0) {
-        return potentialObjects[potentialObjects.length - 1];
-    }
-
-    // Strategy 3: Final fallback - try parsing the whole thing if it's small/simple
+    // Strategy 2: Final fallback
     return JSON.parse(text);
   }
 }
