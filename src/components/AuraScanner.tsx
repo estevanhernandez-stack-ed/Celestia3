@@ -304,7 +304,7 @@ const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded =
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="p-6 border-b border-white/5 flex items-center justify-between bg-black/20">
+                <div className="p-6 border-b border-white/5 flex items-center justify-between bg-black/40 backdrop-blur-md z-20">
                     <div className="flex items-center gap-3">
                         <Camera className="text-indigo-400" size={20} />
                         <h2 className="text-xl font-serif font-black tracking-widest text-white uppercase">Aura Cam</h2>
@@ -316,27 +316,39 @@ const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded =
                     )}
                 </div>
 
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-8 flex flex-col items-center justify-center min-h-[400px]">
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-0 flex flex-col items-center justify-center min-h-[500px] relative">
                     <canvas ref={canvasRef} className="hidden" />
 
                     <AnimatePresence mode="wait">
                         {step === 'intro' && (
                             <motion.div
                                 key="intro"
-                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                className="text-center space-y-8 max-w-md w-full"
+                                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                                className="text-center space-y-8 max-w-xl w-full p-8"
                             >
-                                <div className="relative w-64 h-64 mx-auto rounded-full overflow-hidden border-4 border-indigo-500/20 shadow-[0_0_50px_rgba(99,102,241,0.2)]">
+                                <div className="relative w-80 h-80 mx-auto rounded-full overflow-hidden border-8 border-indigo-500/10 shadow-[0_0_80px_rgba(99,102,241,0.3)]">
                                     <Webcam
                                         ref={webcamRef}
                                         audio={false}
                                         screenshotFormat="image/jpeg"
-                                        className="w-full h-full object-cover grayscale opacity-50"
+                                        videoConstraints={{
+                                            width: 1280,
+                                            height: 720,
+                                            facingMode: "user"
+                                        }}
+                                        className="w-full h-full object-cover grayscale opacity-60 scale-110"
                                         mirrored={true}
                                     />
-                                    <div className="absolute inset-0 bg-linear-to-t from-indigo-950/60 to-transparent pointer-events-none" />
+                                    <div className="absolute inset-0 bg-linear-to-t from-indigo-950/80 to-transparent pointer-events-none" />
                                     <div className="absolute inset-0 flex items-center justify-center">
-                                        <Zap className="text-indigo-400 animate-pulse" size={48} />
+                                        <div className="relative">
+                                            <Zap className="text-indigo-400 animate-pulse" size={64} />
+                                            <motion.div 
+                                                animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0.1, 0.3] }}
+                                                transition={{ repeat: Infinity, duration: 3 }}
+                                                className="absolute inset-0 bg-indigo-500 rounded-full blur-2xl"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -365,35 +377,58 @@ const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded =
                             <motion.div
                                 key="scanning"
                                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                className="relative w-full h-[400px] flex flex-col items-center justify-center"
+                                className="absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-black"
                             >
                                 <Webcam
                                     ref={webcamRef}
                                     audio={false}
                                     screenshotFormat="image/jpeg"
-                                    className="absolute inset-0 w-full h-full object-cover opacity-40"
+                                    videoConstraints={{
+                                        width: 1920,
+                                        height: 1080,
+                                        facingMode: "user"
+                                    }}
+                                    className="absolute inset-0 w-full h-full object-cover opacity-80"
                                     mirrored={true}
                                 />
-                                <div className="absolute inset-0 bg-linear-to-b from-transparent via-indigo-950/20 to-indigo-950/60" />
-                                <div className="z-10 flex flex-col items-center space-y-4">
-                                    <div className="text-8xl font-black text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.5)] font-serif">
+                                <div className="absolute inset-0 bg-linear-to-b from-black/40 via-transparent to-black/80" />
+                                <div className="absolute inset-0 border-[20px] border-indigo-500/10 pointer-events-none" />
+                                
+                                <div className="z-10 flex flex-col items-center space-y-6">
+                                    <motion.div 
+                                        initial={{ scale: 0.5, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        className="text-[12rem] font-black text-white drop-shadow-[0_0_40px_rgba(99,102,241,0.8)] font-serif leading-none"
+                                    >
                                         {countdown}
-                                    </div>
-                                    <div className="text-indigo-300 tracking-[0.4em] text-xs font-black animate-pulse flex flex-col items-center gap-4">
-                                        <div className="flex items-center gap-2">
-                                            <Sparkles size={14} />
+                                    </motion.div>
+                                    <div className="text-indigo-300 tracking-[0.6em] text-sm font-black animate-pulse flex flex-col items-center gap-6">
+                                        <div className="flex items-center gap-3 bg-indigo-500/20 px-6 py-2 rounded-full border border-indigo-500/30 backdrop-blur-xl">
+                                            <Sparkles size={16} />
                                             SYNCING BIO-RHYTHMS
                                         </div>
-                                        <div className="text-[10px] text-white/40 tracking-[0.2em] normal-case bg-black/40 px-4 py-2 rounded-full backdrop-blur-md border border-white/5">
-                                            Keep your hands near the interface...
+                                        <div className="text-[12px] text-white/60 tracking-[0.3em] font-mono leading-relaxed bg-black/60 px-8 py-3 rounded-2xl backdrop-blur-2xl border border-white/10 text-center max-w-xs uppercase">
+                                            Keep your vessel near the interface...
                                         </div>
                                     </div>
                                 </div>
                                 <motion.div
-                                    animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }}
-                                    transition={{ repeat: Infinity, duration: 2 }}
-                                    className="absolute w-72 h-72 border border-indigo-500/30 rounded-full"
+                                    animate={{ 
+                                        scale: [1, 1.3, 1], 
+                                        opacity: [0.1, 0.3, 0.1],
+                                        rotate: [0, 90, 180, 270, 360]
+                                    }}
+                                    transition={{ repeat: Infinity, duration: 10, ease: "linear" }}
+                                    className="absolute w-[30rem] h-[30rem] border-2 border-indigo-500/20 rounded-full"
                                 />
+                                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md h-1 bg-white/5 rounded-full overflow-hidden">
+                                    <motion.div 
+                                        initial={{ width: "0%" }}
+                                        animate={{ width: "100%" }}
+                                        transition={{ duration: 5, ease: "linear" }}
+                                        className="h-full bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,1)]"
+                                    />
+                                </div>
                             </motion.div>
                         )}
 
