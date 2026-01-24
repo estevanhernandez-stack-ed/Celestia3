@@ -17,6 +17,18 @@ import {
   KnowledgeItem
 } from './KnowledgeBaseData';
 
+interface NumerologyPoint {
+    core: string | number;
+    archetype: string;
+}
+
+interface NumerologyProfile {
+    lifePath: NumerologyPoint;
+    destiny: NumerologyPoint;
+    soulUrge?: NumerologyPoint;
+    personality?: NumerologyPoint;
+}
+
 import { 
   AGRIPPA_LORE, 
   PGM_LORE, 
@@ -159,7 +171,7 @@ ${prefs.activeParadigms.map(p => {
           };
       }
 
-      const toolCalls = candidate?.content?.parts?.filter(p => (p as { functionCall?: unknown }).functionCall) as unknown as GeminiToolCall[] | undefined;
+      const toolCalls = candidate?.content?.parts?.filter((p: { functionCall?: unknown }) => p.functionCall) as unknown as GeminiToolCall[] | undefined;
       if (toolCalls && toolCalls.length > 0) {
         for (const call of toolCalls) {
           const { name, args } = call.functionCall;
@@ -228,7 +240,7 @@ ${prefs.activeParadigms.map(p => {
 
   // ... (generateNatalInterpretation method remains unchanged) ...
 
-  static async generateArithmancyInterpretation(prefs: UserPreferences, numerologyData: any): Promise<string> {
+  static async generateArithmancyInterpretation(prefs: UserPreferences, numerologyData: NumerologyProfile): Promise<string> {
     const rawPrompt = await ConfigService.getPrompt('arithmancy_natal_integration');
     
     let chartData = "Natal chart data is unavailable. Focus on the mathematical vibrations.";

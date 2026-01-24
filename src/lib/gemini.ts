@@ -1,32 +1,69 @@
 import { functions } from "./firebase";
 import { httpsCallable } from "firebase/functions";
 
+interface GeminiPart {
+  text?: string;
+  inlineData?: {
+    mimeType: string;
+    data: string;
+  };
+  functionCall?: {
+    name: string;
+    args: Record<string, unknown>;
+  };
+}
+
+interface GeminiContent {
+  role: string;
+  parts: GeminiPart[];
+}
+
+interface GenerateContentArgs {
+  contents?: GeminiContent[];
+  generationConfig?: Record<string, unknown>;
+  systemInstruction?: string;
+}
+
+interface ProxyCandidate {
+    content: GeminiContent;
+    finishReason?: string;
+}
+
+interface ProxyResult {
+    candidates?: ProxyCandidate[];
+}
+
 // Mock implementation of the Gemini model that routes through our Firebase Proxy
 // This resolves the 403 "unregistered caller" error by providing identity via Firebase Auth
-const proxyCall = async (data: any) => {
+const proxyCall = async (data: Record<string, unknown>): Promise<ProxyResult> => {
   if (!functions) throw new Error("Firebase Functions not initialized");
   const call = httpsCallable(functions, 'geminiProxy');
   const result = await call(data);
-  return result.data as any;
+  return result.data as ProxyResult;
 };
 
 export const technomancerModel = {
-  generateContent: async (args: any) => {
+  generateContent: async (args: string | GeminiPart[] | GenerateContentArgs) => {
     // Normalize arguments (can be string, array of parts, or object)
-    let contents = [];
+    let contents: GeminiContent[] = [];
+    let generationConfig: Record<string, unknown> = {};
+    let systemInstruction: string | undefined = undefined;
+
     if (typeof args === 'string') {
       contents = [{ role: 'user', parts: [{ text: args }] }];
     } else if (Array.isArray(args)) {
       contents = [{ role: 'user', parts: args }];
-    } else if (args.contents) {
-      contents = args.contents;
+    } else {
+      contents = args.contents || [];
+      generationConfig = args.generationConfig || {};
+      systemInstruction = args.systemInstruction;
     }
 
     const result = await proxyCall({
       model: "gemini-3-pro-preview",
       contents,
-      generationConfig: args.generationConfig || {},
-      systemInstruction: args.systemInstruction || undefined
+      generationConfig,
+      systemInstruction
     });
 
     // Mock the response structure expected by the SDK
@@ -41,7 +78,7 @@ export const technomancerModel = {
   }
 };
 
-export const getThinkingModel = (level: "high" | "low" | "none" = "high") => {
+export const getThinkingModel = (_level: "high" | "low" | "none" = "high") => {
   return technomancerModel;
 };
 
