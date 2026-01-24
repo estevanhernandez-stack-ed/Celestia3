@@ -48,8 +48,8 @@ export const technomancerModel = {
   generateContent: async (args: string | GeminiPart[] | GenerateContentArgs) => {
     // Normalize arguments (can be string, array of parts, or object)
     let contents: GeminiContent[] = [];
-    let generationConfig: Record<string, unknown> = {};
-    let systemInstruction: string | undefined = undefined;
+    let generation_config: Record<string, unknown> = {};
+    let systemInstructionContent: string | undefined = undefined;
 
     if (typeof args === 'string') {
       contents = [{ role: 'user', parts: [{ text: args }] }];
@@ -57,8 +57,8 @@ export const technomancerModel = {
       contents = [{ role: 'user', parts: args }];
     } else {
       contents = args.contents || [];
-      generationConfig = args.generationConfig || {};
-      systemInstruction = args.systemInstruction;
+      generation_config = args.generationConfig || {};
+      systemInstructionContent = args.systemInstruction;
     }
 
     const directive = await ConfigService.getGlobalDirective();
@@ -69,15 +69,20 @@ export const technomancerModel = {
       masterSystemInstruction += `\n\n[GLOBAL KNOWLEDGE BASE]\n${knowledge}`;
     }
 
-    if (systemInstruction) {
-      masterSystemInstruction += `\n\n[TASK SPECIFIC INSTRUCTIONS]\n${systemInstruction}`;
+    if (systemInstructionContent) {
+      masterSystemInstruction += `\n\n[TASK SPECIFIC INSTRUCTIONS]\n${systemInstructionContent}`;
     }
+
+    // Format system instruction for the REST API
+    const system_instruction = {
+        parts: [{ text: masterSystemInstruction }]
+    };
 
     const result = await proxyCall({
       model: "gemini-3-pro-preview",
       contents,
-      generationConfig,
-      systemInstruction: masterSystemInstruction
+      generation_config,
+      system_instruction
     });
 
     // Mock the response structure expected by the SDK

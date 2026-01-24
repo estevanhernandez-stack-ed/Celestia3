@@ -106,8 +106,8 @@ export const geminiProxy = functions
           },
           body: JSON.stringify({
             contents: data.contents,
-            generationConfig: data.generationConfig,
-            systemInstruction: data.systemInstruction,
+            generation_config: data.generation_config || data.generationConfig,
+            system_instruction: data.system_instruction || data.systemInstruction,
           }),
         }
       );

@@ -24,8 +24,13 @@ service cloud.firestore {
       allow write: if isOwner(userId) || isAdmin();
     }
 
-    // v3_system_prompts: Public read for app config
     match /v3_system_prompts/{promptId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // v3_system_configuration: Global settings
+    match /v3_system_configuration/{configId} {
       allow read: if true;
       allow write: if isAdmin();
     }
