@@ -283,20 +283,34 @@ ${prefs.activeParadigms.map(p => {
       // Robust Parsing
       let jsonStr = text.trim();
       
-      // Remove markdown code blocks if present
-      jsonStr = jsonStr.replace(/```json\s?/, '').replace(/```$/, '').trim();
+      // Remove common markdown wrappers
+      jsonStr = jsonStr.replace(/```json\s?/g, '').replace(/```/g, '').trim();
       
-      const match = jsonStr.match(/\{[\s\S]*\}/);
-      if (match) {
+      // Extract the object with aggressive bracket matching
+      const firstBracket = jsonStr.indexOf('{');
+      const lastBracket = jsonStr.lastIndexOf('}');
+      
+      if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+        jsonStr = jsonStr.substring(firstBracket, lastBracket + 1);
         try {
-          return JSON.parse(match[0]);
-        } catch (e) {
-          console.warn("Regex matched but JSON parse failed", e);
+          return JSON.parse(jsonStr);
+        } catch {
+          console.warn("Deep parsing failed on substring. Final attempt with lenient regex.");
         }
       }
 
-      // Final fallback if parsing fails
-      throw new Error("Could not extract valid JSON from response");
+      // Final regex fallback
+      const match = text.match(/\{[\s\S]*\}/);
+      if (match) {
+        try {
+          return JSON.parse(match[0]);
+        } catch {
+          console.error("All JSON extraction methods failed for Natal Interpretation. Raw text:", text);
+          throw new Error("Could not extract valid JSON from response");
+        }
+      }
+
+      throw new Error("No JSON structure found in response");
 
     } catch (error) {
        console.error("Natal Interpretation Failed", error);

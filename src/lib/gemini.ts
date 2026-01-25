@@ -2,7 +2,7 @@ import { functions } from "./firebase";
 import { httpsCallable } from "firebase/functions";
 import { ConfigService } from "./ConfigService";
 import { KnowledgeService } from "./KnowledgeService";
-import { GoogleGenerativeAI, Content, SchemaType, GenerationConfig } from "@google/generative-ai";
+import { SchemaType, GenerationConfig } from "@google/generative-ai";
 
 interface GeminiPart {
   text?: string;
@@ -66,7 +66,18 @@ export const technomancerModel = {
     }
 
     const directive = await ConfigService.getGlobalDirective();
-    let masterSystemInstruction = `${directive.persona}\n\n[MASTER DIRECTIVE]\n${directive.masterDirective}\n\n[DEFAULT FORMAT]\n${directive.defaultFormat}`;
+    
+    // JSON Mode Logic: Suppress default Markdown format if JSON is explicitly requested
+    const isJsonRequested = (systemInstructionContent?.toLowerCase().includes('json') || 
+                             (typeof args !== 'string' && !Array.isArray(args) && args.contents?.some(c => c.parts.some(p => p.text?.toLowerCase().includes('json')))));
+
+    let masterSystemInstruction = `${directive.persona}\n\n[MASTER DIRECTIVE]\n${directive.masterDirective}`;
+    
+    if (!isJsonRequested) {
+        masterSystemInstruction += `\n\n[DEFAULT FORMAT]\n${directive.defaultFormat}`;
+    } else {
+        masterSystemInstruction += `\n\n[FORMAT DIRECTIVE]\nReturn VALID JSON ONLY. Do not include markdown code blocks. No preamble. No transitionary text.`;
+    }
 
     if (directive.isKnowledgeSyncEnabled) {
       const knowledge = KnowledgeService.getTotalArchive();
