@@ -102,7 +102,7 @@ export const geminiProxy = functions
     try {
       // Forward request to Gemini API
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${data.model || "gemini-1.5-pro"}:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${data.model || "gemini-3-pro-preview"}:generateContent?key=${apiKey}`,
         {
           method: "POST",
           headers: {

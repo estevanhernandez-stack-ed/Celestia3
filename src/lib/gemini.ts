@@ -125,7 +125,7 @@ export const technomancerModel = {
     }));
 
     const result = await proxyCall({
-      model: "gemini-1.5-pro",
+      model: "gemini-3-pro-preview",
       contents,
       generation_config: scrubbedConfig,
       system_instruction
