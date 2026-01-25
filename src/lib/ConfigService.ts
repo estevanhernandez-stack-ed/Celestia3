@@ -149,7 +149,8 @@ Use **Markdown** to structure your response as a ritual document.
       1. Map the 'Garments' (Planetary House/Sign).
       2. Identify the 'Personal Daemon' (Almuten Figuris).
       3. Propose a 'Theurgic Remedy'.
-      Synthesize all of the above strictly into the 'story' field.
+      Synthesize all of the above strictly into the 'story' field. 
+      BE CONCISE: Limit the 'story' to 1500 characters total. Use 2-3 short, dense paragraphs.
     `,
         category: 'interpretation',
         version: '2.0.0'

@@ -280,44 +280,49 @@ ${prefs.activeParadigms.map(p => {
       const response = await result.response;
       const text = response.text();
       
-      // Robust Parsing
+      // 1. Repair Truncated JSON
       let jsonStr = text.trim();
       
-      // Remove common markdown wrappers
-      jsonStr = jsonStr.replace(/```json\s?/g, '').replace(/```/g, '').trim();
-      
-      // Extract the object with aggressive bracket matching
-      const firstBracket = jsonStr.indexOf('{');
-      const lastBracket = jsonStr.lastIndexOf('}');
-      
-      if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
-        jsonStr = jsonStr.substring(firstBracket, lastBracket + 1);
-        try {
-          return JSON.parse(jsonStr);
-        } catch {
-          console.warn("Deep parsing failed on substring. Final attempt with lenient regex.");
-        }
+      const openBrackets = (jsonStr.match(/\{/g) || []).length;
+      const closeBrackets = (jsonStr.match(/\}/g) || []).length;
+      if (openBrackets > closeBrackets) {
+        jsonStr += '}'.repeat(openBrackets - closeBrackets);
       }
 
-      // Final regex fallback
-      const match = text.match(/\{[\s\S]*\}/);
-      if (match) {
-        try {
-          return JSON.parse(match[0]);
-        } catch {
-          console.error("All JSON extraction methods failed for Natal Interpretation. Raw text:", text);
-          throw new Error("Could not extract valid JSON from response");
-        }
+      // 2. Extract JSON Block
+      const match = jsonStr.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error("No structure found");
+      
+      let parsed: Record<string, any>;
+      try {
+        parsed = JSON.parse(match[0]);
+      } catch {
+        // Aggressive repair: remove unclosed quotes at end of truncated strings
+        const repaired = match[0].replace(/,\s*"\w+"\s*:\s*"[^"]*$/, '}');
+        parsed = JSON.parse(repaired);
       }
 
-      throw new Error("No JSON structure found in response");
+      // 3. Normalize Schema (Heal Hallucinations)
+      const story = parsed.story || parsed.soul_descent || parsed.narrative || parsed.interpretation || "The soul's journey remains veiled...";
+      const bigThree = parsed.bigThree || parsed.big_three || parsed.alignment || "Celestial alignment pending.";
+      const cosmicSignature = parsed.cosmicSignature || parsed.cosmic_signature || parsed.essence || "Mysterious Resonance.";
+
+      // Ensure 'story' is actually a string (handles nested objects from AI)
+      const storyText = typeof story === 'string' ? story : JSON.stringify(story);
+      const bigThreeText = typeof bigThree === 'string' ? bigThree : JSON.stringify(bigThree);
+
+      return {
+        story: storyText,
+        bigThree: bigThreeText,
+        cosmicSignature: String(cosmicSignature)
+      };
 
     } catch (error) {
-       console.error("Natal Interpretation Failed", error);
+       console.error("Natal Interpretation Resilience Layer Triggered", error);
        return {
-           story: "The stars align in mysterious ways, but the signal is currently faint...",
-           bigThree: "* Sun: Unknown\n* Moon: Unknown\n* Rising: Unknown",
-           cosmicSignature: "A mystery waiting to be unfolded."
+           story: "The stars align in mysterious ways, but the signal is currently faint. Attempting to recalibrate the aetheric connection...",
+           bigThree: "* Sun: Seeking Alignment\n* Moon: Seeking Alignment\n* Rising: Seeking Alignment",
+           cosmicSignature: "A mystery in transition."
        };
     }
   }

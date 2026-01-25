@@ -2,7 +2,7 @@ import { functions } from "./firebase";
 import { httpsCallable } from "firebase/functions";
 import { ConfigService } from "./ConfigService";
 import { KnowledgeService } from "./KnowledgeService";
-import { SchemaType, GenerationConfig } from "@google/generative-ai";
+import { SchemaType } from "@google/generative-ai";
 
 interface GeminiPart {
   text?: string;
@@ -112,10 +112,14 @@ export const technomancerModel = {
 
     const config = {
       temperature: temp,
+      topP: topP, 
+      topK: 40,
+      maxOutputTokens: 4096,
       top_p: topP, 
       top_k: 40,
       max_output_tokens: 4096, 
-      response_mime_type: isJsonRequested ? "application/json" : "text/plain"
+      response_mime_type: isJsonRequested ? "application/json" : "text/plain",
+      responseMimeType: isJsonRequested ? "application/json" : "text/plain"
     };
 
     // Scrub any potential NaN values from generation_config
