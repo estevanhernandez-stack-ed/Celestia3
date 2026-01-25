@@ -41,7 +41,7 @@ interface ProxyResult {
 // This resolves the 403 "unregistered caller" error by providing identity via Firebase Auth
 const proxyCall = async (data: Record<string, unknown>): Promise<ProxyResult> => {
   if (!functions) throw new Error("Firebase Functions not initialized");
-  const call = httpsCallable(functions, 'geminiProxy');
+  const call = httpsCallable(functions, 'geminiProxy', { timeout: 120000 });
   const result = await call(data);
   return result.data as ProxyResult;
 };
@@ -114,7 +114,7 @@ export const technomancerModel = {
       temperature: temp,
       topP: topP, 
       topK: 40,
-      maxOutputTokens: 4096,
+      maxOutputTokens: 2048, // Reduced for faster response and lower timeout risk
       responseMimeType: isJsonRequested ? "application/json" : "text/plain"
     };
 
@@ -125,7 +125,7 @@ export const technomancerModel = {
     }));
 
     const result = await proxyCall({
-      model: "gemini-3-pro-preview",
+      model: "gemini-1.5-pro",
       contents,
       generation_config: scrubbedConfig,
       system_instruction

@@ -64,7 +64,11 @@ async function checkRateLimit(userId: string): Promise<{ allowed: boolean; remai
  */
 export const geminiProxy = functions
   .region("us-central1")
-  .runWith({ secrets: [geminiApiKey] })
+  .runWith({ 
+    secrets: [geminiApiKey],
+    timeoutSeconds: 120,
+    memory: "512MB"
+  })
   .https.onCall(async (data, context) => {
     // Verify authentication
     if (!context.auth) {
@@ -98,7 +102,7 @@ export const geminiProxy = functions
     try {
       // Forward request to Gemini API
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${data.model || "gemini-3-pro-preview"}:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${data.model || "gemini-1.5-pro"}:generateContent?key=${apiKey}`,
         {
           method: "POST",
           headers: {
