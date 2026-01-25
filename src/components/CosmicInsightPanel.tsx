@@ -119,7 +119,9 @@ const CosmicInsightPanel: React.FC<CosmicInsightPanelProps> = ({ chart }) => {
         }
     };
 
-    const hasAnalysis = !!preferences.chartAnalysis?.story;
+    const hasAnalysis = !!preferences.chartAnalysis?.story && 
+                       !preferences.chartAnalysis.story.includes('Unknown') &&
+                       preferences.chartAnalysis.story.length > 50;
 
     if (!chart) return null;
 

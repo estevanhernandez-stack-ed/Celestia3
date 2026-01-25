@@ -104,10 +104,16 @@ export const technomancerModel = {
       maxOutputTokens: 2048,
     };
 
+    // Scrub any potential NaN values from generation_config
+    const scrubbedConfig = JSON.parse(JSON.stringify({ ...config, ...generation_config }, (key, value) => {
+        if (typeof value === 'number' && isNaN(value)) return 0;
+        return value;
+    }));
+
     const result = await proxyCall({
       model: "gemini-3-pro-preview",
       contents,
-      generation_config: { ...config, ...generation_config }, // Merge default config with user-provided
+      generation_config: scrubbedConfig,
       system_instruction
     });
 
