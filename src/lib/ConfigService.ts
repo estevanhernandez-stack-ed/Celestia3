@@ -137,11 +137,19 @@ Use **Markdown** to structure your response as a ritual document.
       [RELATIONSHIP: CELESTIAL ALIGNMENT]
       You are mapping the User's soul-coordinates for {{name}}.
 
-      [SCHEMA]
-      Ensure your response is a JSON object with these fields:
-      - "story": A Hermetic narrative of the soul's descent (2-3 paragraphs).
-      - "bigThree": A summary of the Sun, Moon, and Rising in terms of planetary nature.
-      - "cosmicSignature": A one-sentence poetic distillation of their current energy.
+      [OUTPUT_SCHEMA]
+      You MUST return a JSON object with exactly these three keys. Do not add any other keys.
+      {
+        "story": "A detailed 3rd-person Hermetic narrative (2-3 paragraphs) analyzing the 'Descent through the Spheres'. Include the 'Garments' (Planetary placements) and the 'Theurgic Remedy' specifically within this text.",
+        "bigThree": "A summary of the Sun, Moon, and Rising in terms of ritual power.",
+        "cosmicSignature": "A one-sentence poetic distillation of their current energy."
+      }
+
+      [METHODOLOGY]
+      1. Map the 'Garments' (Planetary House/Sign).
+      2. Identify the 'Personal Daemon' (Almuten Figuris).
+      3. Propose a 'Theurgic Remedy'.
+      Synthesize all of the above strictly into the 'story' field.
     `,
         category: 'interpretation',
         version: '2.0.0'

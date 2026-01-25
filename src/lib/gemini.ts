@@ -114,7 +114,7 @@ export const technomancerModel = {
       temperature: temp,
       topP: topP, 
       topK: 40,
-      maxOutputTokens: 2048,
+      maxOutputTokens: 4096,
       responseMimeType: isJsonRequested ? "application/json" : "text/plain"
     };
 
