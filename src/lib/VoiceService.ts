@@ -23,7 +23,15 @@ const cleanText = (text: string): string => {
   let appText = text
     .replace(/[*#`_~]/g, '')
     .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+    // Emojis
     .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2700}-\u{27BF}\u{2600}-\u{26FF}\u{2B50}]/gu, '')
+    // Box Drawing, Block Elements, Geometric Shapes
+    .replace(/[\u2500-\u257F\u2580-\u259F\u25A0-\u25FF]/g, '')
+    // Zalgo / Combining Marks
+    .replace(/[\u0300-\u036f]/g, '')
+    // Multiple underscores or weird symbol clusters
+    .replace(/_{2,}/g, ' ')
+    .replace(/[=+|\\-]{3,}/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -82,7 +90,7 @@ class GoogleTTSProvider implements VoiceProvider {
 
   private initCtx() {
     if (!this.ctx && typeof window !== 'undefined') {
-      const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext) as typeof AudioContext;
+      const AudioContextClass = (window.AudioContext || (window as unknown as any).webkitAudioContext) as typeof AudioContext;
       this.ctx = new AudioContextClass();
     }
   }
@@ -100,7 +108,7 @@ class GoogleTTSProvider implements VoiceProvider {
     const trimmedChunks = chunks.map(c => c.trim()).filter(c => c.length > 0);
 
     let hasError = false;
-    let currentVoiceId = options?.voiceId || "en-US-Chirp-HD-F"; // Updated to new Chirp HD ID
+    let currentVoiceId = options?.voiceId || "en-US-Journey-F"; // Upgraded to primary Journey voice
 
     for (const chunk of trimmedChunks) {
       if (this.isStopping) break;
@@ -137,11 +145,15 @@ class GoogleTTSProvider implements VoiceProvider {
     const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${this.apiKey}`;
     
     // Removed try-catch to allow errors to propagate
+    // Wrap in SSML if not already wrapped
+    const isSSML = text.trim().startsWith('<speak>');
+    const input = isSSML ? { ssml: text } : { text };
+
     const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          input: { text },
+          input,
           voice: { languageCode: "en-US", name: voiceId },
           audioConfig: { 
             audioEncoding: "MP3",
@@ -182,7 +194,7 @@ class GoogleTTSProvider implements VoiceProvider {
     if (this.currentSource) {
       try {
         this.currentSource.stop();
-      } catch (error) {
+      } catch {
         // Already stopped
       }
       this.currentSource = null;
