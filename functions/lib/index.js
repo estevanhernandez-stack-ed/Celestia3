@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getRateLimitStatus = exports.geminiProxy = void 0;
-const functions = __importStar(require("firebase-functions"));
+const functions = __importStar(require("firebase-functions/v1"));
 const params_1 = require("firebase-functions/params");
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
@@ -83,7 +83,11 @@ async function checkRateLimit(userId) {
  */
 exports.geminiProxy = functions
     .region("us-central1")
-    .runWith({ secrets: [geminiApiKey] })
+    .runWith({
+    secrets: [geminiApiKey],
+    timeoutSeconds: 120,
+    memory: "512MB"
+})
     .https.onCall(async (data, context) => {
     // Verify authentication
     if (!context.auth) {
@@ -106,11 +110,12 @@ exports.geminiProxy = functions
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "x-goog-api-key": apiKey
             },
             body: JSON.stringify({
                 contents: data.contents,
-                generation_config: data.generation_config || data.generationConfig,
-                system_instruction: data.system_instruction || data.systemInstruction,
+                generation_config: data.generation_config,
+                system_instruction: data.system_instruction,
             }),
         });
         if (!response.ok) {
