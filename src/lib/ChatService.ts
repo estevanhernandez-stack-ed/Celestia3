@@ -281,11 +281,22 @@ ${prefs.activeParadigms.map(p => {
       const text = response.text();
       
       // Robust Parsing
-      let jsonStr = text;
-      const match = text.match(/\{[\s\S]*\}/);
-      if (match) jsonStr = match[0];
+      let jsonStr = text.trim();
+      
+      // Remove markdown code blocks if present
+      jsonStr = jsonStr.replace(/```json\s?/, '').replace(/```$/, '').trim();
+      
+      const match = jsonStr.match(/\{[\s\S]*\}/);
+      if (match) {
+        try {
+          return JSON.parse(match[0]);
+        } catch (e) {
+          console.warn("Regex matched but JSON parse failed", e);
+        }
+      }
 
-      return JSON.parse(jsonStr);
+      // Final fallback if parsing fails
+      throw new Error("Could not extract valid JSON from response");
 
     } catch (error) {
        console.error("Natal Interpretation Failed", error);

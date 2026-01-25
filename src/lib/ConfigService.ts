@@ -135,10 +135,12 @@ Use **Markdown** to structure your response as a ritual document.
       {{chartData}}
 
       [FORMAT]
-      Return a JSON-like structure (or clear Markdown sections) with:
-      - **story**: A 3nd-person narrative of their soul's descent (2-3 paragraphs).
-      - **bigThree**: A concise summary of the Sun, Moon, and Rising.
-      - **cosmicSignature**: A one-sentence poetic summary (e.g., "A Jupiterian spirit bound by Martian iron").
+      RETURN JSON ONLY. NO MARKDOWN. NO PREAMBLE. NO TAGS.
+      {
+        "story": "...",
+        "bigThree": "...",
+        "cosmicSignature": "..."
+      }
     `,
         category: 'interpretation',
         version: '2.0.0'

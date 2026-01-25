@@ -42,6 +42,16 @@ const NatalCompass: React.FC<NatalCompassProps> = ({ chart: externalChart }) => 
   const [internalChart, setInternalChart] = useState<NatalChartData | null>(null);
 
   const chart = externalChart || internalChart;
+  const [webglSupport, setWebglSupport] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true; 
+    try {
+      const canvas = document.createElement('canvas');
+      return !!(window.WebGLRenderingContext && 
+        (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+    } catch {
+      return false;
+    }
+  });
   const [showLegend, setShowLegend] = useState(false);
 
   // Helper to determine orbital distance (The Celestial Spheres)
@@ -223,43 +233,76 @@ const NatalCompass: React.FC<NatalCompassProps> = ({ chart: externalChart }) => 
         </g>
       </svg>
 
-      {/* 2. 3D Celestial Layer (Visual Orbs) */}
-      <div className="absolute inset-0 pointer-events-none z-10">
-        <Canvas 
-          orthographic 
-          camera={{ left: 0, right: 500, top: 0, bottom: 500, near: 0.1, far: 1000, position: [0, 0, 10] }}
-          gl={{ 
-            alpha: true, 
-            antialias: true,
-            powerPreference: "high-performance",
-            failIfMajorPerformanceCaveat: true,
-            preserveDrawingBuffer: false
-          }}
-          onCreated={({ gl }) => {
-            gl.domElement.addEventListener('webglcontextlost', (e) => {
-              console.warn('🛡️ [NatalCompass] WebGL Context Lost', e);
-            }, false);
-            gl.domElement.addEventListener('webglcontextrestored', () => {
-              console.log('🌌 [NatalCompass] WebGL Context Restored');
-            }, false);
-          }}
-          dpr={[1, 2]}
-        >
-          <ambientLight intensity={1.5} />
-          <pointLight position={[250, 250, 20]} intensity={1} />
-          <Suspense fallback={null}>
-            {planetNodes.map((p: ChartNode) => (
-              <PlanetSceneOrb 
-                key={p.name}
-                name={p.name}
-                x={p.x}
-                y={p.y}
-                size={12} 
-                isHovered={hoveredPlanet === p.name}
-              />
-            ))}
-          </Suspense>
-        </Canvas>
+      {/* 2. Celestial Layer (3D Orbs with 2D Fallback) */}
+      <div className="absolute inset-0 z-10 pointer-events-none">
+        {webglSupport === true && (
+          <div className="absolute inset-0">
+            <Canvas 
+              orthographic 
+              camera={{ left: 0, right: 500, top: 0, bottom: 500, near: 0.1, far: 1000, position: [0, 0, 10] }}
+              gl={{ 
+                alpha: true, 
+                antialias: true,
+                powerPreference: "default",
+                preserveDrawingBuffer: false
+              }}
+              onCreated={({ gl }) => {
+                gl.domElement.addEventListener('webglcontextlost', (e) => {
+                  console.warn('🛡️ [NatalCompass] WebGL Context Lost', e);
+                  setWebglSupport(false);
+                }, false);
+                gl.domElement.addEventListener('webglcontextrestored', () => {
+                  console.log('🌌 [NatalCompass] WebGL Context Restored');
+                  setWebglSupport(true);
+                }, false);
+              }}
+              dpr={[1, 2]}
+            >
+              <ambientLight intensity={1.5} />
+              <pointLight position={[250, 250, 20]} intensity={1} />
+              <Suspense fallback={null}>
+                {planetNodes.map((p: ChartNode) => (
+                  <PlanetSceneOrb 
+                    key={p.name}
+                    name={p.name}
+                    x={p.x}
+                    y={p.y}
+                    size={12} 
+                    isHovered={hoveredPlanet === p.name}
+                  />
+                ))}
+              </Suspense>
+            </Canvas>
+          </div>
+        )}
+
+        {(webglSupport === false) && (
+          <svg viewBox="0 0 500 500" className="w-full h-full absolute inset-0">
+            {planetNodes.map((p) => {
+                const isHovered = hoveredPlanet === p.name;
+                const Icon = getPlanetIcon(p.name);
+                return (
+                    <g key={`fallback-${p.name}`} transform={`translate(${p.x}, ${p.y})`}>
+                        <motion.circle 
+                            r={isHovered ? 16 : 10}
+                            fill="#1e1b4b"
+                            fillOpacity="0.8"
+                            stroke="#6366f1"
+                            strokeWidth="1.5"
+                            strokeOpacity="0.4"
+                            animate={{ 
+                              scale: isHovered ? 1.2 : 1,
+                              strokeOpacity: isHovered ? 0.8 : 0.4
+                            }}
+                        />
+                        <g transform="translate(-6, -6)">
+                            <Icon size={12} className={isHovered ? "text-indigo-200" : "text-indigo-400"} />
+                        </g>
+                    </g>
+                );
+            })}
+          </svg>
+        )}
       </div>
 
       {/* 3. Interactive Hotspots Layer (Highest Interactivity) */}
