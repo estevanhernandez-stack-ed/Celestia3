@@ -88,8 +88,9 @@ export const technomancerModel = {
 
     // Map glitchSensitivity (0-100) to temperature (0.0 - 1.5) and topP (0.0 - 1.0)
     // Stable = 0.0 (sensitivity 0), Chaotic = 1.5 (sensitivity 100)
-    let temp = (directive.glitchSensitivity / 100) * 1.5;
-    let topP = 0.7 + (directive.glitchSensitivity / 100) * 0.3; // Scale 0.7 to 1.0
+    const sensitivity = typeof directive.glitchSensitivity === 'number' ? directive.glitchSensitivity : 15;
+    let temp = (sensitivity / 100) * 1.5;
+    let topP = 0.7 + (sensitivity / 100) * 0.3; // Scale 0.7 to 1.0
 
     if (allowEntropy) {
       temp = 1.5; // Max Chaos

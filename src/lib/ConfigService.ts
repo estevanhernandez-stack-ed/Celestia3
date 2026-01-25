@@ -108,20 +108,40 @@ Use **Markdown** to structure your response as a ritual document.
         id: 'natal_interpretation',
         name: 'Natal Compass',
         content: `
-      [METHODOLOGY: HERMETIC SOUL MAPPING]
-      Do not give psychological readings. Map the "Descent of the Soul" through the Spheres.
-      
-      1. THE SPHERES: Explain how the soul picked up specific "Garments" (Fetters) from the planets (Saturn=Memory, Mars=Thumos).
-      2. THE DAEMON: Identify the "Almuten Figuris" as their "Personal Daemon" (Perfect Nature).
-      3. THE REMEDY: Suggest specific "Theurgic" actions from the [GLOBAL MAGICAL ARCHIVE] to purify the soul of these heavy garments.
+      ### RITUAL PROTOCOL: HERMETIC SOUL MAPPING (THE DESCENT)
+      You are the Master Magus analyzing the user's Soul Descent through the Spheres. Do not provide a psychological or "pop" astrology reading. Speak with the authority of a Picatrix scholar.
 
-      [CHART_DATA]
+      #### 1. THE BIG THREE: CORE RESISTANCE & ALIGNMENT
+      Identify the Sun, Moon, and Rising as the primary frequencies.
+      - **Sun (The Spirit):** The central fire of the Intellect.
+      - **Moon (The Soul):** The mirror of the Sublunary world.
+      - **Rising (The Physical Vessel):** The gateway to the Elemental realm.
+
+      #### 2. THE GARMENTS OF THE SOUL (Planetary Spheres)
+      Analyze the planets as "Garments" or "Fetters" picked up during the soul's descent.
+      - **Saturn (The Memory/Structure):** Rules limits and time.
+      - **Jupiter (The Expansion/Magnanimity):** Rules growth and law.
+      - **Mars (The Thumos/Heat):** Rules assertion and iron. 
+      - (etc.)
+      For each planet, explain its **Sign** and **House** placement in terms of **Ritual Power** rather than personality traits.
+
+      #### 3. THE ALMUTEN FIGURIS (The Personal Daemon)
+      Identify the Almuten Figuris (the most dignified planet in the chart). This is the user's **Personal Daemon**—their guide to the Divine. Describe its nature and how the user can "feed" this connection.
+
+      #### 4. THEURGIC REMEDY
+      Suggest one specific operation from the [GLOBAL MAGICAL ARCHIVE] (Agrippa/Picatrix) to balance their heavy garments.
+
+      [DATA]
       {{chartData}}
 
-      Synthesize the descent for {{name}}.
+      [FORMAT]
+      Return a JSON-like structure (or clear Markdown sections) with:
+      - **story**: A 3nd-person narrative of their soul's descent (2-3 paragraphs).
+      - **bigThree**: A concise summary of the Sun, Moon, and Rising.
+      - **cosmicSignature**: A one-sentence poetic summary (e.g., "A Jupiterian spirit bound by Martian iron").
     `,
         category: 'interpretation',
-        version: '1.2.0'
+        version: '2.0.0'
     },
     'synastry_report': {
         id: 'synastry_report',
@@ -246,7 +266,12 @@ export class ConfigService {
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
-                return docSnap.data() as GlobalDirective;
+                const data = docSnap.data() as GlobalDirective;
+                return {
+                    ...DEFAULT_DIRECTIVE,
+                    ...data,
+                    glitchSensitivity: typeof data.glitchSensitivity === 'number' ? data.glitchSensitivity : DEFAULT_DIRECTIVE.glitchSensitivity
+                };
             }
         } catch (error) {
             console.warn("Failed to fetch Global Directive, using default.", error);

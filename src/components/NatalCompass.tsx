@@ -228,7 +228,21 @@ const NatalCompass: React.FC<NatalCompassProps> = ({ chart: externalChart }) => 
         <Canvas 
           orthographic 
           camera={{ left: 0, right: 500, top: 0, bottom: 500, near: 0.1, far: 1000, position: [0, 0, 10] }}
-          gl={{ alpha: true, antialias: true }}
+          gl={{ 
+            alpha: true, 
+            antialias: true,
+            powerPreference: "high-performance",
+            failIfMajorPerformanceCaveat: true,
+            preserveDrawingBuffer: false
+          }}
+          onCreated={({ gl }) => {
+            gl.domElement.addEventListener('webglcontextlost', (e) => {
+              console.warn('🛡️ [NatalCompass] WebGL Context Lost', e);
+            }, false);
+            gl.domElement.addEventListener('webglcontextrestored', () => {
+              console.log('🌌 [NatalCompass] WebGL Context Restored');
+            }, false);
+          }}
           dpr={[1, 2]}
         >
           <ambientLight intensity={1.5} />

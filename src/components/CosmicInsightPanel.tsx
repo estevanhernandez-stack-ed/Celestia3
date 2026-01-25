@@ -92,10 +92,12 @@ const CosmicInsightPanel: React.FC<CosmicInsightPanelProps> = ({ chart }) => {
                 - Moon Phase: ${phase}
                 
                 [CHART_DATA]
-                Sun: ${sun?.sign} (${sun?.degree.toFixed(2)}°)
-                Moon: ${moon?.sign} (${moon?.degree.toFixed(2)}°)
-                Rising: ${chart.ascendant?.sign}
-                Planets: ${chart.planets.map(p => `${p.name} in ${p.sign}`).join(', ')}
+                - Rising (Ascendant): ${chart.ascendant?.sign} (${chart.ascendant?.absoluteDegree.toFixed(2)}°)
+                - Planets:
+                  ${chart.planets.map(p => `  * ${p.name} in ${p.sign} (${p.degree.toFixed(2)}°) in House ${p.house}${p.retrograde ? ' [RETR]' : ''}`).join('\n')}
+                
+                - Houses (Placidus):
+                  ${chart.houses?.map(h => `  * House ${h.house}: ${h.sign} (${h.degree.toFixed(2)}°)`).join('\n')}
             `;
 
             const analysis = await ChatService.generateNatalInterpretation(
