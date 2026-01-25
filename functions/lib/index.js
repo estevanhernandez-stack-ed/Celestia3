@@ -105,23 +105,22 @@ exports.geminiProxy = functions
         throw new functions.https.HttpsError("failed-precondition", "AI service is not configured.");
     }
     try {
-        // Forward request to Gemini API
+        console.log(`[Proxy] Executing request for model: ${data.model || "gemini-3-pro-preview"}`);
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${data.model || "gemini-3-pro-preview"}:generateContent?key=${apiKey}`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
-                "x-goog-api-key": apiKey
+                "Content-Type": "application/json"
             },
             body: JSON.stringify({
                 contents: data.contents,
-                generation_config: data.generation_config,
-                system_instruction: data.system_instruction,
+                generation_config: data.generation_config || data.generationConfig,
+                system_instruction: data.system_instruction || data.systemInstruction,
             }),
         });
         if (!response.ok) {
-            const error = await response.text();
-            console.error("Gemini API error:", error);
-            throw new functions.https.HttpsError("internal", "AI service encountered an error.");
+            const errorText = await response.text();
+            console.error("[Proxy] Gemini API Error:", errorText);
+            throw new functions.https.HttpsError("internal", `AI service encountered an error: ${response.status}`, errorText);
         }
         const result = await response.json();
         return {
@@ -132,8 +131,10 @@ exports.geminiProxy = functions
         };
     }
     catch (error) {
-        console.error("Gemini proxy error:", error);
-        throw new functions.https.HttpsError("internal", "Failed to process AI request.");
+        console.error("[Proxy] Critical Failure:", error);
+        if (error instanceof functions.https.HttpsError)
+            throw error;
+        throw new functions.https.HttpsError("internal", "Failed to process AI request.", error instanceof Error ? error.message : "Unknown error");
     }
 });
 /**
