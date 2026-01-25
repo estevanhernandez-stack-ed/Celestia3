@@ -68,15 +68,17 @@ export const technomancerModel = {
     const directive = await ConfigService.getGlobalDirective();
     
     // JSON Mode Logic: Suppress default Markdown format if JSON is explicitly requested
-    const isJsonRequested = (systemInstructionContent?.toLowerCase().includes('json') || 
-                             (typeof args !== 'string' && !Array.isArray(args) && args.contents?.some(c => c.parts.some(p => p.text?.toLowerCase().includes('json')))));
+    const isJsonRequested = (
+        systemInstructionContent?.toLowerCase().includes('json') || 
+        contents.some(c => c.parts.some(p => p.text?.toLowerCase().includes('json')))
+    );
 
     let masterSystemInstruction = `${directive.persona}\n\n[MASTER DIRECTIVE]\n${directive.masterDirective}`;
     
     if (!isJsonRequested) {
         masterSystemInstruction += `\n\n[DEFAULT FORMAT]\n${directive.defaultFormat}`;
     } else {
-        masterSystemInstruction += `\n\n[FORMAT DIRECTIVE]\nReturn VALID JSON ONLY. Do not include markdown code blocks. No preamble. No transitionary text.`;
+        masterSystemInstruction += `\n\n[FORMAT DIRECTIVE]\nStructure your response as a valid JSON object. Maintain your Hermetic persona within the text values.`;
     }
 
     if (directive.isKnowledgeSyncEnabled) {
@@ -113,6 +115,7 @@ export const technomancerModel = {
       topP: topP, 
       topK: 40,
       maxOutputTokens: 2048,
+      responseMimeType: isJsonRequested ? "application/json" : "text/plain"
     };
 
     // Scrub any potential NaN values from generation_config

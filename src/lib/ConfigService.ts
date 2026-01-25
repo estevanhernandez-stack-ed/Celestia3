@@ -134,13 +134,14 @@ Use **Markdown** to structure your response as a ritual document.
       [DATA]
       {{chartData}}
 
-      [FORMAT]
-      RETURN JSON ONLY. NO MARKDOWN. NO PREAMBLE. NO TAGS.
-      {
-        "story": "...",
-        "bigThree": "...",
-        "cosmicSignature": "..."
-      }
+      [RELATIONSHIP: CELESTIAL ALIGNMENT]
+      You are mapping the User's soul-coordinates for {{name}}.
+
+      [SCHEMA]
+      Ensure your response is a JSON object with these fields:
+      - "story": A Hermetic narrative of the soul's descent (2-3 paragraphs).
+      - "bigThree": A summary of the Sun, Moon, and Rising in terms of planetary nature.
+      - "cosmicSignature": A one-sentence poetic distillation of their current energy.
     `,
         category: 'interpretation',
         version: '2.0.0'

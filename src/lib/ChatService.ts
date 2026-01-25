@@ -273,7 +273,7 @@ ${prefs.activeParadigms.map(p => {
     const rawPrompt = await ConfigService.getPrompt('natal_interpretation');
     const prompt = rawPrompt
         .replace(/{{name}}/g, name)
-        .replace(/{{chartData}}/g, chartData);
+        .replace(/{{chartData}}/g, chartData) + "\n\n[MODE: JSON]";
 
     try {
       const result = await technomancerModel.generateContent(prompt);
