@@ -107,11 +107,12 @@ export const geminiProxy = functions
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "x-goog-api-key": apiKey
           },
           body: JSON.stringify({
             contents: data.contents,
-            generation_config: data.generation_config || data.generationConfig,
-            system_instruction: data.system_instruction || data.systemInstruction,
+            generation_config: data.generation_config,
+            system_instruction: data.system_instruction,
           }),
         }
       );

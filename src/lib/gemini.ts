@@ -110,12 +110,12 @@ export const technomancerModel = {
       topP = 1.0;
     }
 
-    const config: GenerationConfig = {
+    const config = {
       temperature: temp,
-      topP: topP, 
-      topK: 40,
-      maxOutputTokens: 2048, // Reduced for faster response and lower timeout risk
-      responseMimeType: isJsonRequested ? "application/json" : "text/plain"
+      top_p: topP, 
+      top_k: 40,
+      max_output_tokens: 4096, 
+      response_mime_type: isJsonRequested ? "application/json" : "text/plain"
     };
 
     // Scrub any potential NaN values from generation_config
