@@ -115,10 +115,6 @@ export const technomancerModel = {
       topP: topP, 
       topK: 40,
       maxOutputTokens: 4096,
-      top_p: topP, 
-      top_k: 40,
-      max_output_tokens: 4096, 
-      response_mime_type: isJsonRequested ? "application/json" : "text/plain",
       responseMimeType: isJsonRequested ? "application/json" : "text/plain"
     };
 

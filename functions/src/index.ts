@@ -1,6 +1,7 @@
 import * as functions from "firebase-functions/v1";
 import { defineSecret } from "firebase-functions/params";
 import * as admin from "firebase-admin";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 admin.initializeApp();
 
@@ -99,49 +100,59 @@ export const geminiProxy = functions
       );
     }
 
+// ... proxy implementation ...
     try {
-      console.log(`[Proxy] Executing request for model: ${data.model || "gemini-3-pro-preview"}`);
+      console.log(`[Proxy] Executing SDK-based request for model: ${data.model || "gemini-3-pro-preview"}`);
       
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${data.model || "gemini-3-pro-preview"}:generateContent?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            contents: data.contents,
-            generation_config: data.generation_config || data.generationConfig,
-            system_instruction: data.system_instruction || data.systemInstruction,
-          }),
-        }
-      );
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ 
+        model: (data.model as string) || "gemini-3-pro-preview",
+        systemInstruction: data.system_instruction || data.systemInstruction,
+      });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("[Proxy] Gemini API Error:", errorText);
-        throw new functions.https.HttpsError(
-          "internal",
-          `AI service encountered an error: ${response.status}`,
-          errorText
-        );
-      }
+      const generationConfig = (data.generation_config || data.generationConfig || {}) as Record<string, unknown>;
+      
+      // Clean up generation config to match SDK expectations
+      const cleanedConfig: Record<string, unknown> = {
+          temperature: generationConfig.temperature,
+          topP: generationConfig.topP || generationConfig.top_p,
+          topK: generationConfig.topK || generationConfig.top_k,
+          maxOutputTokens: generationConfig.maxOutputTokens || generationConfig.max_output_tokens,
+          responseMimeType: generationConfig.responseMimeType || generationConfig.response_mime_type,
+      };
 
-      const result = await response.json();
+      const contents = data.contents as any[];
+      const result = await model.generateContent({
+        contents: contents,
+        generationConfig: cleanedConfig as any,
+      });
+
+      const response = await result.response;
+      
       return {
-        ...result,
+        candidates: [{
+          content: {
+            parts: [{ text: response.text() }],
+            role: "model"
+          },
+          finishReason: "STOP"
+        }],
         _rateLimit: {
           remaining: rateCheck.remaining,
         },
       };
+
     } catch (error) {
-      console.error("[Proxy] Critical Failure:", error);
-      if (error instanceof functions.https.HttpsError) throw error;
+      console.error("[Proxy] Critical SDK Failure:", error);
       
+      // Pass through more detail to the client for debugging
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorStack = error instanceof Error ? error.stack : undefined;
+
       throw new functions.https.HttpsError(
         "internal",
-        "Failed to process AI request.",
-        error instanceof Error ? error.message : "Unknown error"
+        `AI SDK Failed: ${errorMessage}`,
+        { message: errorMessage, stack: errorStack }
       );
     }
   });

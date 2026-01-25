@@ -70,9 +70,12 @@ const CosmicInsightPanel: React.FC<CosmicInsightPanelProps> = ({ chart }) => {
         return "New Moon";
     };
 
-    const generateInsight = async () => {
+    const [showSafeMode, setShowSafeMode] = useState(false);
+
+    const generateInsight = async (useSafeMode = false) => {
         if (!chart) return;
         setIsLoading(true);
+        if (useSafeMode) setShowSafeMode(false);
         
         try {
             // Calculate astronomical details
@@ -102,7 +105,8 @@ const CosmicInsightPanel: React.FC<CosmicInsightPanelProps> = ({ chart }) => {
 
             const analysis = await ChatService.generateNatalInterpretation(
                 preferences.name || "Initiate",
-                chartStr
+                chartStr,
+                useSafeMode
             );
 
             updatePreferences({
@@ -114,6 +118,7 @@ const CosmicInsightPanel: React.FC<CosmicInsightPanelProps> = ({ chart }) => {
 
         } catch (e) {
             console.error("Analysis failed", e);
+            setShowSafeMode(true);
         } finally {
             setIsLoading(false);
         }
@@ -143,7 +148,7 @@ const CosmicInsightPanel: React.FC<CosmicInsightPanelProps> = ({ chart }) => {
                             {isPlaying ? <VolumeX size={16} /> : <Volume2 size={16} />}
                         </button>
                         <button 
-                            onClick={generateInsight}
+                            onClick={() => generateInsight(false)}
                             disabled={isLoading}
                             className="p-2 hover:bg-white/10 rounded-full text-indigo-400 transition-colors"
                             title="Re-interpret Chart"
@@ -164,15 +169,27 @@ const CosmicInsightPanel: React.FC<CosmicInsightPanelProps> = ({ chart }) => {
                 ) : !hasAnalysis ? (
                     <div className="text-center py-12 space-y-4">
                         <p className="text-slate-400 max-w-md mx-auto font-medium">
-                            The stars have a story to tell about your arrival. 
-                            Unlock the narrative of your soul&apos;s entry into this plane.
+                            {showSafeMode 
+                                ? "The high-fidelity signal is fluctuant. Would you like to attempt a stable 'Safe Mode' interpretation?" 
+                                : "The stars have a story to tell about your arrival. Unlock the narrative of your soul's entry into this plane."
+                            }
                         </p>
-                        <button 
-                            onClick={generateInsight}
-                            className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-lg transition-all flex items-center gap-2 mx-auto uppercase tracking-widest text-sm font-bold shadow-lg shadow-indigo-500/20"
-                        >
-                            <Sparkles size={16} /> Reveal Destiny
-                        </button>
+                        <div className="flex flex-col gap-3">
+                            <button 
+                                onClick={() => generateInsight(false)}
+                                className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-lg transition-all flex items-center gap-2 mx-auto uppercase tracking-widest text-sm font-bold shadow-lg shadow-indigo-500/20"
+                            >
+                                <Sparkles size={16} /> {showSafeMode ? "Retry High-Fidelity" : "Reveal Destiny"}
+                            </button>
+                            {showSafeMode && (
+                                <button 
+                                    onClick={() => generateInsight(true)}
+                                    className="border border-indigo-400/30 hover:bg-indigo-400/10 text-indigo-300 px-6 py-2 rounded-lg transition-all flex items-center gap-2 mx-auto uppercase tracking-widest text-xs font-bold"
+                                >
+                                    <RefreshCw size={12} /> Use Stable Safe Mode
+                                </button>
+                            )}
+                        </div>
                     </div>
                 ) : (
                     <motion.div 

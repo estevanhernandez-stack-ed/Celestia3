@@ -269,11 +269,19 @@ ${prefs.activeParadigms.map(p => {
     }
   }
 
-  static async generateNatalInterpretation(name: string, chartData: string): Promise<{ story: string, bigThree: string, cosmicSignature: string }> {
+  static async generateNatalInterpretation(name: string, chartData: string, useSafeMode = false): Promise<{ story: string, bigThree: string, cosmicSignature: string }> {
     const rawPrompt = await ConfigService.getPrompt('natal_interpretation');
-    const prompt = rawPrompt
+    let prompt = rawPrompt
         .replace(/{{name}}/g, name)
-        .replace(/{{chartData}}/g, chartData) + "\n\n[MODE: JSON]";
+        .replace(/{{chartData}}/g, chartData);
+
+    if (useSafeMode) {
+      prompt += "\n\n[SAFE_MODE: ACTIVE]\nBE EXTREMELY CONCISE. Skip complex lore. Provide a clear, structural reading. Use standard JSON.";
+      // Remove long knowledge context if it was injected
+      prompt = prompt.split('[GLOBAL MAGICAL ARCHIVE]')[0];
+    }
+
+    prompt += "\n\n[MODE: JSON]";
 
     try {
       const result = await technomancerModel.generateContent(prompt);
@@ -293,7 +301,7 @@ ${prefs.activeParadigms.map(p => {
       const match = jsonStr.match(/\{[\s\S]*\}/);
       if (!match) throw new Error("No structure found");
       
-      let parsed: Record<string, any>;
+      let parsed: Record<string, unknown>;
       try {
         parsed = JSON.parse(match[0]);
       } catch {
