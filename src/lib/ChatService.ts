@@ -349,37 +349,60 @@ ${prefs.activeParadigms.map(p => {
       
       // Helper to extract text from nested Technomancer output
       const extractTechnomancerContent = (obj: Record<string, unknown>): { story: string, bigThree: string, cosmicSignature: string } | null => {
-        // Check for Technomancer's wrapper structure
-        if (obj.output && typeof obj.output === 'object') {
-          const output = obj.output as Record<string, unknown>;
+        // Check for common Technomancer wrapper keys
+        const root = (obj.output || obj.analysis || obj.interpretation || obj.report) as Record<string, unknown>;
+        if (root && typeof root === 'object') {
           const storyParts: string[] = [];
           let bigThreeContent = '';
           let signatureContent = '';
           
-          // Extract from phase-based structure
-          for (const [key, value] of Object.entries(output)) {
+          // Helper to process a value that might be a string, object, or array
+          const processValue = (key: string, value: unknown) => {
+            if (!value) return;
+
+            // Handle arrays (e.g., descent_of_the_soul: [...])
+            if (Array.isArray(value)) {
+              value.forEach(item => processValue(key, item));
+              return;
+            }
+
+            // Handle objects (recursive)
             if (typeof value === 'object' && value !== null) {
-              const phase = value as Record<string, unknown>;
-              const description = phase.description || phase.content || phase.analysis || '';
-              
-              if (key.includes('spheres') || key.includes('garments') || key.includes('descent') || key.includes('story')) {
-                if (typeof description === 'string') storyParts.push(description);
-              }
-              if (key.includes('three') || key.includes('alignment') || key.includes('core')) {
-                if (typeof description === 'string') bigThreeContent = description;
-                else if (phase.sun || phase.moon || phase.rising) {
-                  bigThreeContent = `Sun: ${phase.sun || 'Unknown'}\nMoon: ${phase.moon || 'Unknown'}\nRising: ${phase.rising || 'Unknown'}`;
+              const objValue = value as Record<string, any>;
+              // Priority: extract specific interpretation/description fields
+              const text = objValue.hermetic_interpretation || objValue.description || objValue.content || objValue.analysis || objValue.meaning || '';
+              if (typeof text === 'string' && text.length > 20) {
+                if (key.includes('sphere') || key.includes('garment') || key.includes('descent') || key.includes('story') || key.includes('analysis')) {
+                  storyParts.push(text);
                 }
               }
-              if (key.includes('signature') || key.includes('essence') || key.includes('daemon')) {
-                if (typeof description === 'string') signatureContent = description;
+              // recurse to find deeper content
+              Object.entries(value).forEach(([k, v]) => processValue(k, v));
+              return;
+            }
+
+            // Handle strings
+            if (typeof value === 'string' && value.length > 20) {
+              const klow = key.toLowerCase();
+              if (klow.includes('story') || klow.includes('narrative') || klow.includes('descent') || klow.includes('interpretation')) {
+                storyParts.push(value);
+              }
+              if (klow.includes('three') || klow.includes('alignment')) {
+                bigThreeContent = value;
+              }
+              if (klow.includes('signature') || klow.includes('essence')) {
+                signatureContent = value;
               }
             }
-          }
+          };
+
+          Object.entries(root).forEach(([k, v]) => processValue(k, v));
           
           if (storyParts.length > 0) {
+            // Deduplicate to avoid repeating content accidentally
+            const uniqueParts = Array.from(new Set(storyParts));
             return {
-              story: storyParts.join('\n\n'),
+              story: uniqueParts.join('\n\n'),
               bigThree: bigThreeContent || 'Celestial alignment revealed.',
               cosmicSignature: signatureContent || 'A soul in cosmic resonance.'
             };
