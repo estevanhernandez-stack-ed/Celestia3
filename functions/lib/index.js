@@ -86,8 +86,8 @@ exports.geminiProxy = functions
     .region("us-central1")
     .runWith({
     secrets: [geminiApiKey],
-    timeoutSeconds: 120,
-    memory: "512MB"
+    timeoutSeconds: 300,
+    memory: "1GB"
 })
     .https.onCall(async (data, context) => {
     // Verify authentication
