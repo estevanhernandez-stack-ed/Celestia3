@@ -344,10 +344,59 @@ ${prefs.activeParadigms.map(p => {
         }
       }
 
-      // 3. Normalize Schema (Heal Hallucinations)
-      const story = parsed.story || parsed.soul_descent || parsed.narrative || parsed.interpretation || "The soul's journey remains veiled...";
-      const bigThree = parsed.bigThree || parsed.big_three || parsed.alignment || "Celestial alignment pending.";
-      const cosmicSignature = parsed.cosmicSignature || parsed.cosmic_signature || parsed.essence || "Mysterious Resonance.";
+      // 3. Normalize Schema - Handle Technomancer's nested structures
+      console.log('[ChatService] 🔍 Normalizing schema from parsed:', Object.keys(parsed));
+      
+      // Helper to extract text from nested Technomancer output
+      const extractTechnomancerContent = (obj: Record<string, unknown>): { story: string, bigThree: string, cosmicSignature: string } | null => {
+        // Check for Technomancer's wrapper structure
+        if (obj.output && typeof obj.output === 'object') {
+          const output = obj.output as Record<string, unknown>;
+          const storyParts: string[] = [];
+          let bigThreeContent = '';
+          let signatureContent = '';
+          
+          // Extract from phase-based structure
+          for (const [key, value] of Object.entries(output)) {
+            if (typeof value === 'object' && value !== null) {
+              const phase = value as Record<string, unknown>;
+              const description = phase.description || phase.content || phase.analysis || '';
+              
+              if (key.includes('spheres') || key.includes('garments') || key.includes('descent') || key.includes('story')) {
+                if (typeof description === 'string') storyParts.push(description);
+              }
+              if (key.includes('three') || key.includes('alignment') || key.includes('core')) {
+                if (typeof description === 'string') bigThreeContent = description;
+                else if (phase.sun || phase.moon || phase.rising) {
+                  bigThreeContent = `Sun: ${phase.sun || 'Unknown'}\nMoon: ${phase.moon || 'Unknown'}\nRising: ${phase.rising || 'Unknown'}`;
+                }
+              }
+              if (key.includes('signature') || key.includes('essence') || key.includes('daemon')) {
+                if (typeof description === 'string') signatureContent = description;
+              }
+            }
+          }
+          
+          if (storyParts.length > 0) {
+            return {
+              story: storyParts.join('\n\n'),
+              bigThree: bigThreeContent || 'Celestial alignment revealed.',
+              cosmicSignature: signatureContent || 'A soul in cosmic resonance.'
+            };
+          }
+        }
+        return null;
+      };
+      
+      // Try Technomancer extraction first
+      const technomancerExtract = extractTechnomancerContent(parsed);
+      
+      // Fallback chain for flat structures
+      const story = technomancerExtract?.story || parsed.story || parsed.soul_descent || parsed.narrative || parsed.interpretation || "The soul's journey remains veiled...";
+      const bigThree = technomancerExtract?.bigThree || parsed.bigThree || parsed.big_three || parsed.alignment || "Celestial alignment pending.";
+      const cosmicSignature = technomancerExtract?.cosmicSignature || parsed.cosmicSignature || parsed.cosmic_signature || parsed.essence || "Mysterious Resonance.";
+
+      console.log('[ChatService] ✅ Extracted story length:', typeof story === 'string' ? story.length : 0);
 
       // Ensure 'story' is actually a string (handles nested objects from AI)
       const storyText = typeof story === 'string' ? story : JSON.stringify(story);
