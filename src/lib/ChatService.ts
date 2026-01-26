@@ -277,6 +277,8 @@ ${prefs.activeParadigms.map(p => {
         .replace(/{{name}}/g, name)
         .replace(/{{chartData}}/g, chartData);
 
+    console.log('[ChatService] 📊 Injected Chart Data:', chartData);
+
     if (useSafeMode) {
       prompt += "\n\n[SAFE_MODE: ACTIVE]\nBE EXTREMELY CONCISE. Skip complex lore. Provide a clear, structural reading. Use standard JSON.";
       // Remove long knowledge context if it was injected
