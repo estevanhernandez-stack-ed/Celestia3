@@ -103,13 +103,16 @@ const CosmicInsightPanel: React.FC<CosmicInsightPanelProps> = ({ chart }) => {
                   ${chart.houses?.map(h => `  * House ${h.house}: ${h.sign} (${h.degree.toFixed(2)}°)`).join('\n')}
             `;
 
+            console.log('[CosmicInsight] 📡 Calling ChatService.generateNatalInterpretation...');
             const analysis = await ChatService.generateNatalInterpretation(
                 preferences.name || "Initiate",
                 chartStr,
                 useSafeMode
             );
+            console.log('[CosmicInsight] 📥 Received analysis:', analysis);
 
             if (analysis && analysis.story) {
+                console.log('[CosmicInsight] ✅ Valid story received, updating preferences...');
                 updatePreferences({
                     chartAnalysis: {
                         ...analysis,
@@ -117,10 +120,13 @@ const CosmicInsightPanel: React.FC<CosmicInsightPanelProps> = ({ chart }) => {
                     }
                 });
                 setShowSafeMode(false); // Success!
+            } else {
+                console.warn('[CosmicInsight] ⚠️ Analysis returned but story is empty or invalid:', analysis);
+                setShowSafeMode(true);
             }
 
         } catch (e) {
-            console.error("Analysis failed", e);
+            console.error("[CosmicInsight] ❌ Analysis failed", e);
             setShowSafeMode(true);
         } finally {
             setIsLoading(false);

@@ -270,6 +270,8 @@ ${prefs.activeParadigms.map(p => {
   }
 
   static async generateNatalInterpretation(name: string, chartData: string, useSafeMode = false): Promise<{ story: string, bigThree: string, cosmicSignature: string }> {
+    console.log('[ChatService] 🚀 generateNatalInterpretation called. useSafeMode:', useSafeMode);
+    
     const rawPrompt = await ConfigService.getPrompt('natal_interpretation');
     let prompt = rawPrompt
         .replace(/{{name}}/g, name)
@@ -283,10 +285,15 @@ ${prefs.activeParadigms.map(p => {
 
     prompt += "\n\n[MODE: JSON]";
 
+    console.log('[ChatService] 📝 Prompt length:', prompt.length, 'chars');
+
     try {
+      console.log('[ChatService] 📡 Calling technomancerModel.generateContent...');
       const result = await technomancerModel.generateContent(prompt);
+      console.log('[ChatService] 📥 Got result from technomancerModel');
       const response = await result.response;
       const text = response.text();
+      console.log('[ChatService] 📜 Raw response text length:', text.length);
       
       // 1. Repair Truncated JSON
       let jsonStr = text.trim();
