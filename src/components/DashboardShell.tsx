@@ -59,9 +59,10 @@ import GrimoireCodex from './GrimoireCodex';
 import CelebrityMatchView from './CelebrityMatchView';
 import { ProgressionService, VIEW_LEVEL_REQUIREMENTS, CELESTIAL_QUESTS } from '@/lib/ProgressionService';
 import AuraScanner from './AuraScanner';
+import DeepDiveView from './DeepDiveView';
 import { Camera, Target } from 'lucide-react';
 
-type DashboardView = 'compass' | 'synastry' | 'tarot' | 'athanor' | 'rituals' | 'chronos' | 'numerology' | 'grimoire' | 'admin' | 'celebrities' | 'aura';
+type DashboardView = 'compass' | 'synastry' | 'tarot' | 'athanor' | 'rituals' | 'chronos' | 'numerology' | 'grimoire' | 'admin' | 'celebrities' | 'aura' | 'deep-dive';
 
 const DashboardShell: React.FC = () => {
   const [activeView, setActiveView] = useState<DashboardView>('compass');
@@ -630,7 +631,10 @@ const DashboardShell: React.FC = () => {
                                         </div>
 
                                         {/* Chart Explanation / Destiny Thread */}
-                                        <CosmicInsightPanel chart={natalChart} />
+                                        <CosmicInsightPanel 
+                                            chart={natalChart} 
+                                            onDeepDive={() => setActiveView('deep-dive')}
+                                         />
                                     </>
                                   ) : (
                                     <div className="text-center text-indigo-400/50 animate-pulse font-serif">
@@ -731,6 +735,10 @@ const DashboardShell: React.FC = () => {
 
                     {activeView === 'admin' && isAdmin && (
                         <AdminView />
+                    )}
+
+                    {activeView === 'deep-dive' && (
+                        <DeepDiveView chart={natalChart} />
                     )}
                 </motion.div>
             </AnimatePresence>

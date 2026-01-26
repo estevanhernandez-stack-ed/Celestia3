@@ -1,4 +1,4 @@
-export type GrimoireEntryType = 'tarot' | 'ritual' | 'insight' | 'aura';
+export type GrimoireEntryType = 'tarot' | 'ritual' | 'insight' | 'aura' | 'deep-dive';
 
 export interface GrimoireEntry {
   id: string;
@@ -6,7 +6,7 @@ export interface GrimoireEntry {
   type: GrimoireEntryType;
   title: string;
   date: number; // Timestamp
-  content: TarotEntryContent | RitualEntryContent | AuraEntryContent | InsightEntryContent; 
+  content: TarotEntryContent | RitualEntryContent | AuraEntryContent | InsightEntryContent | DeepDiveEntryContent; 
   tags?: string[];
 }
 
@@ -42,4 +42,10 @@ export interface InsightEntryContent {
         destiny: number;
         soulUrge: number;
     };
+}
+
+export interface DeepDiveEntryContent {
+    intent: string;
+    sections: { heading: string, content: string }[];
+    summary: string;
 }

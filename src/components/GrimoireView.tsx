@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import NextImage from 'next/image';
 import { Book, Trash2, Calendar, ChevronDown, ChevronRight } from 'lucide-react';
 import { GrimoireService } from '@/lib/GrimoireService';
-import { GrimoireEntry, TarotEntryContent, RitualEntryContent, AuraEntryContent, InsightEntryContent } from '@/types/grimoire';
+import { GrimoireEntry, TarotEntryContent, RitualEntryContent, AuraEntryContent, InsightEntryContent, DeepDiveEntryContent } from '@/types/grimoire';
 import { useAuth } from '@/context/AuthContext';
 
 export default function GrimoireView() {
@@ -73,9 +73,10 @@ export default function GrimoireView() {
                   entry.type === 'tarot' ? 'bg-indigo-500/10 text-indigo-400' : 
                   entry.type === 'aura' ? 'bg-purple-500/10 text-purple-400' : 
                   entry.type === 'insight' ? 'bg-cyan-500/10 text-cyan-400' :
+                  entry.type === 'deep-dive' ? 'bg-amber-500/10 text-amber-400' :
                   'bg-red-500/10 text-red-400'
                 }`}>
-                  {entry.type === 'tarot' ? '🔮' : entry.type === 'aura' ? '✨' : entry.type === 'insight' ? '🧠' : '🔥'}
+                  {entry.type === 'tarot' ? '🔮' : entry.type === 'aura' ? '✨' : entry.type === 'insight' ? '🧠' : entry.type === 'deep-dive' ? '🔭' : '🔥'}
                 </div>
                 <div>
                   <h3 className="font-bold text-emerald-100 uppercase tracking-wide text-sm">{entry.title}</h3>
@@ -184,8 +185,28 @@ export default function GrimoireView() {
                                     <span className="text-xl font-black text-indigo-200">{(entry.content as InsightEntryContent).profile.soulUrge}</span>
                                 </div>
                             </div>
-                            <div className="mt-4 p-4 rounded-xl bg-cyan-950/10 border border-cyan-500/5 whitespace-pre-wrap text-cyan-100/70 leading-relaxed">
+                             <div className="mt-4 p-4 rounded-xl bg-cyan-950/10 border border-cyan-500/5 whitespace-pre-wrap text-cyan-100/70 leading-relaxed">
                                 {(entry.content as InsightEntryContent).analysis}
+                            </div>
+                        </div>
+                     )}
+
+                     {entry.type === 'deep-dive' && (
+                        <div className="space-y-6">
+                            <div className="p-4 bg-amber-950/20 rounded-xl border border-amber-500/10 font-serif italic text-amber-100/90 text-lg">
+                                &quot;{(entry.content as DeepDiveEntryContent).intent}&quot;
+                            </div>
+                            <div className="space-y-4">
+                                {(entry.content as DeepDiveEntryContent).sections.map((section, sIdx) => (
+                                    <div key={sIdx} className="space-y-2">
+                                        <h4 className="text-[10px] uppercase font-bold text-amber-500/60 tracking-widest">{section.heading}</h4>
+                                        <p className="text-slate-300 leading-relaxed">{section.content}</p>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mt-6 p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-xl text-indigo-200 font-serif">
+                                <span className="block text-[9px] uppercase text-indigo-400 font-bold mb-2">The Oracle&apos;s Verdict</span>
+                                {(entry.content as DeepDiveEntryContent).summary}
                             </div>
                         </div>
                      )}

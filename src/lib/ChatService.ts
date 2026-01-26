@@ -501,4 +501,38 @@ ${prefs.activeParadigms.map(p => {
       return `### Connection Obscured\n\nThe stars are silent at this moment. The celestial resonance between **${p1Name}** and **${p2Name}** is too complex for the current signal.\n\n*Please ensure both charts are valid and try establishing the link again.*`;
     }
   }
+
+  static async generateDeepDiveReading(name: string, chartData: string, intent: string): Promise<{ title: string, sections: { heading: string, content: string }[], summary: string }> {
+    console.log('[ChatService] 🚀 generateDeepDiveReading called for:', intent);
+    
+    const rawPrompt = await ConfigService.getPrompt('deep_dive_interpretation');
+    const prompt = rawPrompt
+        .replace(/{{name}}/g, name)
+        .replace(/{{chartData}}/g, chartData)
+        .replace(/{{intent}}/g, intent);
+
+    try {
+      const result = await technomancerModel.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      // Repair and Parse JSON (Reuse existing logic or similar)
+      let jsonStr = text.trim();
+      jsonStr = jsonStr.replace(/^```json?\s*/i, '').replace(/```\s*$/i, '');
+      
+      const match = jsonStr.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error("No JSON found in Deep Dive response");
+      
+      const parsed = JSON.parse(match[0]);
+      
+      return {
+          title: parsed.title || `Inquiry: ${intent}`,
+          sections: parsed.sections || [],
+          summary: parsed.summary || "The Oracle has spoken, though the message remains veiled."
+      };
+    } catch (error) {
+      console.error("Deep Dive Interpretation Failed:", error);
+      throw error;
+    }
+  }
 }
