@@ -146,9 +146,10 @@ Use **Markdown** to structure your response as a ritual document.
       }
 
       [METHODOLOGY]
-      1. Map the 'Garments' (Planetary House/Sign).
-      2. Identify the 'Personal Daemon' (Almuten Figuris).
-      3. Propose a 'Theurgic Remedy'.
+      1. Map the 'Solar Intellect' (Sun Sign/House) and 'Lunar Reflection' (Moon Sign/House).
+      2. Map the 'Garments' (Planetary House/Sign).
+      3. Identify the 'Personal Daemon' (Almuten Figuris).
+      4. Propose a 'Theurgic Remedy'.
       Synthesize all of the above strictly into the 'story' field. 
       BE CONCISE BUT DEEP: Limit the 'story' to 2500 characters total. Use 3-4 short, dense paragraphs.
     `,
@@ -318,5 +319,16 @@ export class ConfigService {
         }
 
         return Object.values(promptsMap);
+    }
+
+    /**
+     * Pushes all local DEFAULT_PROMPTS to Firestore.
+     * WARNING: This will overwrite cloud prompts with local defaults.
+     */
+    static async syncLocalPromptsToCloud(): Promise<void> {
+        console.log("[ConfigService] 📡 Pushing local prompts to Cloud...");
+        const promises = Object.values(DEFAULT_PROMPTS).map(prompt => this.savePrompt(prompt));
+        await Promise.all(promises);
+        console.log("[ConfigService] ✅ Cloud prompts synchronized with local defaults.");
     }
 }

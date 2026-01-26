@@ -29,6 +29,7 @@ const AdminView: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'prompts' | 'tools' | 'logs' | 'debug' | 'architect'>('prompts');
     const [directive, setDirective] = useState<GlobalDirective | null>(null);
     const [isDirectiveSaving, setIsDirectiveSaving] = useState(false);
+    const [isSyncingPrompts, setIsSyncingPrompts] = useState(false);
     const { preferences, updatePreferences } = useSettings();
 
     const loadPrompts = useCallback(async () => {
@@ -145,18 +146,36 @@ const AdminView: React.FC = () => {
                                         <p className="text-[10px] text-indigo-400 uppercase tracking-widest font-mono">Master AI Configuration</p>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={async () => {
-                                        setIsDirectiveSaving(true);
-                                        await ConfigService.saveGlobalDirective(directive);
-                                        setIsDirectiveSaving(false);
-                                    }}
-                                    disabled={isDirectiveSaving}
-                                    className="flex items-center gap-2 px-8 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-indigo-500/20 active:scale-95"
-                                >
-                                    {isDirectiveSaving ? <RefreshCw className="animate-spin" size={16} /> : <Save size={16} />}
-                                    {isDirectiveSaving ? 'Encoding...' : 'Commit Directive'}
-                                </button>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={async () => {
+                                            if (window.confirm("WARNING: This will overwrite all Cloud Prompts with local hardened defaults. Proceed?")) {
+                                                setIsSyncingPrompts(true);
+                                                await ConfigService.syncLocalPromptsToCloud();
+                                                await loadPrompts(); // Refresh the list
+                                                setIsSyncingPrompts(false);
+                                            }
+                                        }}
+                                        disabled={isSyncingPrompts}
+                                        className="flex items-center gap-2 px-4 py-3 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95 border border-indigo-500/20"
+                                    >
+                                        <RefreshCw className={isSyncingPrompts ? "animate-spin" : ""} size={14} />
+                                        {isSyncingPrompts ? 'Syncing...' : 'Force Sync Cloud Prompts'}
+                                    </button>
+
+                                    <button
+                                        onClick={async () => {
+                                            setIsDirectiveSaving(true);
+                                            await ConfigService.saveGlobalDirective(directive!);
+                                            setIsDirectiveSaving(false);
+                                        }}
+                                        disabled={isDirectiveSaving || !directive}
+                                        className="flex items-center gap-2 px-8 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-indigo-500/20 active:scale-95"
+                                    >
+                                        {isDirectiveSaving ? <RefreshCw className="animate-spin" size={16} /> : <Save size={16} />}
+                                        {isDirectiveSaving ? 'Encoding...' : 'Commit Directive'}
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-1 gap-8 pb-10">
