@@ -82,8 +82,14 @@ export const technomancerModel = {
     }
 
     if (directive.isKnowledgeSyncEnabled) {
-      const knowledge = KnowledgeService.getTotalArchive();
-      masterSystemInstruction += `\n\n[GLOBAL MAGICAL ARCHIVE]\n${knowledge}`;
+      // Smart Lore Injection: Use focused context instead of the full 15KB archive
+      // Default to identity/wisdom planets (Sun, Moon, Mercury) for general queries
+      const focusPlanets = ['Sun', 'Moon', 'Mercury'];
+      const knowledge = KnowledgeService.getSmartLore(focusPlanets, 'wisdom');
+      masterSystemInstruction += `\n\n${knowledge}`;
+    } else {
+      // Minimal context: Just the Hermetic Primer
+      masterSystemInstruction += `\n\n${KnowledgeService.getHermeticPrimer()}`;
     }
 
     if (systemInstructionContent) {

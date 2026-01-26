@@ -103,6 +103,58 @@ export class KnowledgeService {
     }
 
     /**
+     * Smart Lore Injection: Returns a focused subset of the archive based on 
+     * the user's dominant planets and intent. Much smaller than getTotalArchive().
+     * @param planets - Array of planet names (e.g., ['Sun', 'Moon', 'Mars'])
+     * @param intent - Optional user intent (e.g., 'love', 'wealth', 'wisdom')
+     */
+    static getSmartLore(planets: string[], intent?: string): string {
+        const allLore = [
+            ...AGRIPPA_LORE,
+            ...PGM_LORE,
+            ...PICATRIX_LORE,
+            ...ANTIQUITY_LORE,
+            ...ORACLES_LORE,
+            ...HERMETICA_LORE,
+            ...TECHNOMANCY_LORE
+        ];
+
+        // Filter by planets OR intent (not AND, to be inclusive)
+        const filtered = allLore.filter(entry => {
+            const matchPlanet = planets.some(p => 
+                entry.planetaryAssociations.some(pa => pa.toLowerCase() === p.toLowerCase())
+            );
+            const matchIntent = intent ? entry.intentTags.some(t => t.toLowerCase() === intent.toLowerCase()) : false;
+            return matchPlanet || matchIntent;
+        });
+
+        // Limit to prevent timeout (max ~20 entries)
+        const limited = filtered.slice(0, 20);
+
+        if (limited.length === 0) {
+            // Fallback: Return the Hermetic Primer
+            return this.getHermeticPrimer();
+        }
+
+        return `[FOCUSED MAGICAL ARCHIVE]\n` + limited.map(f => 
+            `* [${f.source}] ${f.id}: ${f.content}`
+        ).join('\n');
+    }
+
+    /**
+     * A condensed ~1KB summary of core Hermetic principles for general queries.
+     */
+    static getHermeticPrimer(): string {
+        return `[HERMETIC PRIMER]
+* AS ABOVE, SO BELOW: The Macrocosm (Universe) reflects the Microcosm (Man). Manipulating symbols here effects change there.
+* SPIRITUS MUNDI: The World-Soul/Quintessence links the Three Worlds. Material correspondences attract this Spirit.
+* THE THREE WORLDS: Elemental (Matter), Celestial (Stars), Intellectual (Divine). Magic ascends through all three.
+* THEURGY: "God-Work" distinct from vulgar magic. Ritual acts invoke Divine Grace to lift the soul.
+* ELECTION: Astrological timing. You act when the Heavens are open, not when you want.
+* VOCES MAGICAE: Words of Power. Untranslatable sounds that vibrate the aether.`;
+    }
+
+    /**
      * Attempts to find a specific knowledge item by ID across all categories.
      */
     static getSpecificKnowledge(id: string): KnowledgeItem | undefined {
