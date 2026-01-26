@@ -294,9 +294,13 @@ ${prefs.activeParadigms.map(p => {
       const response = await result.response;
       const text = response.text();
       console.log('[ChatService] 📜 Raw response text length:', text.length);
+      console.log('[ChatService] 📜 Raw response text:', text.substring(0, 500) + (text.length > 500 ? '...' : ''));
       
       // 1. Repair Truncated JSON
       let jsonStr = text.trim();
+      
+      // Remove markdown code blocks if present
+      jsonStr = jsonStr.replace(/^```json?\s*/i, '').replace(/```\s*$/i, '');
       
       const openBrackets = (jsonStr.match(/\{/g) || []).length;
       const closeBrackets = (jsonStr.match(/\}/g) || []).length;
@@ -306,15 +310,38 @@ ${prefs.activeParadigms.map(p => {
 
       // 2. Extract JSON Block
       const match = jsonStr.match(/\{[\s\S]*\}/);
-      if (!match) throw new Error("No structure found");
+      if (!match) throw new Error("No JSON structure found in response");
       
       let parsed: Record<string, unknown>;
+      const jsonToParse = match[0];
+      
       try {
-        parsed = JSON.parse(match[0]);
-      } catch {
-        // Aggressive repair: remove unclosed quotes at end of truncated strings
-        const repaired = match[0].replace(/,\s*"\w+"\s*:\s*"[^"]*$/, '}');
-        parsed = JSON.parse(repaired);
+        parsed = JSON.parse(jsonToParse);
+      } catch (e1) {
+        console.warn('[ChatService] ⚠️ First JSON.parse failed, attempting repairs...', e1);
+        
+        // Repair attempt 1: Fix unescaped quotes within strings
+        let repaired = jsonToParse.replace(/"([^"]*)":\s*"([^"]*)"/g, (match, key, value) => {
+          // Escape any unescaped quotes within the value
+          const fixedValue = value.replace(/(?<!\\)"/g, '\\"');
+          return `"${key}": "${fixedValue}"`;
+        });
+        
+        try {
+          parsed = JSON.parse(repaired);
+        } catch {
+          console.warn('[ChatService] ⚠️ Second repair failed, trying aggressive cleanup...');
+          
+          // Repair attempt 2: Remove problematic trailing content
+          repaired = jsonToParse.replace(/,\s*"\w+"\s*:\s*"[^"]*$/g, '}');
+          
+          try {
+            parsed = JSON.parse(repaired);
+          } catch (e3) {
+            console.error('[ChatService] ❌ All JSON repair attempts failed. Raw text:', jsonToParse);
+            throw new Error(`JSON parsing failed after all repair attempts: ${e3}`);
+          }
+        }
       }
 
       // 3. Normalize Schema (Heal Hallucinations)
