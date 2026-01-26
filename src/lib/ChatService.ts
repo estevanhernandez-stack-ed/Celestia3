@@ -372,7 +372,8 @@ ${prefs.activeParadigms.map(p => {
               // Priority: extract specific interpretation/description fields
               const text = (objValue.hermetic_interpretation || objValue.description || objValue.content || objValue.analysis || objValue.meaning || '') as string;
               if (typeof text === 'string' && text.length > 20) {
-                if (key.includes('sphere') || key.includes('garment') || key.includes('descent') || key.includes('story') || key.includes('analysis')) {
+                if (key.includes('sphere') || key.includes('garment') || key.includes('descent') || key.includes('story') || key.includes('analysis') || 
+                    key.includes('sun') || key.includes('spirit') || key.includes('intellect')) {
                   storyParts.push(text);
                 }
               }
@@ -384,7 +385,8 @@ ${prefs.activeParadigms.map(p => {
             // Handle strings
             if (typeof value === 'string' && value.length > 20) {
               const klow = key.toLowerCase();
-              if (klow.includes('story') || klow.includes('narrative') || klow.includes('descent') || klow.includes('interpretation')) {
+              if (klow.includes('story') || klow.includes('narrative') || klow.includes('descent') || klow.includes('interpretation') || 
+                  klow.includes('sun') || klow.includes('spirit') || klow.includes('intellect')) {
                 storyParts.push(value);
               }
               if (klow.includes('three') || klow.includes('alignment')) {
@@ -398,6 +400,33 @@ ${prefs.activeParadigms.map(p => {
 
           Object.entries(root).forEach(([k, v]) => processValue(k, v));
           
+          // --- SECONDARY HARVESTING (for missing fields) ---
+          if (!bigThreeContent) {
+            // Scan everything for Sun, Moon, Rising keywords
+            const textToScan = storyParts.join(' ').toLowerCase();
+            const planets = ['sun', 'moon', 'rising', 'ascendant'];
+            const foundPlanets = planets.filter(p => textToScan.includes(p));
+            if (foundPlanets.length > 0) {
+              // Greedily grab lines that mention these planets
+              bigThreeContent = storyParts.map(p => {
+                const lines = p.split(/[.!?]/);
+                const matchingLines = lines.filter(l => 
+                  planets.some(planet => l.toLowerCase().includes(planet))
+                );
+                return matchingLines.join('. ');
+              }).filter(Boolean).slice(0, 3).join('\n\n');
+            }
+          }
+          
+          if (!signatureContent && storyParts.length > 0) {
+            // The last sentence often contains the distillation
+            const lastPart = storyParts[storyParts.length - 1];
+            const sentences = lastPart.split(/[.!?]/).filter(s => s.trim().length > 10);
+            if (sentences.length > 0) {
+              signatureContent = sentences[sentences.length - 1].trim();
+            }
+          }
+
           if (storyParts.length > 0) {
             // Deduplicate to avoid repeating content accidentally
             const uniqueParts = Array.from(new Set(storyParts));
