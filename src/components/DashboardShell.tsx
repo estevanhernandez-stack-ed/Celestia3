@@ -553,8 +553,22 @@ const DashboardShell: React.FC = () => {
 
                              {/* Chart & Compass Grid */}
                              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[500px]">
-                                 <div className="lg:col-span-2 flex flex-col items-center justify-center relative bg-black/40 rounded-2xl border border-white/5">
-                                      <NatalCompass chart={natalChart} />
+                                 <div className="lg:col-span-2 flex flex-col items-center justify-between p-12 relative bg-black/40 rounded-2xl border border-white/5 h-full">
+                                      <div className="flex-1 flex items-center justify-center w-full">
+                                          <NatalCompass chart={natalChart} />
+                                      </div>
+                                      
+                                      {/* Oracle Trigger */}
+                                      <motion.button
+                                          whileHover={{ scale: 1.02, backgroundColor: 'rgba(79, 70, 229, 0.3)' }}
+                                          whileTap={{ scale: 0.98 }}
+                                          onClick={() => setActiveView('deep-dive')}
+                                          className="mt-8 px-12 py-5 bg-indigo-600/20 border-2 border-indigo-500/40 text-indigo-100 rounded-full font-black text-sm uppercase tracking-[0.3em] transition-all flex items-center gap-4 group shadow-[0_0_30px_rgba(99,102,241,0.1)] hover:shadow-[0_0_50px_rgba(99,102,241,0.2)]"
+                                      >
+                                          <Sparkles size={18} className="text-indigo-400 group-hover:rotate-12 transition-transform" />
+                                          Consult the Oracle
+                                          <ChevronRight size={16} className="text-indigo-400 group-hover:translate-x-1 transition-transform" />
+                                      </motion.button>
                                  </div>
 
                              {/* Cosmic Identity & Analysis Panel */}
@@ -630,11 +644,8 @@ const DashboardShell: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        {/* Chart Explanation / Destiny Thread */}
-                                        <CosmicInsightPanel 
-                                            chart={natalChart} 
-                                            onDeepDive={() => setActiveView('deep-dive')}
-                                         />
+                                         {/* Chart Explanation / Destiny Thread */}
+                                         <CosmicInsightPanel chart={natalChart} />
                                     </>
                                   ) : (
                                     <div className="text-center text-indigo-400/50 animate-pulse font-serif">

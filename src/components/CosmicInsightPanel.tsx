@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, RefreshCw, Volume2, VolumeX, ChevronRight } from 'lucide-react';
+import { Sparkles, RefreshCw, Volume2, VolumeX } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { ChatService } from '@/lib/ChatService';
 import { NatalChartData } from '@/types/astrology';
@@ -11,10 +11,9 @@ import { ResonanceService } from '@/lib/ResonanceService';
 
 interface CosmicInsightPanelProps {
     chart: NatalChartData | null;
-    onDeepDive?: () => void;
 }
 
-const CosmicInsightPanel: React.FC<CosmicInsightPanelProps> = ({ chart, onDeepDive }) => {
+const CosmicInsightPanel: React.FC<CosmicInsightPanelProps> = ({ chart }) => {
     const { preferences, updatePreferences } = useSettings();
     const [isLoading, setIsLoading] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -235,21 +234,6 @@ const CosmicInsightPanel: React.FC<CosmicInsightPanelProps> = ({ chart, onDeepDi
                             </h3>
                             <p className="text-white italic font-serif text-lg">
                                 &quot;{preferences.chartAnalysis?.cosmicSignature}&quot;
-                            </p>
-                        </div>
-
-                        {/* Deep Dive CTA */}
-                        <div className="pt-4 mt-8 border-t border-white/10">
-                            <button
-                                onClick={onDeepDive}
-                                className="w-full py-4 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 group"
-                            >
-                                <Sparkles size={16} className="group-hover:rotate-12 transition-transform" />
-                                Consult the Oracle
-                                <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                            </button>
-                            <p className="text-[10px] text-slate-500 uppercase tracking-widest text-center mt-3 font-bold opacity-60">
-                                Full Chart Deep Dive & Inquiry
                             </p>
                         </div>
                     </motion.div>
