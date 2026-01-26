@@ -109,12 +109,15 @@ const CosmicInsightPanel: React.FC<CosmicInsightPanelProps> = ({ chart }) => {
                 useSafeMode
             );
 
-            updatePreferences({
-                chartAnalysis: {
-                    ...analysis,
-                    timestamp: Date.now()
-                }
-            });
+            if (analysis && analysis.story) {
+                updatePreferences({
+                    chartAnalysis: {
+                        ...analysis,
+                        timestamp: Date.now()
+                    }
+                });
+                setShowSafeMode(false); // Success!
+            }
 
         } catch (e) {
             console.error("Analysis failed", e);

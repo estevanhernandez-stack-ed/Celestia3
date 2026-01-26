@@ -326,12 +326,9 @@ ${prefs.activeParadigms.map(p => {
       };
 
     } catch (error) {
-       console.error("Natal Interpretation Resilience Layer Triggered", error);
-       return {
-           story: "The stars align in mysterious ways, but the signal is currently faint. Attempting to recalibrate the aetheric connection...",
-           bigThree: "* Sun: Seeking Alignment\n* Moon: Seeking Alignment\n* Rising: Seeking Alignment",
-           cosmicSignature: "A mystery in transition."
-       };
+       // DO NOT swallow the error here. Bubble it up so the UI can offer Safe Mode.
+       console.error("Natal Interpretation Logic Failure:", error);
+       throw error;
     }
   }
 
