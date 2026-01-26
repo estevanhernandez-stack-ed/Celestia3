@@ -349,8 +349,8 @@ ${prefs.activeParadigms.map(p => {
       
       // Helper to extract text from nested Technomancer output
       const extractTechnomancerContent = (obj: Record<string, unknown>): { story: string, bigThree: string, cosmicSignature: string } | null => {
-        // Check for common Technomancer wrapper keys
-        const root = (obj.output || obj.analysis || obj.interpretation || obj.report) as Record<string, unknown>;
+        // Broaden the search for root data - handle creative Technomancer naming
+        const root = (obj.output || obj.analysis || obj.interpretation || obj.report || obj.output_log || obj.outputLog || obj) as Record<string, unknown>;
         if (root && typeof root === 'object') {
           const storyParts: string[] = [];
           let bigThreeContent = '';
@@ -368,9 +368,9 @@ ${prefs.activeParadigms.map(p => {
 
             // Handle objects (recursive)
             if (typeof value === 'object' && value !== null) {
-              const objValue = value as Record<string, any>;
+              const objValue = value as Record<string, unknown>;
               // Priority: extract specific interpretation/description fields
-              const text = objValue.hermetic_interpretation || objValue.description || objValue.content || objValue.analysis || objValue.meaning || '';
+              const text = (objValue.hermetic_interpretation || objValue.description || objValue.content || objValue.analysis || objValue.meaning || '') as string;
               if (typeof text === 'string' && text.length > 20) {
                 if (key.includes('sphere') || key.includes('garment') || key.includes('descent') || key.includes('story') || key.includes('analysis')) {
                   storyParts.push(text);
