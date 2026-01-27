@@ -111,9 +111,30 @@ const DeepDiveView: React.FC<DeepDiveViewProps> = ({ chart }) => {
                                 <Sparkles size={40} className="text-indigo-400" />
                             </div>
                             <h2 className="text-3xl font-black text-white uppercase tracking-tighter font-serif">Consult the Oracle</h2>
-                            <p className="text-slate-400 max-w-md mx-auto text-sm leading-relaxed uppercase tracking-widest font-medium">
-                                Enter your inquiry to begin a deep-scale celestial decoding. The Technomancer will synthesize your entire chart through the lens of your quest.
+                            <p className="text-slate-400 max-w-lg mx-auto text-sm leading-relaxed">
+                                Ask a question about your life, or choose a focus area below. The Oracle will synthesize your <strong className="text-indigo-400">entire natal chart</strong> through the lens of your inquiry.
                             </p>
+                        </div>
+
+                        {/* Example Inquiry Chips */}
+                        <div className="flex flex-wrap justify-center gap-2 max-w-xl">
+                            {[
+                                { label: "Who am I?", icon: "✨" },
+                                { label: "What is my life purpose?", icon: "🎯" },
+                                { label: "How can I find love?", icon: "💜" },
+                                { label: "What career suits me?", icon: "🚀" },
+                                { label: "What are my hidden gifts?", icon: "🔮" },
+                                { label: "How do I heal my wounds?", icon: "🩹" },
+                            ].map((example) => (
+                                <button
+                                    key={example.label}
+                                    onClick={() => setInquiry(example.label)}
+                                    className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all border ${inquiry === example.label ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-white/5 border-white/10 text-slate-400 hover:border-indigo-500/50 hover:text-indigo-300'}`}
+                                >
+                                    <span className="mr-1.5">{example.icon}</span>
+                                    {example.label}
+                                </button>
+                            ))}
                         </div>
 
                         <div className="w-full max-w-lg space-y-4">
@@ -122,8 +143,8 @@ const DeepDiveView: React.FC<DeepDiveViewProps> = ({ chart }) => {
                                 <textarea
                                     value={inquiry}
                                     onChange={(e) => setInquiry(e.target.value)}
-                                    placeholder="What is your soul seeking?"
-                                    className="w-full h-32 bg-black/40 border border-white/10 rounded-2xl p-4 pl-12 font-serif text-lg text-white focus:outline-none focus:border-indigo-500/50 transition-all resize-none placeholder:text-slate-600"
+                                    placeholder="Or type your own question..."
+                                    className="w-full h-24 bg-black/40 border border-white/10 rounded-2xl p-4 pl-12 font-serif text-lg text-white focus:outline-none focus:border-indigo-500/50 transition-all resize-none placeholder:text-slate-600"
                                 />
                             </div>
                             <button
@@ -136,7 +157,7 @@ const DeepDiveView: React.FC<DeepDiveViewProps> = ({ chart }) => {
                             </button>
                         </div>
 
-                        <div className="flex gap-6 mt-12">
+                        <div className="flex gap-6 mt-8">
                             <div className="flex items-center gap-2 text-[10px] text-slate-500 uppercase tracking-widest font-bold">
                                 <History size={12} /> Akashic Persistence Active
                             </div>

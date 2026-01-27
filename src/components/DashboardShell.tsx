@@ -8,8 +8,7 @@ import {
   Compass, 
   Users, 
   Sun,
-  Moon, 
-  MessageSquare, 
+  Moon,
   Settings, 
   ChevronRight, 
   ChevronLeft,
@@ -25,7 +24,6 @@ import {
   Shield
 } from 'lucide-react';
 import NatalCompass from './NatalCompass';
-import ChatInterface from './ChatInterface';
 import TransitFeed from './TransitFeed';
 import RitualVision from './RitualVision';
 import NumerologyView from './NumerologyView';
@@ -60,9 +58,10 @@ import CelebrityMatchView from './CelebrityMatchView';
 import { ProgressionService, VIEW_LEVEL_REQUIREMENTS, CELESTIAL_QUESTS } from '@/lib/ProgressionService';
 import AuraScanner from './AuraScanner';
 import DeepDiveView from './DeepDiveView';
+import AthanorChatBar from './AthanorChatBar';
 import { Camera, Target } from 'lucide-react';
 
-type DashboardView = 'compass' | 'synastry' | 'tarot' | 'athanor' | 'rituals' | 'chronos' | 'numerology' | 'grimoire' | 'admin' | 'celebrities' | 'aura' | 'deep-dive';
+type DashboardView = 'compass' | 'synastry' | 'tarot' | 'rituals' | 'chronos' | 'numerology' | 'grimoire' | 'admin' | 'celebrities' | 'aura' | 'deep-dive' | 'codex';
 
 const DashboardShell: React.FC = () => {
   const [activeView, setActiveView] = useState<DashboardView>('compass');
@@ -82,6 +81,7 @@ const DashboardShell: React.FC = () => {
   const [isReplayingFlyby, setIsReplayingFlyby] = useState(false);
   const [selectedNum, setSelectedNum] = useState<{number: number, type: 'Life Path' | 'Destiny' | 'Active' | 'Personal Day', source: string} | null>(null);
   const [lockedView, setLockedView] = useState<string | null>(null);
+  const [isAthanorOpen, setIsAthanorOpen] = useState(false);
 
   // Check for Welcome
   React.useEffect(() => {
@@ -204,7 +204,6 @@ const DashboardShell: React.FC = () => {
     { id: 'celebrities', label: 'Celebrity Synergy', icon: Users, color: 'text-rose-400' },
     { id: 'codex', label: 'Cosmic Codex', icon: BookOpen, color: 'text-indigo-300' },
     { id: 'synastry', label: 'Synastry', icon: Users, color: 'text-fuchsia-400' },
-    { id: 'athanor', label: 'Athanor AI', icon: MessageSquare, color: 'text-blue-400' },
   ].filter(Boolean);
 
   if (isAdmin) {
@@ -701,12 +700,6 @@ const DashboardShell: React.FC = () => {
                     {activeView === 'grimoire' && <GrimoireView />}
                     
                     {activeView === 'chronos' && <TransitFeed />}
-                    
-                    {activeView === 'athanor' && (
-                        <div className="h-full">
-                            <ChatInterface />
-                        </div>
-                    )}
 
                     {activeView === 'celebrities' && (
                         <CelebrityMatchView userChart={natalChart as NatalChartData} />
@@ -880,6 +873,9 @@ const DashboardShell: React.FC = () => {
         </AnimatePresence>
       
       <AtmosphereController activeView={activeView} />
+      
+      {/* Floating Athanor Chat Bar */}
+      <AthanorChatBar isOpen={isAthanorOpen} onToggle={() => setIsAthanorOpen(!isAthanorOpen)} />
      </div>
     </div>
   );
