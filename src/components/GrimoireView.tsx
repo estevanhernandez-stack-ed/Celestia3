@@ -103,8 +103,9 @@ export default function GrimoireView() {
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   className="border-t border-emerald-900/20 bg-black/20"
+                  onClick={(e) => e.stopPropagation()} // Prevent text selection from closing entry
                 >
-                  <div className="p-6 text-sm text-emerald-300/80 leading-relaxed font-light">
+                  <div className="p-6 text-sm text-emerald-300/80 leading-relaxed font-light select-text cursor-text">
                      {entry.type === 'tarot' && (
                        <div className="space-y-4">
                          <div className="p-3 bg-indigo-950/30 rounded border border-indigo-500/10 italic">
