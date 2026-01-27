@@ -67,7 +67,6 @@ const DashboardShell: React.FC = () => {
   const [activeView, setActiveView] = useState<DashboardView>('compass');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isTarotExplorationOpen, setIsTarotExplorationOpen] = useState(false);
-  const [isCodexOpen, setIsCodexOpen] = useState(false);
   const [isAuraCamOpen, setIsAuraCamOpen] = useState(false);
 
   const [isCalibrationOpen, setIsCalibrationOpen] = useState(false);
@@ -194,20 +193,20 @@ const DashboardShell: React.FC = () => {
   const isAdmin = user?.uid === 'xfytXgoLE8gRc9FpJxTZEx8hfgy2' || user?.uid === 'dev-user-local';
   
   const navItems = [
-    { id: 'compass', label: 'Natal Compass', icon: Compass, color: 'text-indigo-400' },
-    { id: 'aura', label: 'Aura Cam', icon: Camera, color: 'text-fuchsia-400' },
-    { id: 'numerology', label: 'Arithmancy', icon: Hash, color: 'text-cyan-400' },
-    { id: 'tarot', label: 'Tarot Deck', icon: Sparkles, color: 'text-violet-400' },
-    { id: 'grimoire', label: 'Grimoire', icon: Book, color: 'text-emerald-300' },
-    { id: 'rituals', label: 'Rituals', icon: Flame, color: 'text-orange-500' },
-    { id: 'chronos', label: 'Chronos', icon: Clock, color: 'text-amber-400' },
-    { id: 'celebrities', label: 'Celebrity Synergy', icon: Users, color: 'text-rose-400' },
-    { id: 'codex', label: 'Cosmic Codex', icon: BookOpen, color: 'text-indigo-300' },
-    { id: 'synastry', label: 'Synastry', icon: Users, color: 'text-fuchsia-400' },
+    { id: 'compass', label: 'Natal Compass', subtitle: 'Your Birth Chart', icon: Compass, color: 'text-indigo-400' },
+    { id: 'aura', label: 'Aura Cam', subtitle: 'Energy Photography', icon: Camera, color: 'text-fuchsia-400' },
+    { id: 'numerology', label: 'Arithmancy', subtitle: 'Soul Numbers', icon: Hash, color: 'text-cyan-400' },
+    { id: 'tarot', label: 'Tarot Deck', subtitle: 'Card Divination', icon: Sparkles, color: 'text-violet-400' },
+    { id: 'rituals', label: 'Rituals', subtitle: 'Magical Workings', icon: Flame, color: 'text-orange-500' },
+    { id: 'chronos', label: 'Chronos', subtitle: 'Transit Forecasts', icon: Clock, color: 'text-amber-400' },
+    { id: 'celebrities', label: 'Celebrity Synergy', subtitle: 'Star Matches', icon: Users, color: 'text-rose-400' },
+    { id: 'synastry', label: 'Synastry', subtitle: 'Relationship Charts', icon: Users, color: 'text-fuchsia-400' },
+    { id: 'grimoire', label: 'Grimoire', subtitle: 'Saved Readings', icon: Book, color: 'text-emerald-300' },
+    { id: 'codex', label: 'Cosmic Codex', subtitle: 'Knowledge Archive', icon: BookOpen, color: 'text-indigo-300' },
   ].filter(Boolean);
 
   if (isAdmin) {
-    navItems.push({ id: 'admin', label: 'Sanctum Control', icon: Shield, color: 'text-cyan-400' });
+    navItems.push({ id: 'admin', label: 'Sanctum Control', subtitle: 'Admin Panel', icon: Shield, color: 'text-cyan-400' });
   }
 
   const userLevel = preferences.level || 1;
@@ -253,13 +252,7 @@ const DashboardShell: React.FC = () => {
                 return (
                     <button
                         key={item.id}
-                        onClick={() => {
-                            if (item.id === 'codex') {
-                                setIsCodexOpen(true);
-                            } else {
-                                handleViewChange(item.id);
-                            }
-                        }}
+                        onClick={() => handleViewChange(item.id)}
                         className={`w-full flex items-center justify-between p-4 rounded-xl transition-all group border ${
                             activeView === item.id 
                             ? 'bg-white/10 text-white border-white/20 shadow-lg shadow-indigo-500/10' 
@@ -269,7 +262,10 @@ const DashboardShell: React.FC = () => {
                         <div className="flex items-center gap-4">
                             <item.icon className={activeView === item.id ? item.color : 'text-slate-500 group-hover:text-white transition-colors'} size={24} />
                             {!isSidebarCollapsed && (
-                                <span className="font-medium tracking-wide text-sm">{item.label}</span>
+                                <div className="flex flex-col items-start">
+                                    <span className="font-medium tracking-wide text-sm">{item.label}</span>
+                                    <span className="text-[9px] text-slate-500 uppercase tracking-widest">{item.subtitle}</span>
+                                </div>
                             )}
                         </div>
                         {isLocked && <LockingRuneIcon size={12} className="text-slate-600" />}
@@ -744,6 +740,10 @@ const DashboardShell: React.FC = () => {
                     {activeView === 'deep-dive' && (
                         <DeepDiveView chart={natalChart} />
                     )}
+
+                    {activeView === 'codex' && (
+                        <GrimoireCodex mode="embedded" />
+                    )}
                 </motion.div>
             </AnimatePresence>
         </main>
@@ -782,12 +782,6 @@ const DashboardShell: React.FC = () => {
                 <OnboardingExperience
                     initialStep="flyby"
                     onComplete={() => setIsReplayingFlyby(false)}
-                />
-            )}
-            {isCodexOpen && (
-                <GrimoireCodex 
-                    isOpen={isCodexOpen} 
-                    onClose={() => setIsCodexOpen(false)} 
                 />
             )}
             {isAuraCamOpen && (

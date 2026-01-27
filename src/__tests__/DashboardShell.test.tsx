@@ -116,6 +116,10 @@ describe('DashboardShell', () => {
   });
 
   it('switches views when clicking sidebar items', async () => {
+    (useSettings as jest.Mock).mockReturnValue({
+      preferences: { ...mockPreferences, level: 10 },
+      updatePreferences: mockUpdatePreferences
+    });
     render(<DashboardShell />);
     
     // Find the button in the nav specifically
@@ -126,13 +130,17 @@ describe('DashboardShell', () => {
     expect(screen.getByTestId('synastry-view')).toBeInTheDocument();
   });
 
-  it('shows the "Mystical Seal" when clicking a locked item', () => {
+  it('shows the "Talisman Locked Gate" when clicking a locked item', () => {
+    (useSettings as jest.Mock).mockReturnValue({
+      preferences: { ...mockPreferences, level: 1 },
+      updatePreferences: mockUpdatePreferences
+    });
     render(<DashboardShell />);
     
     const ritualsButton = screen.getByText('Rituals').closest('button');
     if (ritualsButton) fireEvent.click(ritualsButton);
     
-    expect(screen.getByText('Mystical Seal Active')).toBeInTheDocument();
+    expect(screen.getByText('Talisman Locked Gate')).toBeInTheDocument();
   });
 
   it('allows access to items if level is sufficient', () => {
@@ -149,14 +157,37 @@ describe('DashboardShell', () => {
     expect(screen.queryByText('Mystical Seal Active')).not.toBeInTheDocument();
     expect(screen.getByTestId('ritual-panel')).toBeInTheDocument();
   });
-
   it('collapses sidebar when clicking toggle', () => {
     render(<DashboardShell />);
     
     // The toggle button is the one with chevron
-    const toggleButton = screen.getByRole('button', { name: '' }); // The one with chevron has no name
-    fireEvent.click(toggleButton);
+    const toggleButton = screen.getAllByRole('button').find(b => b.querySelector('svg')); 
+    if (toggleButton) fireEvent.click(toggleButton);
     
     expect(screen.queryByText('CELESTIA')).not.toBeInTheDocument();
+  });
+
+  it('renders subtitles in the sidebar', () => {
+    (useSettings as jest.Mock).mockReturnValue({
+      preferences: { ...mockPreferences, level: 10 },
+      updatePreferences: mockUpdatePreferences
+    });
+    render(<DashboardShell />);
+    expect(screen.getByText('Your Birth Chart')).toBeInTheDocument();
+    expect(screen.getByText('Soul Numbers')).toBeInTheDocument();
+    expect(screen.getByText('Relationship Charts')).toBeInTheDocument();
+  });
+
+  it('renders Cosmic Codex as a full view when clicked', async () => {
+    (useSettings as jest.Mock).mockReturnValue({
+      preferences: { ...mockPreferences, level: 10 },
+      updatePreferences: mockUpdatePreferences
+    });
+    render(<DashboardShell />);
+    
+    const codexButton = screen.getAllByText('Cosmic Codex')[0].closest('button');
+    if (codexButton) fireEvent.click(codexButton);
+    
+    expect(screen.getByTestId('grimoire-codex')).toBeInTheDocument();
   });
 });

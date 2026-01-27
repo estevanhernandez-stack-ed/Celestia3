@@ -172,7 +172,8 @@ ${prefs.activeParadigms.map(p => {
         if (rawText.trim().startsWith('{')) {
           try {
             const data = JSON.parse(rawText);
-            text = data.talisman_visual || data.text || rawText;
+            // Check for various response formats the AI might use
+            text = data.response || data.talisman_visual || data.text || rawText;
             voiceText = data.voice_transcript || data.audio || text;
           } catch {
             text = rawText;

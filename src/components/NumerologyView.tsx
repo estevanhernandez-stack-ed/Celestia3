@@ -200,7 +200,7 @@ const NumerologyView: React.FC<NumerologyViewProps> = ({ birthDate, fullName, co
         <div className="w-full h-full p-8 flex flex-col items-center overflow-y-auto custom-scrollbar relative">
             {renderModal()}
             {/* Header */}
-            <header className="flex justify-between items-center shrink-0 mb-12">
+            <header className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 shrink-0 mb-12 w-full max-w-6xl">
                 <div>
                     <h1 className="text-3xl font-black tracking-tighter text-transparent bg-clip-text bg-linear-to-r from-cyan-400 to-blue-600 uppercase">
                         Arithmancy Engine
