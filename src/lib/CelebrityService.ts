@@ -75,8 +75,42 @@ export const CELEBRITIES: Celebrity[] = [
 ];
 
 export class CelebrityService {
-  static getCelebrities() {
+  static getCelebrities(customCelebs?: Celebrity[]) {
+    if (customCelebs && customCelebs.length > 0) {
+      return [...CELEBRITIES, ...customCelebs];
+    }
     return CELEBRITIES;
+  }
+
+  static async scryCelebrity(query: string): Promise<Celebrity | null> {
+    const { technomancerModel } = await import("./gemini");
+    
+    const prompt = `Research the astrological birth data for: ${query}.
+    You MUST return a JSON object matching this structure:
+    {
+      "id": "slug-name",
+      "name": "Full Name",
+      "birthDate": "ISO-8601-TIMESTAMP",
+      "location": "City, Country",
+      "lat": 0.0,
+      "lng": 0.0,
+      "description": "Short poetic description",
+      "category": "Music" | "Science" | "Art" | "Philosophy" | "Tech" | "History"
+    }
+    If data is unknown, provide your best historical estimate. Be accurate with coordinates.`;
+
+    try {
+      const result = await technomancerModel.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        systemInstruction: "You are the Chronos Scryer. You find accurate birth data for historical and modern icons. Always return valid JSON."
+      });
+      
+      const text = result.response.text();
+      return JSON.parse(text) as Celebrity;
+    } catch (e) {
+      console.error("Scrying failed", e);
+      return null;
+    }
   }
 
   static getChecklistForToday() {

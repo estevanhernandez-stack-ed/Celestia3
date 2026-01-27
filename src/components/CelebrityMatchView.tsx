@@ -3,17 +3,48 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CelebrityService, Celebrity } from '@/lib/CelebrityService';
-import { Users, Star, Info, ChevronRight, Sparkles, MapPin, Calendar } from 'lucide-react';
+import { Users, Star, Info, ChevronRight, Sparkles, MapPin, Calendar, X, Zap, RefreshCw } from 'lucide-react';
 import { NatalChartData } from '@/types/astrology';
+import { useSettings } from '@/context/SettingsContext';
 
 interface CelebrityMatchViewProps {
   userChart: NatalChartData | null;
 }
 
 const CelebrityMatchView: React.FC<CelebrityMatchViewProps> = ({ userChart }) => {
+  const { preferences, updatePreferences } = useSettings();
   const [selectedCeleb, setSelectedCeleb] = useState<Celebrity | null>(null);
-  const celebs = CelebrityService.getCelebrities();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isScrying, setIsScrying] = useState(false);
+  
+  const allCelebs = CelebrityService.getCelebrities(preferences.customCelebrities);
   const birthdayMatches = CelebrityService.getChecklistForToday();
+
+  const filteredCelebs = allCelebs.filter(c => 
+    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleScry = async () => {
+    if (!searchQuery.trim()) return;
+    setIsScrying(true);
+    try {
+        const result = await CelebrityService.scryCelebrity(searchQuery);
+        if (result) {
+            setSelectedCeleb(result);
+            // Check if already in list
+            const exists = allCelebs.find(c => c.id === result.id);
+            if (!exists) {
+                const updatedCustom = [...(preferences.customCelebrities || []), result];
+                updatePreferences({ customCelebrities: updatedCustom });
+            }
+        }
+    } catch (e) {
+        console.error("Scry UI failed", e);
+    } finally {
+        setIsScrying(false);
+    }
+  };
 
   return (
     <div className="h-full flex flex-col space-y-8 p-2">
@@ -21,14 +52,47 @@ const CelebrityMatchView: React.FC<CelebrityMatchViewProps> = ({ userChart }) =>
         
         {/* Left: Celebrity List */}
         <div className="lg:col-span-1 flex flex-col space-y-6 overflow-y-auto pr-2">
-          <div className="space-y-1">
-            <h2 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-              <Star className="text-amber-400" /> Astral Icons
-            </h2>
-            <p className="text-slate-400 text-xs uppercase tracking-widest font-medium">Soul Records of History</p>
+          <div className="space-y-4">
+            <div className="space-y-1">
+                <h2 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                <Star className="text-amber-400" /> Astral Icons
+                </h2>
+                <p className="text-slate-400 text-xs uppercase tracking-widest font-medium">Soul Records of History</p>
+            </div>
+
+            {/* Search Bar */}
+            <div className="flex gap-2">
+                <div className="relative flex-1">
+                    <input 
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search icons or eras..."
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/50 transition-all text-white pr-10"
+                    />
+                    {searchQuery && (
+                        <button 
+                            onClick={() => setSearchQuery('')}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                        >
+                            <X size={14} />
+                        </button>
+                    )}
+                </div>
+                {searchQuery.length > 2 && (
+                    <button 
+                        onClick={handleScry}
+                        disabled={isScrying}
+                        className="bg-rose-500 hover:bg-rose-600 disabled:opacity-50 p-3 rounded-xl transition-all shadow-lg shadow-rose-500/20"
+                        title="Scry the Aether for this icon"
+                    >
+                        {isScrying ? <RefreshCw className="animate-spin" size={18} /> : <Zap size={18} />}
+                    </button>
+                )}
+            </div>
           </div>
 
-          {birthdayMatches.length > 0 && (
+          {birthdayMatches.length > 0 && searchQuery === '' && (
             <div className="bg-rose-500/10 border border-rose-500/30 rounded-xl p-4 space-y-3">
               <h3 className="text-rose-300 font-bold text-[10px] uppercase tracking-[0.2em] flex items-center gap-2">
                 <Sparkles size={12} /> Today&apos;s Anniversaries
@@ -43,7 +107,18 @@ const CelebrityMatchView: React.FC<CelebrityMatchViewProps> = ({ userChart }) =>
           )}
 
           <div className="space-y-3 pb-8">
-            {celebs.map((celeb) => (
+            {filteredCelebs.length === 0 && searchQuery !== '' && !isScrying && (
+                <div className="text-center py-8 space-y-4 bg-white/5 rounded-2xl border border-white/5">
+                    <p className="text-xs text-slate-500 uppercase tracking-widest">No local resonance found</p>
+                    <button 
+                        onClick={handleScry}
+                        className="text-rose-400 text-[10px] font-black uppercase tracking-[0.2em] hover:text-white transition-colors"
+                    >
+                        Click ⚡ to scry the aether
+                    </button>
+                </div>
+            )}
+            {filteredCelebs.map((celeb) => (
               <button
                 key={celeb.id}
                 onClick={() => setSelectedCeleb(celeb)}

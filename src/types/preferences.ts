@@ -55,6 +55,7 @@ export interface UserPreferences {
       timestamp: number;
   };
   savedCharts?: SavedChart[];
+  customCelebrities?: any[]; // Using any[] temporarily to avoid circular dependency, will refine if needed
   xp: number;
   level: number;
   dismissWelcomePermanent?: boolean;
