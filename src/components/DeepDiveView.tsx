@@ -79,10 +79,19 @@ const DeepDiveView: React.FC<DeepDiveViewProps> = ({ chart }) => {
                     tags: ['deep-dive', 'oracle-consultation']
                 });
             }
-        } catch (error) {
+        } catch (error: unknown) {
             console.error("Deep Dive failed", error);
             setStep('input');
-            alert("The aetheric connection was interrupted. Please try establishing the link again.");
+            
+            // Provide more specific feedback based on error type
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            const isTimeout = errorMsg.includes('deadline-exceeded') || errorMsg.includes('timeout');
+            
+            if (isTimeout) {
+                alert("The Oracle's response took too long. This can happen with complex inquiries. Please try again—the signal is strengthening.");
+            } else {
+                alert("The aetheric connection was interrupted. Please try establishing the link again.");
+            }
         }
     };
 

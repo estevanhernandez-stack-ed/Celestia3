@@ -41,7 +41,7 @@ interface ProxyResult {
 // This resolves the 403 "unregistered caller" error by providing identity via Firebase Auth
 const proxyCall = async (data: Record<string, unknown>): Promise<ProxyResult> => {
   if (!functions) throw new Error("Firebase Functions not initialized");
-  const call = httpsCallable(functions, 'geminiProxy', { timeout: 120000 });
+  const call = httpsCallable(functions, 'geminiProxy', { timeout: 180000 }); // 3 minutes for complex prompts
   const result = await call(data);
   return result.data as ProxyResult;
 };
