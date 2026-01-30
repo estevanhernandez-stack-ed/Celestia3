@@ -155,7 +155,7 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
                                 value={preferences.birthLocation?.city || ''}
                                 onChange={(e) => updatePreferences({ 
                                   birthLocation: { 
-                                    ...preferences.birthLocation!,
+                                    ...(preferences.birthLocation || { lat: 0, lng: 0, city: "" }),
                                     city: e.target.value 
                                   } 
                                 })}
@@ -168,7 +168,10 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
                                 type="number" step="any"
                                 value={preferences.birthLocation?.lat || 0}
                                 onChange={(e) => updatePreferences({ 
-                                  birthLocation: { ...preferences.birthLocation!, lat: parseFloat(e.target.value) || 0 } 
+                                  birthLocation: { 
+                                    ...(preferences.birthLocation || { lat: 0, lng: 0, city: "" }),
+                                    lat: parseFloat(e.target.value) || 0 
+                                  } 
                                 })}
                                 className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-indigo-200 outline-none focus:border-indigo-500/50 focus:bg-indigo-500/5"
                              />
@@ -179,7 +182,10 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
                                 type="number" step="any"
                                 value={preferences.birthLocation?.lng || 0}
                                 onChange={(e) => updatePreferences({ 
-                                  birthLocation: { ...preferences.birthLocation!, lng: parseFloat(e.target.value) || 0 } 
+                                  birthLocation: { 
+                                    ...(preferences.birthLocation || { lat: 0, lng: 0, city: "" }),
+                                    lng: parseFloat(e.target.value) || 0 
+                                  } 
                                 })}
                                 className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-indigo-200 outline-none focus:border-indigo-500/50 focus:bg-indigo-500/5"
                              />

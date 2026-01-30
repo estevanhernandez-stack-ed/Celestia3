@@ -190,7 +190,7 @@ const DashboardShell: React.FC = () => {
     return () => clearTimeout(timer);
   }, [preferences.birthDate, preferences.birthLocation]);
 
-  const isAdmin = user?.uid === 'xfytXgoLE8gRc9FpJxTZEx8hfgy2' || user?.uid === 'dev-user-local';
+  const isAdmin = user?.uid === 'xfytXgoLE8gRc9FpJxTZEx8hfgy2' || user?.uid === 'dev-user-local' || process.env.NODE_ENV === 'development';
   
   const navItems = [
     { id: 'compass', label: 'Natal Compass', subtitle: 'Your Birth Chart', icon: Compass, color: 'text-indigo-400' },
@@ -235,7 +235,7 @@ const DashboardShell: React.FC = () => {
         <div className="p-4 border-b border-white/10 flex items-center justify-between">
             {!isSidebarCollapsed && (
                 <div className="font-bold text-xl tracking-wider text-transparent bg-clip-text bg-linear-to-r from-indigo-400 via-fuchsia-400 to-amber-400">
-                    CELESTIA
+                    CELESTIA <span className="font-light opacity-80">GATEWAY</span>
                 </div>
             )}
             <button 

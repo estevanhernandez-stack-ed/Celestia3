@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Rocket, ChevronLeft, ChevronRight, Target, Sparkles, Wand2, Volume2, VolumeX, Compass } from 'lucide-react';
+import { Rocket, ChevronLeft, ChevronRight, Target, Sparkles, Wand2, Volume2, VolumeX, Compass, Shield } from 'lucide-react';
 import CelestialScene from './CelestialScene';
 import { OnboardingService } from '@/lib/OnboardingService';
 import { GeocodingService } from '@/lib/GeocodingService';
@@ -12,13 +12,13 @@ import { voiceService } from '@/lib/VoiceService';
 import { ResonanceService } from '@/lib/ResonanceService';
 
 interface OnboardingExperienceProps {
-  initialStep?: 'input' | 'loading' | 'flyby';
+  initialStep?: 'intro' | 'briefing' | 'input' | 'loading' | 'flyby';
   onComplete?: () => void;
 }
 
-const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep = 'input', onComplete }) => {
+const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep = 'intro', onComplete }) => {
   const { preferences, updatePreferences } = useSettings();
-  const [step, setStep] = useState<'input' | 'loading' | 'flyby'>(() => {
+  const [step, setStep] = useState<'intro' | 'briefing' | 'input' | 'loading' | 'flyby'>(() => {
     // Always start in loading if initial step is flyby, to wait for hydration and chart generation
     if (initialStep === 'flyby') return 'loading';
     return initialStep;
@@ -271,12 +271,131 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
             className="bg-black/60 backdrop-blur-md border border-emerald-500/20 p-6 rounded-2xl max-w-sm shadow-[0_0_30px_rgba(16,185,129,0.1)]"
           >
             <h1 className="text-4xl font-light tracking-tighter text-emerald-400">
-              KALYX <span className="font-bold text-white">GENESIS</span>
+              CELESTIA <span className="font-bold text-white">GATEWAY</span>
             </h1>
-            <p className="text-[10px] text-emerald-500/50 mt-2 uppercase tracking-[0.3em]">Precision Natal Flyby engine</p>
+            <p className="text-[10px] text-emerald-500/50 mt-2 uppercase tracking-[0.3em]">The Stars See You</p>
           </motion.div>
 
           <AnimatePresence mode="wait">
+            {step === 'briefing' && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.05 }}
+                className="flex flex-col items-center justify-center h-full w-full pointer-events-auto max-w-6xl mx-auto px-4"
+              >
+                <div className="bg-black/80 backdrop-blur-2xl border border-emerald-500/30 rounded-[40px] p-8 md:p-12 w-full shadow-[0_0_100px_rgba(16,185,129,0.1)] relative overflow-hidden">
+                  {/* Glowing background hint */}
+                  <div className="absolute -top-24 -left-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
+                  
+                  <div className="relative z-10 space-y-12">
+                    <div className="text-center space-y-4">
+                      <div className="inline-flex items-center gap-3 px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-[10px] font-black uppercase tracking-[0.4em]">
+                        <Shield size={12} className="animate-pulse" />
+                        Mission Protocol: Authorized
+                      </div>
+                      <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase italic">
+                        Celestial <span className="text-emerald-500">Intelligence</span> Briefing
+                      </h2>
+                      <p className="text-emerald-500/60 max-w-2xl mx-auto text-sm md:text-base font-medium leading-relaxed">
+                        You are entering a high-fidelity scrying environment. Before we align your local coordinates with the astral grid, review the primary mission modules.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      {[
+                        { 
+                          title: "Arithmancy", 
+                          subtitle: "Soul Number Engine", 
+                          img: "arithmancy.png",
+                          desc: "Decompose identities into vibrational frequencies."
+                        },
+                        { 
+                          title: "Rituals", 
+                          subtitle: "Sigil Manifestation", 
+                          img: "rituals.png",
+                          desc: "Procedural sigil logic for intention anchoring."
+                        },
+                        { 
+                          title: "Divination", 
+                          subtitle: "Synchronicity Scrying", 
+                          img: "tarot.png",
+                          desc: "Tarot analytics beyond the veil of coincidence."
+                        },
+                        { 
+                          title: "The Codex", 
+                          subtitle: "Knowledge Archive", 
+                          img: "codex.png",
+                          desc: "A exhaustive repository of celestial archetypes."
+                        }
+                      ].map((item, i) => (
+                        <motion.div 
+                          key={i}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0, transition: { delay: i * 0.1 } }}
+                          className="group bg-emerald-950/20 border border-emerald-900/50 rounded-3xl overflow-hidden hover:border-emerald-500/40 transition-all hover:translate-y-[-4px]"
+                        >
+                          <div className="h-32 bg-emerald-900/20 relative overflow-hidden">
+                            <img src={`/previews/${item.img}`} alt={item.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-500 group-hover:scale-110" />
+                            <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent" />
+                          </div>
+                          <div className="p-5 space-y-2">
+                            <div className="flex flex-col">
+                              <span className="text-[10px] text-emerald-500 font-black uppercase tracking-widest">{item.title}</span>
+                              <span className="text-xs font-bold text-white uppercase tracking-tight">{item.subtitle}</span>
+                            </div>
+                            <p className="text-[10px] text-emerald-500/40 leading-relaxed font-medium uppercase tracking-wider">{item.desc}</p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    <div className="flex flex-col items-center gap-6 pt-4">
+                      <motion.button
+                        whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(16,185,129,0.3)" }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setStep('input')}
+                        className="group relative px-16 py-5 bg-emerald-600 rounded-2xl text-black font-black text-sm uppercase tracking-[0.4em] transition-all shadow-[0_0_30px_rgba(16,185,129,0.2)]"
+                      >
+                        Secure Genesis Data
+                      </motion.button>
+                      <button 
+                         onClick={() => setStep('intro')}
+                         className="text-emerald-500/40 hover:text-emerald-400 text-[10px] uppercase font-bold tracking-[0.4em] transition-colors"
+                      >
+                        ← Back to Gateway
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {step === 'intro' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="flex flex-col items-center justify-center h-full w-full pointer-events-auto"
+              >
+                <motion.button
+                  whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(16,185,129,0.3)" }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setStep('briefing')}
+                  className="group relative px-12 py-6 bg-transparent border-2 border-emerald-500/50 rounded-full text-emerald-400 font-black text-sm uppercase tracking-[0.5em] transition-all overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <span className="relative z-10 flex items-center gap-4">
+                    <Sparkles className="animate-pulse" size={20} />
+                    Initiate Genesis
+                  </span>
+                </motion.button>
+                <p className="mt-8 text-emerald-500/40 text-[10px] uppercase tracking-[0.4em] font-medium animate-pulse">
+                  System Online: Waiting for Operator Input
+                </p>
+              </motion.div>
+            )}
+
             {step === 'input' && (
               <motion.form 
                 initial={{ opacity: 0, scale: 0.9 }}

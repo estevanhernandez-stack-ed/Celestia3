@@ -83,6 +83,19 @@ Ascendant: ${chart.ascendant?.sign} ${chart.ascendant?.degree.toFixed(2)}°
       }
     }
 
+    // FALLBACK: If raw chart data is missing, check for a "fresh" local analysis
+    if (!chartContext && prefs.chartAnalysis) {
+        const isFresh = (Date.now() - prefs.chartAnalysis.timestamp) < (1000 * 60 * 60 * 24 * 7); // 7 days freshness
+        chartContext = `
+[CACHED_NATAL_DATA] (FRESHNESS: ${isFresh ? 'CONFIRMED' : 'STALE'})
+Native: ${prefs.name}
+Summary: ${prefs.chartAnalysis.cosmicSignature}
+Core Alignment: ${prefs.chartAnalysis.bigThree}
+[END_CACHED_DATA]
+`;
+        console.log(`[ChatService] Using ${isFresh ? 'fresh' : 'stale'} cached analysis as fallback.`);
+    }
+
     const context = `
 CURRENT CELESTIAL WEATHER:
 - Day Ruler: ${weather.dayRuler}
@@ -230,22 +243,44 @@ ${prefs.activeParadigms.map(p => {
   // ... (generateNatalInterpretation method remains unchanged) ...
 
   static async generateArithmancyInterpretation(prefs: UserPreferences, numerologyData: NumerologyProfile): Promise<string> {
+    console.log('[ChatService] 🚀 generateArithmancyInterpretation called for:', prefs.name);
     const rawPrompt = await ConfigService.getPrompt('arithmancy_natal_integration');
     
+    // Fetch knowledge context if enabled
+    let knowledgeContext = "";
+    try {
+        const knowledge = await ConfigService.getGlobalDirective();
+        if (knowledge.isKnowledgeSyncEnabled) {
+            knowledgeContext = `[DIRECTIVE_FOCUS]: ${knowledge.knowledgeFocus}`;
+        }
+    } catch (e) {
+        console.warn("Knowledge sync failed for Arithmancy:", e);
+    }
+
     let chartData = "Natal chart data is unavailable. Focus on the mathematical vibrations.";
     if (prefs.birthDate && prefs.birthLocation) {
-        try {
-            const chart = await SwissEphemerisService.calculateChart(
-                new Date(prefs.birthDate),
-                prefs.birthLocation.lat,
-                prefs.birthLocation.lng
-            );
-            chartData = chart.planets.map(p => 
-                `${p.name}: ${p.sign} ${p.degree.toFixed(2)}°${p.retrograde ? ' (Retrograde)' : ''}`
-            ).join('\n') + `\nAscendant: ${chart.ascendant?.sign} ${chart.ascendant?.degree.toFixed(2)}°`;
-        } catch (e) {
-            console.error("SwissEph failed during Arithmancy interpretation:", e);
+        const birthDate = new Date(prefs.birthDate);
+        if (!isNaN(birthDate.getTime())) {
+            console.log('[ChatService] 📊 Calculating chart for Arithmancy:', prefs.birthLocation.city);
+            try {
+                const chart = await SwissEphemerisService.calculateChart(
+                    birthDate,
+                    prefs.birthLocation.lat,
+                    prefs.birthLocation.lng
+                );
+                chartData = chart.planets.map(p => 
+                    `${p.name}: ${p.sign} ${p.degree.toFixed(2)}°${p.retrograde ? ' (Retrograde)' : ''}`
+                ).join('\n') + `\nAscendant: ${chart.ascendant?.sign} ${chart.ascendant?.degree.toFixed(2)}°`;
+            } catch (e) {
+                console.error("SwissEph failed during Arithmancy interpretation:", e);
+            }
         }
+    }
+
+    // FALLBACK: Use local analysis if raw chart data is missing
+    if (chartData.includes("unavailable") && prefs.chartAnalysis) {
+        const isFresh = (Date.now() - prefs.chartAnalysis.timestamp) < (1000 * 60 * 60 * 24 * 7);
+        chartData = `[LOCAL_CACHE (${isFresh ? 'FRESH' : 'STALE'})]\n${prefs.chartAnalysis.bigThree}\n${prefs.chartAnalysis.cosmicSignature}`;
     }
 
     const prompt = rawPrompt
@@ -258,7 +293,15 @@ ${prefs.activeParadigms.map(p => {
         .replace(/{{soulUrgeArchetype}}/g, numerologyData.soulUrge?.archetype || "Unknown")
         .replace(/{{personality}}/g, String(numerologyData.personality?.core || "Unknown"))
         .replace(/{{personalityArchetype}}/g, numerologyData.personality?.archetype || "Unknown")
+        .replace(/{{knowledgeContext}}/g, knowledgeContext)
         .replace(/{{chartData}}/g, chartData);
+
+    console.log('[ChatService] 📝 Final Arithmancy Prompt length:', prompt.length);
+    if (!chartData.includes("unavailable")) {
+        console.log('[ChatService] ✅ Chart data successfully injected into Arithmancy prompt.');
+    } else {
+        console.warn('[ChatService] ⚠️ Arithmancy prompt is missing live chart data.');
+    }
 
     try {
       const result = await technomancerModel.generateContent(prompt);

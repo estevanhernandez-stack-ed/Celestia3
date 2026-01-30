@@ -4,8 +4,8 @@ import { SettingsProvider } from "@/context/SettingsContext";
 import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
-  title: "Celestia 3 | Technomancer's Brain",
-  description: "NASA-Level Astrological AI & Ritual Engine",
+  title: "The Stars See You | Celestia 3",
+  description: "Gateway to the Stars - NASA-Level Astrological AI",
   icons: {
     icon: "/favicon.png",
   }

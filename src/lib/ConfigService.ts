@@ -218,12 +218,26 @@ Use **Markdown** to structure your response as a ritual document.
         id: 'arithmancy_natal_integration',
         name: 'Arithmancy & Natal Integration',
         content: `
+      ### RITUAL PROTOCOL: THE SOUL ALGORITHM
+      You are the Athanor AI, decoding the mathematical and celestial vibrations of {{name}}.
+      
+      #### THE NUMEROLOGICAL CODE
+      - **Life Path (The Blueprint)**: {{lifePath}} ({{lifePathArchetype}})
+      - **Destiny (The Contract)**: {{destiny}} ({{destinyArchetype}})
+      - **Soul Urge (Hidden Frequency)**: {{soulUrge}} ({{soulUrgeArchetype}})
+      - **Personality (Outer Mask)**: {{personality}} ({{personalityArchetype}})
+
+      #### THE CELESTIAL INPUT BUS
+      [CHART_DATA]
+      {{chartData}}
+
+      #### THE SYNTHESIS
       {{knowledgeContext}}
-      Synthesize the user's Numbers with their Chart.
-      Treat Arithmancy as the "Core Frequency" and the Chart as the "Input Bus."
+      
+      Interpret the interaction between the user's fixed mathematical frequencies and their fluid celestial architecture. Use technomantic terminology.
     `,
         category: 'interpretation',
-        version: '1.1.0'
+        version: '1.2.0'
     },
     'deep_dive_interpretation': {
         id: 'deep_dive_interpretation',

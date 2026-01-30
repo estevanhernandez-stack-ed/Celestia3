@@ -60,3 +60,20 @@ Astrological precision is achieved via the `Swiss Ephemeris`, compiled to WebAss
 Access to advanced features (e.g., Synastry, Rituals) is gated by the `ProgressionService`.
 - **XP Hooks:** Every significant interaction (reading, ritual, scan) triggers a server-side verified or client-calculated XP gain.
 - **Level Gates:** Defined in `src/lib/ProgressionService.ts`, ensuring a curated user journey.
+
+---
+
+## 🏛️ Technical Rationale: Why Function Calling?
+
+The decision to expose browser APIs to the AI via **Function Calling** (Tool Use) is central to the project's agentic goals. 
+
+### 1. Deterministic Execution vs Hallucination
+When the AI describes a "Solar Resonance," it must be exact. By using a tool-calling layer for `trigger_resonance`, we ensure the frequency is mathematically correct (e.g., 126.22 Hz) rather than the AI simply "imagining" a sound. 
+
+### 2. The "Active OS" Metaphor
+We treat the application state as a register that the AI can read/write.
+- **`scryCelebrity`**: Acts as a dynamic data-injection routine. It allows the AI to hydrate the application's historical database (`CELEBRITIES`) without a deployment.
+- **`search_spotify`**: Bridges the digital sandbox with the real-world cultural layer, manifesting the AI's abstract synthesis into a concrete user experience.
+
+### 3. Latency & Interaction Design
+By using the **Direct SDK** for tools, we achieve sub-second execution for ritual elements. The "Technomancer" path handles the immediate somatic feedback (audio/visual), while the "Athanor" path handles high-context synthesis, creating a balanced, low-latency agentic loop.
