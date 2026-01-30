@@ -161,11 +161,13 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
     }
   }, [initialStep, chartData, birthInfo, step, preferences.birthDate, finishOnboarding]);
 
-  // AUTO-ENTRANCE logic for returning users who log in
+  // Effect to trigger 'entrance' step for returning users
   useEffect(() => {
     if (!user?.isAnonymous && preferences.hasCompletedOnboarding && step === 'intro') {
-        setStep('entrance');
-        setViewMode('flyby');
+        setTimeout(() => {
+            setStep('entrance');
+            setViewMode('flyby');
+        }, 50);
     }
   }, [user, preferences.hasCompletedOnboarding, step]);
 
@@ -319,7 +321,7 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
                 exit={{ opacity: 0, scale: 1.05 }}
                 className="flex flex-col items-center justify-center h-full w-full pointer-events-auto max-w-6xl mx-auto px-4"
               >
-                <div className="bg-black/80 backdrop-blur-2xl border border-emerald-500/30 rounded-[40px] p-8 md:p-12 w-full shadow-[0_0_100px_rgba(16,185,129,0.1)] relative overflow-hidden">
+                <div className="bg-black/80 backdrop-blur-2xl border border-emerald-500/30 rounded-3xl md:rounded-[40px] p-6 md:p-12 w-full shadow-[0_0_100px_rgba(16,185,129,0.1)] relative overflow-hidden max-h-[85vh] overflow-y-auto">
                   {/* Glowing background hint */}
                   <div className="absolute -top-24 -left-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
                   
@@ -449,7 +451,7 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 onSubmit={handleGenerate} 
-                className="bg-black/80 backdrop-blur-xl border border-emerald-500/30 p-8 rounded-3xl w-[400px] shadow-[0_0_50px_rgba(0,0,0,0.5)] space-y-6 pointer-events-auto"
+                className="bg-black/80 backdrop-blur-xl border border-emerald-500/30 p-6 md:p-8 rounded-3xl w-full max-w-md mx-4 shadow-[0_0_50px_rgba(0,0,0,0.5)] space-y-6 pointer-events-auto max-h-[90vh] overflow-y-auto"
               >
                 <div className="flex items-center gap-3 text-emerald-400 mb-2">
                   <Target size={20} />

@@ -86,7 +86,7 @@ const DashboardShell: React.FC = () => {
   const [isCalibrationOpen, setIsCalibrationOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
   const { preferences, updatePreferences } = useSettings();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [natalChart, setNatalChart] = useState<NatalChartData | null>(null);
   const [ritualResult, setRitualResult] = useState<RitualResult | null>(null);
   const [isPerformingRitual, setIsPerformingRitual] = useState(false);

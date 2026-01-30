@@ -55,7 +55,7 @@ export default function WelcomeModal({ isOpen, onClose, userName }: WelcomeModal
           </div>
 
           {/* Pillars Grid */}
-          <div className="p-8 grid grid-cols-2 gap-6 bg-slate-950/50 border-b border-white/5">
+          <div className="p-6 md:p-8 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 bg-slate-950/50 border-b border-white/5 max-h-[40vh] overflow-y-auto sm:max-h-none">
             <motion.div 
               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
               className="space-y-2 group"
@@ -110,7 +110,7 @@ export default function WelcomeModal({ isOpen, onClose, userName }: WelcomeModal
           </div>
 
           {/* Progression Intel */}
-          <div className="px-8 py-5 bg-indigo-500/5 border-b border-indigo-500/10">
+          <div className="px-6 md:px-8 py-4 md:py-5 bg-indigo-500/5 border-b border-indigo-500/10">
             <div className="flex items-start gap-3">
                 <Zap size={14} className="text-indigo-400 mt-0.5 shrink-0" />
                 <p className="text-[10px] text-indigo-300 font-medium leading-relaxed italic">
@@ -121,9 +121,9 @@ export default function WelcomeModal({ isOpen, onClose, userName }: WelcomeModal
 
 
           {/* Activation Protocol */}
-          <div className="px-8 py-6 bg-black/60">
+          <div className="px-6 md:px-8 py-5 md:py-6 bg-black/60 overflow-x-auto">
             <h4 className="text-[8px] font-black tracking-[0.4em] text-indigo-500 uppercase mb-3">Activation Protocol</h4>
-            <div className="flex gap-8">
+            <div className="flex flex-col sm:flex-row sm:gap-8 gap-4 min-w-max sm:min-w-0">
                 {[
                     { step: "01", title: "Calibrate", desc: "Set your birth coordinates." },
                     { step: "02", title: "Synthesize", desc: "Seed the Codex via Athanor." },

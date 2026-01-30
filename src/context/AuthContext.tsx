@@ -7,6 +7,8 @@ import {
   User, 
   GoogleAuthProvider, 
   signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
   signOut as firebaseSignOut,
   linkWithPopup
 } from 'firebase/auth';
@@ -28,6 +30,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loginAttempted = React.useRef(false);
 
   useEffect(() => {
+    // Handle redirect results (useful for mobile)
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          console.log("[AuthContext] Redirect result processed:", result.user.uid);
+        }
+      })
+      .catch((error) => {
+        console.error("[AuthContext] Redirect error:", error);
+      });
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       console.log("Auth State Changed:", currentUser?.uid, currentUser?.isAnonymous);
       if (!currentUser) {
@@ -59,12 +72,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
     try {
       if (user?.isAnonymous) {
-        // Link the anonymous account to Google so we don't lose data
-        await linkWithPopup(user, provider);
+        try {
+          // Try to link the anonymous account to Google
+          if (isMobile) {
+            await signInWithRedirect(auth, provider);
+            return;
+          }
+          await linkWithPopup(user, provider);
+        } catch (linkError: any) {
+          // If the Google account is already linked to another user,
+          // just sign in normally to that existing account.
+          if (linkError.code === 'auth/credential-already-in-use') {
+            console.log("[AuthContext] Credential already in use, signing in instead of linking.");
+            if (isMobile) {
+              await signInWithRedirect(auth, provider);
+            } else {
+              await signInWithPopup(auth, provider);
+            }
+          } else {
+            throw linkError;
+          }
+        }
       } else {
-        await signInWithPopup(auth, provider);
+        if (isMobile) {
+          await signInWithRedirect(auth, provider);
+        } else {
+          await signInWithPopup(auth, provider);
+        }
       }
     } catch (error) {
       console.error("Google Sign-In Error:", error);
