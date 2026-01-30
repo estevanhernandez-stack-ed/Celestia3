@@ -4,6 +4,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Rocket, ChevronLeft, ChevronRight, Target, Sparkles, Wand2, Volume2, VolumeX, Compass, Shield } from 'lucide-react';
 import CelestialScene from './CelestialScene';
+import { useAuth } from '@/context/AuthContext';
 import { OnboardingService } from '@/lib/OnboardingService';
 import { GeocodingService } from '@/lib/GeocodingService';
 import { OnboardingBirthInfo, OnboardingChartData } from '@/types/onboarding';
@@ -16,8 +17,20 @@ interface OnboardingExperienceProps {
   onComplete?: () => void;
 }
 
+const GeminiBadge = () => (
+  <div className="flex items-center gap-2 px-3 py-1.5 bg-black/40 backdrop-blur-md border border-emerald-500/20 rounded-full group hover:border-emerald-500/50 transition-all pointer-events-auto cursor-default">
+      <div className="w-4 h-4 rounded-full bg-emerald-500/20 flex items-center justify-center">
+          <Sparkles size={10} className="text-emerald-400 animate-pulse" />
+      </div>
+      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500/80 group-hover:text-emerald-400">
+          Powered by <span className="text-white">Gemini 3</span>
+      </span>
+  </div>
+);
+
 const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep = 'intro', onComplete }) => {
   const { preferences, updatePreferences } = useSettings();
+  const { user, signInWithGoogle } = useAuth();
   const [step, setStep] = useState<'intro' | 'briefing' | 'input' | 'loading' | 'flyby'>(() => {
     // Always start in loading if initial step is flyby, to wait for hydration and chart generation
     if (initialStep === 'flyby') return 'loading';
@@ -390,9 +403,21 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
                     Initiate Genesis
                   </span>
                 </motion.button>
-                <p className="mt-8 text-emerald-500/40 text-[10px] uppercase tracking-[0.4em] font-medium animate-pulse">
-                  System Online: Waiting for Operator Input
-                </p>
+                
+                <div className="mt-8 flex flex-col items-center gap-4">
+                    <p className="text-emerald-500/40 text-[10px] uppercase tracking-[0.4em] font-medium animate-pulse">
+                        System Online: Waiting for Operator Input
+                    </p>
+                    {user?.isAnonymous && (
+                        <button 
+                            onClick={signInWithGoogle}
+                            className="group flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-emerald-600 hover:text-emerald-400 transition-colors"
+                        >
+                            <span>Returning Operator?</span>
+                            <span className="font-black border-b border-emerald-600/50 group-hover:border-emerald-400">Sign In</span>
+                        </button>
+                    )}
+                </div>
               </motion.div>
             )}
 
@@ -644,6 +669,11 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Footer Branding */}
+        <div className="mt-auto pointer-events-none">
+            <GeminiBadge />
+        </div>
       </div>
 
       <style jsx>{`

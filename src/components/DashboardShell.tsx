@@ -63,6 +63,17 @@ import { Camera, Target } from 'lucide-react';
 
 type DashboardView = 'compass' | 'synastry' | 'tarot' | 'rituals' | 'chronos' | 'numerology' | 'grimoire' | 'admin' | 'celebrities' | 'aura' | 'deep-dive' | 'codex';
 
+const GeminiBadge = () => (
+    <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 backdrop-blur-md border border-white/10 rounded-full group hover:border-indigo-500/30 transition-all pointer-events-auto cursor-default">
+        <div className="w-4 h-4 rounded-full bg-indigo-500/20 flex items-center justify-center">
+            <Sparkles size={10} className="text-indigo-400 animate-pulse" />
+        </div>
+        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-indigo-300">
+            Powered by <span className="text-white">Gemini 3</span>
+        </span>
+    </div>
+);
+
 const DashboardShell: React.FC = () => {
   const [activeView, setActiveView] = useState<DashboardView>('compass');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -273,6 +284,12 @@ const DashboardShell: React.FC = () => {
                 )
             })}
         </nav>
+
+        {!isSidebarCollapsed && (
+            <div className="p-6 border-t border-white/5 flex justify-center">
+                <GeminiBadge />
+            </div>
+        )}
       </div>
 
       {/* Main Content Area */}
