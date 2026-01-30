@@ -24,6 +24,7 @@ import { UserProfileService } from '@/lib/UserProfileService';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isAuthenticating: boolean;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -33,6 +34,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   const loginAttempted = React.useRef(false);
 
@@ -108,13 +110,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Critical: Push localStorage data to Firestore for this new UID
       // This bridges the "guest" data to the Google account
       await UserProfileService.forceSync(user.uid);
-      console.log("[AuthContext] Successfully synced localStorage to Google account");
+      console.log("[AuthContext] Successfully initialized and synced user:", user.uid);
     } catch (error) {
       console.error("[AuthContext] Failed to initialize user document:", error);
     }
   };
 
   const signInWithGoogle = async () => {
+    if (isAuthenticating) {
+      console.warn("[AuthContext] Auth already in progress, skipping.");
+      return;
+    }
+
+    console.log("[AuthContext] Triggering Google Sign-In...");
+    setIsAuthenticating(true);
     const provider = new GoogleAuthProvider();
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
@@ -124,21 +133,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Try to link the anonymous account to Google
           if (isMobile) {
             await signInWithRedirect(auth, provider);
-            return;
+            return; // getRedirectResult will handle initialization
           }
           const credential = await linkWithPopup(user, provider);
           if (credential.user) {
             await initializeUserDocument(credential.user);
           }
-        } catch (linkError: any) {
+        } catch (linkError) {
+          const error = linkError as { code?: string };
           // If the Google account is already linked to another user,
           // just sign in normally to that existing account.
-          if (linkError.code === 'auth/credential-already-in-use') {
+          if (error.code === 'auth/credential-already-in-use') {
             console.log("[AuthContext] Credential already in use, signing in instead of linking.");
             let result;
             if (isMobile) {
               await signInWithRedirect(auth, provider);
-              return; // getRedirectResult handles the rest
+              return; 
             } else {
               result = await signInWithPopup(auth, provider);
             }
@@ -154,7 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         let result;
         if (isMobile) {
           await signInWithRedirect(auth, provider);
-          return; // getRedirectResult handles the rest
+          return;
         } else {
           result = await signInWithPopup(auth, provider);
         }
@@ -163,24 +173,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           await initializeUserDocument(result.user);
         }
       }
-    } catch (error) {
-      console.error("Google Sign-In Error:", error);
+    } catch (err) {
+      const error = err as { code?: string };
+      if (error.code === 'auth/popup-closed-by-user') {
+        console.warn("[AuthContext] Google popup closed by user.");
+      } else if (error.code === 'auth/cancelled-by-user') {
+        console.warn("[AuthContext] Sign-in cancelled by user.");
+      } else {
+        console.error("Google Sign-In Error:", error);
+      }
       throw error;
+    } finally {
+      setIsAuthenticating(false);
     }
   };
 
   const logout = async () => {
+    if (isAuthenticating) return;
+    
+    console.log("[AuthContext] Manual Sign-Out Triggered");
+    setIsAuthenticating(true);
     try {
+      // 1. Clear local preference cache to prevent data overlap for next user
+      UserProfileService.clearLocalStorage();
+      
+      // 2. Sign out from Firebase Auth
       await firebaseSignOut(auth);
-      // After sign out, we'll re-trigger the anonymous login via the useEffect
+      
+      // 3. Reset local app state
+      setUser(null);
       loginAttempted.current = false;
+      
+      console.log("[AuthContext] User successfully signed out");
     } catch (error) {
-      console.error("Sign-Out Error:", error);
+      console.error("[AuthContext] Sign-Out Error:", error);
+    } finally {
+      setIsAuthenticating(false);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, isAuthenticating, signInWithGoogle, logout }}>
       {!loading && children}
     </AuthContext.Provider>
   );

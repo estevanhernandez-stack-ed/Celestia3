@@ -30,7 +30,7 @@ const GeminiBadge = () => (
 
 const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep = 'intro', onComplete }) => {
   const { preferences, updatePreferences } = useSettings();
-  const { user, signInWithGoogle } = useAuth();
+  const { user, signInWithGoogle, isAuthenticating } = useAuth();
   const [step, setStep] = useState<'intro' | 'briefing' | 'input' | 'loading' | 'flyby' | 'entrance'>(() => {
     // Always start in loading if initial step is flyby or entrance, to wait for hydration and chart generation
     if (initialStep === 'flyby' || initialStep === 'entrance') return 'loading';
@@ -435,10 +435,11 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
                     {user?.isAnonymous && (
                         <button 
                             onClick={signInWithGoogle}
-                            className="group flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-emerald-600 hover:text-emerald-400 transition-colors"
+                            disabled={isAuthenticating}
+                            className="group flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-emerald-600 hover:text-emerald-400 disabled:opacity-50 transition-colors"
                         >
-                            <span>Returning Operator?</span>
-                            <span className="font-black border-b border-emerald-600/50 group-hover:border-emerald-400">Sign In</span>
+                            <span>{isAuthenticating ? "Synchronizing..." : "Returning Operator?"}</span>
+                            {!isAuthenticating && <span className="font-black border-b border-emerald-600/50 group-hover:border-emerald-400">Sign In</span>}
                         </button>
                     )}
                 </div>

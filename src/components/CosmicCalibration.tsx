@@ -31,7 +31,7 @@ type SettingsTab = 'astro' | 'profile' | 'studio' | 'system';
 
 export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibrationProps) {
   const { preferences, updatePreferences } = useSettings();
-  const { user, signInWithGoogle, logout } = useAuth();
+  const { user, signInWithGoogle, logout, isAuthenticating } = useAuth();
   const [activeTab, setActiveTab] = useState<SettingsTab>('astro');
   const [auraCaptures, setAuraCaptures] = useState<GrimoireEntry[]>([]);
   const [isLinking, setIsLinking] = useState(false);
@@ -326,7 +326,10 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
                              </button>
                            ) : (
                              <button
-                               onClick={() => logout()}
+                               onClick={async () => {
+                                 await logout();
+                                 onClose();
+                               }}
                                className="px-6 py-2 bg-white/5 hover:bg-red-500/10 border border-white/10 hover:border-red-500/50 text-slate-400 hover:text-red-400 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
                              >
                                Sign Out
