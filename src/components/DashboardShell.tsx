@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import NextImage from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -9,7 +9,6 @@ import {
   Users, 
   Sun,
   Moon,
-  Settings, 
   ChevronRight, 
   ChevronLeft,
   Clock, 
@@ -21,7 +20,13 @@ import {
   Globe,
   Heart, 
   Wind,
-  Shield
+  Shield,
+  LogOut,
+  Book,
+  Camera,
+  Settings,
+  Target,
+  Zap
 } from 'lucide-react';
 import NatalCompass from './NatalCompass';
 import TransitFeed from './TransitFeed';
@@ -48,18 +53,16 @@ import TarotSpread from './TarotSpread';
 import TarotExplorer from './TarotExplorer';
 import GrimoireView from './GrimoireView';
 import AtmosphereController from './AtmosphereController';
-import { Book } from 'lucide-react';
 import { GrimoireService } from '@/lib/GrimoireService';
 import { NumerologyEngine } from '@/utils/NumerologyEngine';
 import { calculateMoonPhase, getNextMoonPhaseDate } from '@/utils/astrologyUtils';
-import { Zap } from 'lucide-react';
 import GrimoireCodex from './GrimoireCodex';
 import CelebrityMatchView from './CelebrityMatchView';
 import { ProgressionService, VIEW_LEVEL_REQUIREMENTS, CELESTIAL_QUESTS } from '@/lib/ProgressionService';
 import AuraScanner from './AuraScanner';
 import DeepDiveView from './DeepDiveView';
 import AthanorChatBar from './AthanorChatBar';
-import { Camera, Target } from 'lucide-react';
+
 
 type DashboardView = 'compass' | 'synastry' | 'tarot' | 'rituals' | 'chronos' | 'numerology' | 'grimoire' | 'admin' | 'celebrities' | 'aura' | 'deep-dive' | 'codex';
 
@@ -94,7 +97,7 @@ const DashboardShell: React.FC = () => {
   const [isAthanorOpen, setIsAthanorOpen] = useState(false);
 
   // Check for Welcome
-  React.useEffect(() => {
+  useEffect(() => {
     if (!preferences.hasSeenWelcome && preferences.hasCompletedOnboarding && !preferences.dismissWelcomePermanent) {
         // Short delay for effect
         setTimeout(() => setIsWelcomeOpen(true), 1500);
@@ -166,14 +169,14 @@ const DashboardShell: React.FC = () => {
      updatePreferences({ xp: progression.xp, level: progression.level });
   };
 
-  const moonInfo = React.useMemo(() => {
+  const moonInfo = useMemo(() => {
     return {
         current: calculateMoonPhase(),
         next: getNextMoonPhaseDate()
     };
   }, []); // Calculate once on mount, or could depend on a "system hour" state if needed
 
-  React.useEffect(() => {
+  useEffect(() => {
     async function initChart() {
       if (preferences.birthDate && preferences.birthLocation) {
         try {
@@ -284,6 +287,21 @@ const DashboardShell: React.FC = () => {
                 )
             })}
         </nav>
+
+        <div className="px-4 py-2 border-t border-white/5 space-y-1">
+            <button 
+                onClick={() => logout()}
+                className="w-full flex items-center gap-4 p-4 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/5 transition-all group"
+            >
+                <LogOut size={24} className="group-hover:rotate-12 transition-transform" />
+                {!isSidebarCollapsed && (
+                    <div className="flex flex-col items-start">
+                        <span className="font-medium tracking-wide text-sm">Disconnect</span>
+                        <span className="text-[9px] uppercase tracking-[0.2em] opacity-50">End Session</span>
+                    </div>
+                )}
+            </button>
+        </div>
 
         {!isSidebarCollapsed && (
             <div className="p-6 border-t border-white/5 flex justify-center">
