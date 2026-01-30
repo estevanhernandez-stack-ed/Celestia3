@@ -23,9 +23,9 @@ jobs:
         run: cd functions && npm ci && npm run build
 
       - name: Deploy to Firebase (Rules & Functions)
-        uses: w9jds/firebase-action@master
+        uses: w9jds/firebase-action@v2.2.1
         with:
-          args: deploy --only firestore,functions --non-interactive
+          args: deploy --only firestore,functions --project celestia3 --non-interactive
         env:
           GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CELESTIA3 }}
 
