@@ -13,7 +13,7 @@ import { voiceService } from '@/lib/VoiceService';
 import { ResonanceService } from '@/lib/ResonanceService';
 
 interface OnboardingExperienceProps {
-  initialStep?: 'intro' | 'briefing' | 'input' | 'loading' | 'flyby';
+  initialStep?: 'intro' | 'briefing' | 'input' | 'loading' | 'flyby' | 'entrance';
   onComplete?: () => void;
 }
 
@@ -31,9 +31,9 @@ const GeminiBadge = () => (
 const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep = 'intro', onComplete }) => {
   const { preferences, updatePreferences } = useSettings();
   const { user, signInWithGoogle } = useAuth();
-  const [step, setStep] = useState<'intro' | 'briefing' | 'input' | 'loading' | 'flyby'>(() => {
-    // Always start in loading if initial step is flyby, to wait for hydration and chart generation
-    if (initialStep === 'flyby') return 'loading';
+  const [step, setStep] = useState<'intro' | 'briefing' | 'input' | 'loading' | 'flyby' | 'entrance'>(() => {
+    // Always start in loading if initial step is flyby or entrance, to wait for hydration and chart generation
+    if (initialStep === 'flyby' || initialStep === 'entrance') return 'loading';
     return initialStep;
   });
   const [birthInfo, setBirthInfo] = useState<OnboardingBirthInfo>(() => {
@@ -77,6 +77,26 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
   const [isSearching, setIsSearching] = useState(false);
   const [coordinatesLocked, setCoordinatesLocked] = useState(false);
 
+  const finishOnboarding = useCallback(() => {
+    if (onComplete) {
+        onComplete();
+        return;
+    }
+
+    updatePreferences({
+      birthDate: new Date(`${birthInfo.date}T${birthInfo.time}:00`).toISOString(),
+      birthLocation: {
+        city: birthInfo.location,
+        lat: birthInfo.lat || 0,
+        lng: birthInfo.lng || 0
+      },
+      fullName: birthInfo.fullName,
+      name: birthInfo.magicName || "Traveler",
+      pronouns: birthInfo.pronouns || "They/Them",
+      hasCompletedOnboarding: true
+    });
+  }, [birthInfo, updatePreferences, onComplete]);
+
   // Auto-geocode when location changes
   React.useEffect(() => {
     // Don't search for short queries
@@ -107,16 +127,31 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
 
   // Handle Chart Generation on Hydration
   useEffect(() => {
-    if (initialStep === 'flyby' && !chartData && birthInfo.location) {
+    if ((initialStep === 'flyby' || step === 'entrance') && !chartData && preferences.birthDate) {
         OnboardingService.generateChart(birthInfo)
             .then(data => {
                 setChartData(data);
-                setStep('flyby');
-                setViewMode('flyby');
-                setIsFlybyRunning(true);
-                setFlybyIndex(0);
-                if (data.planets.length > 0) {
+                
+                // For entrance/returning, find the Sun
+                const sun = data.planets.find(p => p.name.toLowerCase() === 'sun');
+                if (sun) {
+                    setSelectedPlanet(sun.name);
+                    const idx = data.planets.findIndex(p => p.name === sun.name);
+                    setFlybyIndex(idx);
+                } else if (data.planets.length > 0) {
                     setSelectedPlanet(data.planets[0].name);
+                    setFlybyIndex(0);
+                }
+
+                if (step === 'entrance') {
+                    // Stay in entrance for 3 seconds then complete
+                    setTimeout(() => {
+                        finishOnboarding();
+                    }, 4000);
+                } else {
+                    setStep('flyby');
+                    setViewMode('flyby');
+                    setIsFlybyRunning(true);
                 }
             })
             .catch(err => {
@@ -124,7 +159,15 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
                 setStep('input');
             });
     }
-  }, [initialStep, chartData, birthInfo]);
+  }, [initialStep, chartData, birthInfo, step, preferences.birthDate, finishOnboarding]);
+
+  // AUTO-ENTRANCE logic for returning users who log in
+  useEffect(() => {
+    if (!user?.isAnonymous && preferences.hasCompletedOnboarding && step === 'intro') {
+        setStep('entrance');
+        setViewMode('flyby');
+    }
+  }, [user, preferences.hasCompletedOnboarding, step]);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,37 +211,8 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
     } catch (err) {
       console.error(err);
       alert("The stars are obscured. Please try again.");
-      setStep('input');
     }
   };
-
-  const startFlyby = () => {
-    if (!chartData) return;
-    setIsFlybyRunning(true);
-    setFlybyIndex(0);
-    setViewMode('flyby');
-    setSelectedPlanet(chartData.planets[0].name);
-  };
-
-  const finishOnboarding = useCallback(() => {
-    if (onComplete) {
-        onComplete();
-        return;
-    }
-
-    updatePreferences({
-      birthDate: new Date(`${birthInfo.date}T${birthInfo.time}:00`).toISOString(),
-      birthLocation: {
-        city: birthInfo.location,
-        lat: birthInfo.lat || 0,
-        lng: birthInfo.lng || 0
-      },
-      fullName: birthInfo.fullName,
-      name: birthInfo.magicName || "Traveler",
-      pronouns: birthInfo.pronouns || "They/Them",
-      hasCompletedOnboarding: true
-    });
-  }, [birthInfo, updatePreferences, onComplete]);
 
   const nextFlyby = useCallback(() => {
     if (!chartData) return;
@@ -212,6 +226,14 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
       finishOnboarding();
     }
   }, [chartData, flybyIndex, finishOnboarding]);
+
+  const startFlyby = () => {
+    if (!chartData) return;
+    setIsFlybyRunning(true);
+    setFlybyIndex(0);
+    setViewMode('flyby');
+    setSelectedPlanet(chartData.planets[0].name);
+  };
 
   const prevFlyby = () => {
     if (!chartData || flybyIndex <= 0) return;
@@ -547,6 +569,33 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
                   <div className="absolute inset-0 border-b-2 border-emerald-900 rounded-full animate-spin-reverse opacity-50"></div>
                 </div>
                 <p className="text-emerald-400 animate-pulse text-xs font-bold tracking-[0.5em] uppercase">Consulting the Akashic Records...</p>
+              </motion.div>
+            )}
+
+            {step === 'entrance' && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center space-y-8 pointer-events-none"
+              >
+                <motion.div 
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="text-center space-y-4"
+                >
+                    <h2 className="text-5xl font-black text-white tracking-tighter uppercase italic">
+                        Welcome <span className="text-emerald-500">Back</span>, {preferences.name || "Operator"}
+                    </h2>
+                    <p className="text-emerald-500/60 text-xs font-bold tracking-[0.5em] uppercase animate-pulse">
+                        Synchronizing Celestial Grid...
+                    </p>
+                </motion.div>
+                
+                <div className="flex items-center gap-4 bg-black/60 backdrop-blur-md border border-emerald-500/20 px-6 py-3 rounded-full">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">Targeting {selectedPlanet?.toUpperCase() || "SOL"}</span>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

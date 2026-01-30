@@ -23,13 +23,19 @@ const CameraRig: React.FC<{ targetPlanet: string | null; data: OnboardingChartDa
   flybyActive 
 }) => {
   const { camera } = useThree();
-  const targetPos = useRef(new THREE.Vector3(100, 50, 100));
+  const targetPos = useRef(new THREE.Vector3(300, 150, 300)); // Start further back for dramatic entrance
   const lookAtPos = useRef(new THREE.Vector3(0, 0, 0));
+  const hasAcquiredTarget = useRef(false);
 
   useFrame((state) => {
     if (flybyActive && targetPlanet && data) {
       const planet = data.planets.find(p => p.name === targetPlanet);
       if (planet) {
+        if (!hasAcquiredTarget.current) {
+            hasAcquiredTarget.current = true;
+            // Snappy snap to start the zoom from the current far position towards the planet
+        }
+        
         const signIndex = ZODIAC_SIGNS.indexOf(planet.sign);
         const totalDegrees = (signIndex * 30) + planet.degree;
         const rad = (totalDegrees * Math.PI) / 180;
@@ -38,34 +44,31 @@ const CameraRig: React.FC<{ targetPlanet: string | null; data: OnboardingChartDa
         const inwardOffset = planet.distance > 5 ? planet.distance - 25 : -25;
         const camX = Math.cos(rad) * inwardOffset;
         const camZ = Math.sin(rad) * inwardOffset;
-        const camY = 8; // Elevate camera for a better angle above the UI
+        const camY = 8; 
 
         targetPos.current.set(camX, camY, camZ);
         
-        // Look through the planet at the background constellation
-        // Centralize the planet by looking at it directly at Y=0
         const lookX = Math.cos(rad) * (planet.distance + 80);
         const lookZ = Math.sin(rad) * (planet.distance + 80);
-        lookAtPos.current.set(lookX, -15, lookZ); // PUSH PLANET HIGHER to clear UI
+        lookAtPos.current.set(lookX, -15, lookZ); 
       }
     } else if (!flybyActive && !targetPlanet) {
-      // Gentle drift when idle
+      hasAcquiredTarget.current = false;
       const time = state.clock.getElapsedTime();
       targetPos.current.set(
-        100 + Math.sin(time * 0.1) * 20, 
-        60 + Math.cos(time * 0.1) * 10, 
-        100 + Math.sin(time * 0.05) * 20
+        150 + Math.sin(time * 0.1) * 30, 
+        80 + Math.cos(time * 0.1) * 15, 
+        150 + Math.sin(time * 0.05) * 30
       );
       lookAtPos.current.set(0, 0, 0);
     }
 
-    // CINEMATIC SMOOTHING: Faster lerp for snappier acquisition
-    camera.position.lerp(targetPos.current, 0.05);
+    // CINEMATIC SMOOTHING
+    // Snappier if far away, smoother as we arrive
+    const dist = camera.position.distanceTo(targetPos.current);
+    const lerpSpeed = dist > 100 ? 0.08 : 0.03; 
     
-    // Smooth lookAt using a temporary dummy object would be better, but direct lookAt is okay if position is smooth
-    // For now, we lerp quaternion for ultra smooth rotation but that's complex to setup here quickly.
-    // Instead we just keep the lookAt simple or perform a manual lerp of focus point?
-    // Let's just update lookAt. With slower position lerp, it should be fine.
+    camera.position.lerp(targetPos.current, lerpSpeed);
     camera.lookAt(lookAtPos.current);
   });
 
