@@ -15,18 +15,14 @@ service cloud.firestore {
     // Helper to check if user has admin role
     function isAdmin() {
       return request.auth != null && 
+        exists(/databases/$(database)/documents/v3_users/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/v3_users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // v3_users: Profile management
-    match /v3_users/{userId} {
+    // v3_users: Profile management (Recursive to allow profile/preferences)
+    match /v3_users/{userId}/{allPaths=**} {
       allow read: if isOwner(userId);
       allow write: if isOwner(userId) || isAdmin();
-
-      // Subcollection: Grimoire
-      match /grimoire/{entryId} {
-        allow read, write: if isOwner(userId);
-      }
     }
 
     match /v3_system_prompts/{promptId} {
