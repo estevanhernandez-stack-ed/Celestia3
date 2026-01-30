@@ -12,7 +12,14 @@ import {
   signOut as firebaseSignOut,
   linkWithPopup
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { 
+  doc, 
+  getDoc, 
+  setDoc, 
+  serverTimestamp 
+} from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
+import { UserProfileService } from '@/lib/UserProfileService';
 
 interface AuthContextType {
   user: User | null;
@@ -32,9 +39,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Handle redirect results (useful for mobile)
     getRedirectResult(auth)
-      .then((result) => {
+      .then(async (result) => {
         if (result) {
           console.log("[AuthContext] Redirect result processed:", result.user.uid);
+          await initializeUserDocument(result.user);
         }
       })
       .catch((error) => {
@@ -70,6 +78,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  const initializeUserDocument = async (user: User) => {
+    try {
+      const userRef = doc(db, "v3_users", user.uid);
+      const docSnap = await getDoc(userRef);
+      
+      if (!docSnap.exists()) {
+        // Create root user document
+        await setDoc(userRef, {
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          uid: user.uid,
+          createdAt: serverTimestamp(),
+          lastLogin: serverTimestamp(),
+          provider: user.providerData[0]?.providerId || 'unknown'
+        });
+        console.log("[AuthContext] Created new root user document for:", user.uid);
+      } else {
+        // Update last login
+        await setDoc(userRef, { 
+          lastLogin: serverTimestamp(),
+          displayName: user.displayName, // Keep display name fresh
+          photoURL: user.photoURL
+        }, { merge: true });
+        console.log("[AuthContext] Updated existing user document for:", user.uid);
+      }
+      
+      // Critical: Push localStorage data to Firestore for this new UID
+      // This bridges the "guest" data to the Google account
+      await UserProfileService.forceSync(user.uid);
+      console.log("[AuthContext] Successfully synced localStorage to Google account");
+    } catch (error) {
+      console.error("[AuthContext] Failed to initialize user document:", error);
+    }
+  };
+
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -82,26 +126,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             await signInWithRedirect(auth, provider);
             return;
           }
-          await linkWithPopup(user, provider);
+          const credential = await linkWithPopup(user, provider);
+          if (credential.user) {
+            await initializeUserDocument(credential.user);
+          }
         } catch (linkError: any) {
           // If the Google account is already linked to another user,
           // just sign in normally to that existing account.
           if (linkError.code === 'auth/credential-already-in-use') {
             console.log("[AuthContext] Credential already in use, signing in instead of linking.");
+            let result;
             if (isMobile) {
               await signInWithRedirect(auth, provider);
+              return; // getRedirectResult handles the rest
             } else {
-              await signInWithPopup(auth, provider);
+              result = await signInWithPopup(auth, provider);
+            }
+
+            if (result?.user) {
+              await initializeUserDocument(result.user);
             }
           } else {
             throw linkError;
           }
         }
       } else {
+        let result;
         if (isMobile) {
           await signInWithRedirect(auth, provider);
+          return; // getRedirectResult handles the rest
         } else {
-          await signInWithPopup(auth, provider);
+          result = await signInWithPopup(auth, provider);
+        }
+
+        if (result?.user) {
+          await initializeUserDocument(result.user);
         }
       }
     } catch (error) {
