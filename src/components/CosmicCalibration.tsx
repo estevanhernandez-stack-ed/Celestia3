@@ -14,8 +14,10 @@ import {
   Globe, 
   Camera,
   Lock,
-  Sparkles
+  Sparkles,
+  RefreshCw
 } from 'lucide-react';
+import { ConfigService } from '@/lib/ConfigService';
 import { useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/context/AuthContext';
 import { KnowledgeLevel } from '@/types/preferences';
@@ -340,6 +342,15 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
                     </section>
 
                     <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2 md:col-span-2">
+                           <label className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Full Birth Name</label>
+                           <input 
+                               placeholder="For Arithmancy (e.g. Bruce Thomas Wayne)"
+                               value={preferences.fullName || ''}
+                               onChange={(e) => updatePreferences({ fullName: e.target.value })}
+                               className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-indigo-200 outline-none focus:border-indigo-500/50 transition-all placeholder:text-slate-700"
+                           />
+                        </div>
                         <div className="space-y-2">
                            <label className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Magical Name</label>
                            <input 
@@ -491,6 +502,29 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
                                 <div className="absolute bottom-0 right-0 w-px h-full bg-linear-to-b from-transparent via-purple-500 to-transparent animate-glitch-line-v" />
                             </motion.div>
                           )}
+                        </button>
+
+                        <button 
+                          onClick={async () => {
+                             try {
+                                await ConfigService.syncLocalPromptsToCloud();
+                                alert("Archives Synchronized.");
+                             } catch (e) {
+                                alert("Synchronization Failed.");
+                             }
+                          }}
+                          className="flex items-center justify-between p-8 rounded-[2.5rem] border border-white/5 bg-black/40 text-slate-600 hover:border-white/10 transition-all group w-full"
+                        >
+                          <div className="flex items-center gap-4">
+                            <RefreshCw size={32} className="text-slate-700 group-hover:rotate-180 transition-transform duration-500" />
+                            <div className="text-left">
+                              <span className="text-lg font-black uppercase tracking-tighter">Sync Archives</span>
+                              <p className="text-[10px] font-mono tracking-widest opacity-60">REPAIR_CLOUD_PROMPTS</p>
+                            </div>
+                          </div>
+                          <div className="px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest border border-slate-700 text-slate-700">
+                             ADMIN_ONLY
+                          </div>
                         </button>
                      </section>
 

@@ -1,4 +1,7 @@
 import { NatalChartData } from "@/types/astrology";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
+import { SwissEphemerisService } from "@/lib/SwissEphemerisService";
 
 export interface Celebrity {
   id: string;
@@ -9,6 +12,13 @@ export interface Celebrity {
   lng: number;
   description: string;
   category: 'Music' | 'Science' | 'Art' | 'Philosophy' | 'Tech' | 'History';
+}
+
+export interface CelebrityChartDocument {
+  id: string;
+  name: string;
+  chartData: NatalChartData;
+  generatedAt: Timestamp;
 }
 
 export const CELEBRITIES: Celebrity[] = [
@@ -80,6 +90,58 @@ export class CelebrityService {
       return [...CELEBRITIES, ...customCelebs];
     }
     return CELEBRITIES;
+  }
+
+  /**
+   * Fetches a precomputed natal chart for a celebrity from Firestore.
+   */
+  static async getCelebrityChart(celebrityId: string): Promise<NatalChartData | null> {
+    try {
+      const docRef = doc(db, 'celebrity_charts', celebrityId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data() as CelebrityChartDocument;
+        return data.chartData;
+      }
+      return null;
+    } catch (e) {
+      console.error(`[CelebrityService] Failed to fetch chart for ${celebrityId}`, e);
+      return null;
+    }
+  }
+
+  /**
+   * Seeds all celebrity charts to Firestore. Called from Admin Panel.
+   */
+  static async seedAllCelebrityCharts(): Promise<{ success: number; failed: string[] }> {
+    const failed: string[] = [];
+    let success = 0;
+
+    for (const celeb of CELEBRITIES) {
+      try {
+        console.log(`[CelebrityService] Calculating chart for ${celeb.name}...`);
+        const chartData = await SwissEphemerisService.calculateChart(
+          new Date(celeb.birthDate),
+          celeb.lat,
+          celeb.lng
+        );
+
+        const docRef = doc(db, 'celebrity_charts', celeb.id);
+        await setDoc(docRef, {
+          id: celeb.id,
+          name: celeb.name,
+          chartData,
+          generatedAt: Timestamp.now()
+        });
+        success++;
+        console.log(`[CelebrityService] ✅ Seeded chart for ${celeb.name}`);
+      } catch (e) {
+        console.error(`[CelebrityService] ❌ Failed to seed ${celeb.name}`, e);
+        failed.push(celeb.name);
+      }
+    }
+
+    return { success, failed };
   }
 
   static async scryCelebrity(query: string): Promise<Celebrity | null> {

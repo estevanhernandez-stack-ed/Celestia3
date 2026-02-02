@@ -11,6 +11,8 @@ import { useAuth } from '@/context/AuthContext';
 import { GrimoireService } from '@/lib/GrimoireService';
 import { ProgressionService } from '@/lib/ProgressionService';
 import { Save, Check } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface NumerologyViewProps {
     birthDate: string; // ISO string
@@ -308,18 +310,15 @@ const NumerologyView: React.FC<NumerologyViewProps> = ({ birthDate, fullName, co
                                 <Sparkles size={24} className="text-indigo-400" />
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-white tracking-widest uppercase font-serif">Technomancer Synthesis</h3>
+                                <h3 className="text-xl font-bold text-white tracking-widest uppercase font-serif">Athanor Synthesis</h3>
                                 <p className="text-[10px] text-indigo-400 font-mono tracking-widest">SOUL_ALGORITHM_DECODED</p>
                             </div>
                         </div>
 
                         <div className="prose prose-invert max-w-none prose-sm md:prose-base prose-headings:text-indigo-400 prose-headings:font-serif prose-headings:uppercase prose-headings:tracking-widest prose-p:text-slate-300 prose-p:leading-relaxed prose-strong:text-white prose-strong:font-bold">
-                            {interpretation?.split('\n').map((line, i) => {
-                                if (line.startsWith('### ')) return <h3 key={i} className="text-lg font-bold mt-8 mb-4">{line.replace('### ', '')}</h3>;
-                                if (line.startsWith('**')) return <p key={i} className="mb-4"><strong>{line.replace(/\*\*/g, '')}</strong></p>;
-                                if (line.trim() === '') return <div key={i} className="h-4" />;
-                                return <p key={i} className="mb-4 text-slate-300 leading-relaxed">{line}</p>;
-                            })}
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {interpretation || ""}
+                            </ReactMarkdown>
                         </div>
 
                         <div className="flex justify-between items-center mt-8 pt-8 border-t border-white/5">
@@ -350,6 +349,18 @@ const NumerologyView: React.FC<NumerologyViewProps> = ({ birthDate, fullName, co
                                             tags: ['numerology', 'soul-algorithm']
                                         });
                                         setSavedToGrimoire(true);
+                                        
+                                        // Also save to Persistent Profile for AI Continuity
+                                        updatePreferences({
+                                            arithmancyProfile: {
+                                                lifePath: Number(profile.lifePath.core),
+                                                destiny: Number(profile.destiny.core),
+                                                soulUrge: Number(profile.soulUrge.core),
+                                                personality: Number(profile.personality.core),
+                                                timestamp: Date.now()
+                                            }
+                                        });
+
                                         const progression = ProgressionService.addXP(preferences, 'numerology-check');
                                         updatePreferences({ xp: progression.xp, level: progression.level });
                                     } catch (e) {

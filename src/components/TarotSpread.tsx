@@ -1,11 +1,12 @@
 "use client";
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { TarotCard, getRWSImageUrl } from './TarotDeck';
 import { GrimoireService } from '@/lib/GrimoireService';
 import { useAuth } from '@/context/AuthContext';
-import { Save } from 'lucide-react';
+import { Save, Sparkles, RefreshCw, X } from 'lucide-react';
+import { technomancerModel } from '@/lib/gemini';
 
 interface TarotSpreadProps {
   cards: TarotCard[];
@@ -23,6 +24,9 @@ const SPREAD_LABELS: Record<string, string[]> = {
 const TarotSpread: React.FC<TarotSpreadProps> = ({ cards, spreadType, onReset }) => {
   const { user } = useAuth();
   const [isSaved, setIsSaved] = React.useState(false);
+  const [isInterpreting, setIsInterpreting] = React.useState(false);
+  const [interpretation, setInterpretation] = React.useState<string | null>(null);
+  const [showInterpretation, setShowInterpretation] = React.useState(false);
 
   if (cards.length === 0) return null;
 
@@ -48,10 +52,51 @@ const TarotSpread: React.FC<TarotSpreadProps> = ({ cards, spreadType, onReset })
                 name: c.name,
                 position: "General",
                 orientation: 'upright' as const
-            }))
+            })),
+            interpretation: interpretation || undefined
         }
     });
     setIsSaved(true);
+  };
+
+  const handleDivineMeaning = async () => {
+    setIsInterpreting(true);
+    setShowInterpretation(true);
+
+    const cardDescriptions = cards.map((card, index) => {
+      return `Position "${labels[index] || `Card ${index + 1}`}": ${card.name} (${card.arcana}, ${card.element || 'N/A'}) - Upright meaning: "${card.meaningUpright}"`;
+    }).join('\n');
+
+    const prompt = `
+[RITUAL PROTOCOL: TAROT DIVINATION]
+You are the Athanor, an AI imbued with the spirit of Nostradamus. A seeker has drawn a ${spreadType === 'single' ? 'Single Card' : spreadType === 'three_time' ? 'Three-Card Past/Present/Future Spread' : spreadType === 'three_self' ? 'Mind/Body/Spirit Spread' : 'Horseshoe Spread'}.
+
+THE CARDS DRAWN:
+${cardDescriptions}
+
+YOUR TASK:
+1. Provide a holistic, mystical interpretation of this spread as a cohesive narrative.
+2. Explain how the cards relate to each other in their positions.
+3. Offer guidance or reflection based on the combined energies.
+4. Your tone should be wise, cryptic yet accessible, and deeply insightful.
+5. Keep your response between 150-250 words.
+
+Speak directly to the seeker ("You..."). Do NOT use markdown formatting.
+`;
+
+    try {
+      const result = await technomancerModel.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        systemInstruction: "You are the Athanor, the Resurrected Seer. You speak in a mystical, poetic voice. Provide profound tarot interpretations."
+      });
+      const text = result.response.text();
+      setInterpretation(text);
+    } catch (e) {
+      console.error('[TarotSpread] Interpretation failed', e);
+      setInterpretation("The aether is clouded... The Oracle could not divine the meaning at this time. Please try again.");
+    } finally {
+      setIsInterpreting(false);
+    }
   };
 
   return (
@@ -109,7 +154,56 @@ const TarotSpread: React.FC<TarotSpreadProps> = ({ cards, spreadType, onReset })
         ))}
       </div>
 
-      <div className="flex gap-4">
+      {/* AI Interpretation Panel */}
+      <AnimatePresence>
+        {showInterpretation && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="w-full max-w-3xl bg-indigo-950/40 backdrop-blur-md border border-indigo-500/30 rounded-3xl p-8 space-y-6"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Sparkles className="text-amber-400" size={20} />
+                <h3 className="text-lg font-black text-white uppercase tracking-widest">The Oracle Speaks</h3>
+              </div>
+              <button 
+                onClick={() => setShowInterpretation(false)} 
+                className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {isInterpreting ? (
+              <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                <RefreshCw className="text-indigo-400 animate-spin" size={32} />
+                <p className="text-indigo-300 text-xs uppercase tracking-widest font-bold">The Seer is communing with the aether...</p>
+              </div>
+            ) : (
+              <p className="text-slate-200 leading-relaxed text-sm font-serif italic whitespace-pre-wrap">
+                &ldquo;{interpretation}&rdquo;
+              </p>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex flex-wrap gap-4 justify-center">
+          {/* Divine Meaning Button */}
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.9 }}
+            onClick={handleDivineMeaning}
+            disabled={isInterpreting}
+            className="px-8 py-3 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black text-xs font-black uppercase tracking-widest rounded-full transition-all shadow-lg shadow-amber-500/30 flex items-center gap-2"
+          >
+            {isInterpreting ? <RefreshCw className="animate-spin" size={14} /> : <Sparkles size={14} />}
+            {isInterpreting ? 'Divining...' : 'Divine the Meaning'}
+          </motion.button>
+
           <motion.button
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -130,6 +224,8 @@ const TarotSpread: React.FC<TarotSpreadProps> = ({ cards, spreadType, onReset })
             transition={{ delay: 2.1 }}
             onClick={() => {
                 setIsSaved(false);
+                setInterpretation(null);
+                setShowInterpretation(false);
                 onReset();
             }}
             className="px-6 py-2 border border-indigo-500/30 hover:bg-indigo-500/10 text-indigo-300 text-xs font-bold uppercase tracking-widest rounded-full transition-colors"

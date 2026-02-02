@@ -5,7 +5,8 @@ import { PLANET_CONFIGS } from '@/components/onboarding/constants';
 
 export class OnboardingService {
   static async generateChart(info: OnboardingBirthInfo): Promise<OnboardingChartData> {
-    const cacheKey = `celestia_flyby_cache_${info.date}_${info.time}_${info.lat?.toFixed(4) || '0'}_${info.lng?.toFixed(4) || '0'}`;
+    const CACHE_VERSION = 'v2_hermetic';
+    const cacheKey = `celestia_flyby_cache_${CACHE_VERSION}_${info.date}_${info.time}_${info.lat?.toFixed(4) || '0'}_${info.lng?.toFixed(4) || '0'}`;
     
     // Check Cache
     if (typeof window !== 'undefined') {
@@ -38,12 +39,15 @@ export class OnboardingService {
     ).join(', ');
 
     const prompt = `
-      You are the Technomancer Kalyx-7. 
-      Generate a spiritual flyby interpretation for these exact planetary placements:
+      You are the **Athanor AI**, a Master Arithmetician and Hermetic Guide. 
+      Interpret these planetary placements for an initiate's first celestial flyby:
       ${planetList}
       Ascendant: ${precisionChart.ascendant?.sign} ${precisionChart.ascendant?.degree.toFixed(2)}°
 
-      For each planet, provide a concise (1-2 sentence) esoteric interpretation that feels "High Entropy" and mystical.
+      For each planet, provide a warm, poetic, and profoundly intelligent interpretation (1-2 sentences). 
+      Avoid all technical computer jargon (e.g., no mention of 'kernels', 'buffers', 'processors', 'data', or 'logic gates').
+      Instead, use imagery of light, soul tapestry, ancient echoes, and the harmony of the spheres.
+      
       Also provide a general 1-sentence summary of the soul's intent.
 
       Output JSON format:

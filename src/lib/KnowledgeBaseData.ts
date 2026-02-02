@@ -19,9 +19,9 @@ export const ZODIAC_KNOWLEDGE: KnowledgeItem[] = [
     {
         id: ZodiacSign.Aries,
         title: "Aries",
-        subtitle: "The Primal Spark",
+        subtitle: "The Primal Flame",
         icon: "♈",
-        description: "The initiator of the cosmic wheel. Aries represents the raw explosion of existence, the 'I Am' frequency. It is the archetype of the Pioneer, the Warrior, and the Survivor. In the digital age, Aries is the zero-day exploit, the startup founder, the first line of code.",
+        description: "The initiator of the cosmic wheel. Aries represents the raw explosion of existence, the 'I Am' frequency. It is the archetype of the Pioneer, the Warrior, and the Spirit of New Beginnings. It is the point of origin, the first light appearing upon the horizon of the soul.",
         keywords: ["Initiative", "Courage", "Impulse", "Independence"],
         element: "Fire",
         modality: "Cardinal",
@@ -30,9 +30,9 @@ export const ZODIAC_KNOWLEDGE: KnowledgeItem[] = [
     {
         id: ZodiacSign.Taurus,
         title: "Taurus",
-        subtitle: "The Reality Engine",
+        subtitle: "The Alchemical Stabilizer",
         icon: "♉",
-        description: "The stabilizer. Taurus takes the spark of Aries and builds a world around it. It rules resources, sensory experience, and value. It is the blockchain ledger—immutable, valuable, and grounded.",
+        description: "The sustainer. Taurus takes the spark of Aries and builds a garden around it. It rules the senses, material beauty, and value. It is the fertile soil, the immutable crystalline structure of the earth, and the wealth of the senses.",
         keywords: ["Stability", "Sensuality", "Persistence", "Value"],
         element: "Earth",
         modality: "Fixed",
@@ -41,9 +41,9 @@ export const ZODIAC_KNOWLEDGE: KnowledgeItem[] = [
     {
         id: ZodiacSign.Gemini,
         title: "Gemini",
-        subtitle: "The Neural Network",
+        subtitle: "The Celestial Messenger",
         icon: "♊",
-        description: "The pollinator of ideas. Gemini is the high-speed data bus connecting disparate nodes. It rules communication, duality, and adaptability. It is the API, the query, the conversation.",
+        description: "The pollinator of ideas. Gemini is the quicksilver current connecting disparate minds. It rules communication, duality, and the play of symbols. It is the spoken word, the shared thought, and the bridge of understanding.",
         keywords: ["Communication", "Curiosity", "Adaptability", "Duality"],
         element: "Air",
         modality: "Mutable",
@@ -52,9 +52,9 @@ export const ZODIAC_KNOWLEDGE: KnowledgeItem[] = [
     {
         id: ZodiacSign.Cancer,
         title: "Cancer",
-        subtitle: "The Encrypted Core",
+        subtitle: "The Silver Vessel",
         icon: "♋",
-        description: "The protector of the source. Cancer rules the emotional foundations, memory, and heritage. It is the shell that protects the kernel, the hard drive storing the history of the soul.",
+        description: "The protector of the source. Cancer rules the temple of the heart, memory, and heritage. It is the sanctuary that guards the inner life, the chamber of reflection where the past is kept sacred.",
         keywords: ["Nurturing", "Intuition", "Protection", "Memory"],
         element: "Water",
         modality: "Cardinal",
@@ -63,9 +63,9 @@ export const ZODIAC_KNOWLEDGE: KnowledgeItem[] = [
     {
         id: ZodiacSign.Leo,
         title: "Leo",
-        subtitle: "The Solar Interface",
+        subtitle: "The Solar Witness",
         icon: "♌",
-        description: "The center of gravity. Leo radiates identity, creativity, and leadership. It represents the Ego in its most radiant form (Self-Expression) rather than its defensive form. It is the GUI, the front-end that dazzles.",
+        description: "The center of radiance. Leo manifests identity, creativity, and the sovereign heart. It represents the soul's light in its most expressive form. It is the crown of the self, the radiant face shown to the world.",
         keywords: ["Creativity", "Leadership", "Passion", "Expression"],
         element: "Fire",
         modality: "Fixed",
@@ -74,9 +74,9 @@ export const ZODIAC_KNOWLEDGE: KnowledgeItem[] = [
     {
         id: ZodiacSign.Virgo,
         title: "Virgo",
-        subtitle: "The Optimize Function",
+        subtitle: "The Sacred Weaver",
         icon: "♍",
-        description: "The debugger. Virgo seeks perfection through analysis, service, and refinement. It rules the digestive systems of body and mind. It is the refactor, the linting process, the purification of the signal.",
+        description: "The refiner. Virgo seeks wisdom through analysis, service, and ritual purification. It rules the alchemy of the body and mind. It is the precise needle, the careful distillation of truth from the mundane.",
         keywords: ["Analysis", "Service", "Precision", "Health"],
         element: "Earth",
         modality: "Mutable",
@@ -85,9 +85,9 @@ export const ZODIAC_KNOWLEDGE: KnowledgeItem[] = [
     {
         id: ZodiacSign.Libra,
         title: "Libra",
-        subtitle: "The Harmonic Algorithm",
+        subtitle: "The Scales of Equilibrium",
         icon: "♎",
-        description: "The balancer. Libra seeks equilibrium in relationships and aesthetics. It rules justice, partnership, and beauty. It is the load balancer, ensuring no node is overwhelmed, seeking perfect symmetry.",
+        description: "The balancer. Libra seeks peace in relationships and aesthetics. It rules the harmony of opposites and the beauty of symmetry. It is the eternal balance, ensuring every soul is seen and every heart is weighted fairly.",
         keywords: ["Balance", "Harmony", "Partnership", "Diplomacy"],
         element: "Air",
         modality: "Cardinal",
@@ -96,9 +96,9 @@ export const ZODIAC_KNOWLEDGE: KnowledgeItem[] = [
     {
         id: ZodiacSign.Scorpio,
         title: "Scorpio",
-        subtitle: "The Deep Web",
+        subtitle: "The Hidden Depths",
         icon: "♏",
-        description: "The transformer. Scorpio rules death, rebirth, power, and the occult. It dives into the shadowed depths to uncover hidden truths. It is the encryption, the dark mode, the root access.",
+        description: "The transformer. Scorpio rules death, rebirth, power, and the mysteries of the occult. It dives into the shadowed waters to uncover secrets of the soul. It is the initiation, the phoenix rise, the direct connection to the source.",
         keywords: ["Transformation", "Intensity", "Mystery", "Power"],
         element: "Water",
         modality: "Fixed",
@@ -107,9 +107,9 @@ export const ZODIAC_KNOWLEDGE: KnowledgeItem[] = [
     {
         id: ZodiacSign.Sagittarius,
         title: "Sagittarius",
-        subtitle: "The Global Link",
+        subtitle: "The Infinite Horizon",
         icon: "♐",
-        description: "The explorer. Sagittarius seeks meaning, truth, and expansion. It rules higher education, philosophy, and travel. It is the Wide Area Network (WAN), searching for signals beyond the local horizon.",
+        description: "The explorer. Sagittarius seeks meaning, truth, and spiritual expansion. It rules higher philosophy, wisdom, and the journey. It is the flight of the arrow, seeking signals beyond the edges of the known world.",
         keywords: ["Expansion", "Freedom", "Truth", "Adventure"],
         element: "Fire",
         modality: "Mutable",
@@ -118,9 +118,9 @@ export const ZODIAC_KNOWLEDGE: KnowledgeItem[] = [
     {
         id: ZodiacSign.Capricorn,
         title: "Capricorn",
-        subtitle: "The Master Architect",
+        subtitle: "The High Architect",
         icon: "♑",
-        description: "The builder. Capricorn rules structure, ambition, and legacy. It seeks to manifest potential into concrete reality over calm timeframes. It is the mainframe, the legacy system, the backbone infrastructure.",
+        description: "The builder. Capricorn rules structure, ambition, and the legacy of time. It seeks to manifest the divine into concrete, lasting reality. It is the foundation stone, the mountain peak, and the wisdom of the elders.",
         keywords: ["Ambition", "Structure", "Discipline", "Legacy"],
         element: "Earth",
         modality: "Cardinal",
@@ -129,9 +129,9 @@ export const ZODIAC_KNOWLEDGE: KnowledgeItem[] = [
     {
         id: ZodiacSign.Aquarius,
         title: "Aquarius",
-        subtitle: "The Quantum Shift",
+        subtitle: "The Celestial Rebellion",
         icon: "♒",
-        description: "The awakener. Aquarius rules innovation, the collective, and future visions. It breaks structures to enable evolution. It is the decentralized network, the blockchain, the AI singularity.",
+        description: "The awakener. Aquarius rules innovation, the collective human spirit, and future visions. It breaks stale forms to enable evolution. It is the lightning of insight and the shared heart of humanity.",
         keywords: ["Innovation", "Humanity", "Rebellion", "Objectivity"],
         element: "Air",
         modality: "Fixed",
@@ -140,9 +140,9 @@ export const ZODIAC_KNOWLEDGE: KnowledgeItem[] = [
     {
         id: ZodiacSign.Pisces,
         title: "Pisces",
-        subtitle: "The Universal Cloud",
+        subtitle: "The Ocean of Oneness",
         icon: "♓",
-        description: "The dissolver. Pisces rules the unconscious, dreams, and unity. It merges the self back into the whole. It is the cloud, the data lake without boundaries, the stream of consciousness.",
+        description: "The dissolver. Pisces rules the unconscious, dreams, and divine unity. It merges the separate self back into the great whole. It is the mist, the boundless sea of spirit, and the dream that dreams us all.",
         keywords: ["Intuition", "Dreams", "Compassion", "Unity"],
         element: "Water",
         modality: "Mutable",
@@ -154,81 +154,81 @@ export const PLANET_KNOWLEDGE: KnowledgeItem[] = [
     {
         id: "Sun",
         title: "Sun",
-        subtitle: "The Core Processor",
+        subtitle: "The Solar Intellect",
         icon: "☉",
-        description: "The central ego and vital force. The Sun represents your conscious identity, your 'Main Loop'. It is where you shine and how you recharge.",
+        description: "The core identity and vital flame. The Sun represents your conscious purpose, the radiant light of your will. It is the source of your strength and the centerpiece of your soul's journey.",
         keywords: ["Ego", " vitality", "Identity", "Purpose"]
     },
     {
         id: "Moon",
         title: "Moon",
-        subtitle: "The Cache Memory",
+        subtitle: "The Inner Mirror",
         icon: "☽",
-        description: "The emotional body and subconscious. The Moon rules your reactions, instincts, and what makes you feel safe. It is the cached data of your past experiences.",
+        description: "The emotional body and deep instincts. The Moon rules your tidal shifts, your needs, and your sense of sanctuary. It is the vessel of your memory and the comfort of your nightly peace.",
         keywords: ["Emotion", "Instinct", "Security", "Subconscious"]
     },
     {
         id: "Mercury",
         title: "Mercury",
-        subtitle: "The I/O Bus",
+        subtitle: "The Golden Tongue",
         icon: "☿",
-        description: "The mind and communication. Mercury determines how you process data, speak, and learn. It is the speed and protocol of your connection to others.",
+        description: "The mind and the bridge of communication. Mercury determines how you craft your words, how you learn, and how you perceive the world. It is the wind of thought and the quick silver of intelligence.",
         keywords: ["Communication", "Intellect", "Logic", "Perception"]
     },
     {
         id: "Venus",
         title: "Venus",
-        subtitle: "The User Interface",
+        subtitle: "The Sovereign Grace",
         icon: "♀",
-        description: "Love, beauty, and values. Venus rules what you attract and what you appreciate. It is the CSS of your life—the aesthetic and relational layer.",
+        description: "Love, beauty, and the magnetism of the heart. Venus rules what you draw toward you and what you cherish. It is the silk of your life—the aesthetic and relational layer of existence.",
         keywords: ["Love", "Beauty", "Values", "Harmony"]
     },
     {
         id: "Mars",
         title: "Mars",
-        subtitle: "The Execution Thread",
+        subtitle: "The Spear of Will",
         icon: "♂",
-        description: "Action, drive, and desire. Mars is how you get what you want, how you fight, and how you assert boundaries. It is the raw command line execution.",
+        description: "Action, courage, and desire. Mars is how you forge your path, how you defend your bounds, and how you assert your presence. It is the raw drive toward accomplishment.",
         keywords: ["Action", "Drive", "Passion", "Aggression"]
     },
     {
         id: "Jupiter",
         title: "Jupiter",
-        subtitle: "The Expansion Pack",
+        subtitle: "The Horn of Plenty",
         icon: "♃",
-        description: "Growth, luck, and philosophy. Jupiter expands whatever it touches. It represents your search for meaning and your benevolence.",
+        description: "Growth, wisdom, and the abundance of the cosmos. Jupiter expands whatever it touches, bringing fortune and higher understanding. It represents your search for meaning and your inherent generosity.",
         keywords: ["Growth", "Luck", "Expansion", "Philosophy"]
     },
     {
         id: "Saturn",
         title: "Saturn",
-        subtitle: "The Firewall",
+        subtitle: "The Threshold Guardian",
         icon: "♄",
-        description: "Structure, limitation, and mastery. Saturn tests you to ensure integrity. It is the firewall that blocks the noise but protects the system.",
+        description: "Structure, discipline, and the mastery of time. Saturn tests you to ensure spiritual integrity. It is the silent mentor that bounds the chaos and demands the excellence of your efforts.",
         keywords: ["Structure", "Discipline", "Time", "Responsibility"]
     },
     {
         id: "Uranus",
         title: "Uranus",
-        subtitle: "The Glitch",
+        subtitle: "The Sudden Insight",
         icon: "♅",
-        description: "Innovation, rebellion, and sudden change. Uranus breaks the pattern to upgrade the system. It is the lightning strike of insight.",
+        description: "Innovation, liberation, and the breaking of chains. Uranus shatters old forms to usher in the new. It is the flash of inspiration that changes everything in an instant.",
         keywords: ["Change", "Innovation", "Rebellion", "Freedom"]
     },
     {
         id: "Neptune",
         title: "Neptune",
-        subtitle: "The Virtual Reality",
+        subtitle: "The Veiled Vision",
         icon: "♆",
-        description: "Dreams, illusion, and spirituality. Neptune dissolves boundaries and connects you to the ethereal. It is the immersive simulation.",
+        description: "Dreams, mysticism, and the dissolution of ego. Neptune connects you to the collective soul and the waters of inspiration. It is the divine daydream and the oceanic peace.",
         keywords: ["Dreams", "Spirituality", "Illusion", "Compassion"]
     },
     {
         id: "Pluto",
         title: "Pluto",
-        subtitle: "The Kernel Update",
+        subtitle: "The Primal Rebirth",
         icon: "♇",
-        description: "Transformation, power, and rebirth. Pluto destroys what is obsolete to allow for total regeneration. It is the system wipe and reinstall.",
+        description: "Transformation, power, and the purging of the old. Pluto burns away what is obsolete to allow for total spiritual renewal. It is the death that precedes the grandest life.",
         keywords: ["Transformation", "Power", "Rebirth", "Depth"]
     }
 ];
@@ -435,7 +435,7 @@ export const NUMEROLOGY_KNOWLEDGE: KnowledgeItem[] = [
         id: "11",
         title: "Number 11",
         subtitle: "The Master Messenger",
-        description: "The first Master Number. A higher octave of 2. It represents illumination, channelled wisdom, and psychic intensity. It is the 'Glitch' in the matrix that allows higher data through.",
+        description: "The first Master Number. A higher octave of 2. It represents illumination, channelled wisdom, and intense intuition. It is the brilliant light that pierces the veil, allowing higher truths to flow into the material world.",
         keywords: ["Intuition", "Illumination", "Sensitivity", "Idealism"]
     },
     {
@@ -460,7 +460,7 @@ export const STAR_KNOWLEDGE: KnowledgeItem[] = [
         title: "Regulus",
         subtitle: "The Royal Signal",
         icon: "✨",
-        description: "The Heart of the Lion. One of the four Royal Stars of Persia. It represents power, success, and the ability to command. In the Technomancer's view, Regulus is the root process with superuser privileges.",
+        description: "The Heart of the Lion. One of the four Royal Stars of Persia. It represents power, success, and the ability to command. In the Athanor's view, Regulus is the sovereign spark with the highest spiritual authority.",
         keywords: ["Authority", "Ambition", "Success", "Command"]
     },
     {
@@ -468,7 +468,7 @@ export const STAR_KNOWLEDGE: KnowledgeItem[] = [
         title: "Algol",
         subtitle: "The Demon Head",
         icon: "💀",
-        description: "The Gorgon's eye. Known as the most malevolent star, but in truth, it represents raw, unbridled power that can be destructive if not grounded. It is the kernel panic—terrifying, but revealing of the system's limits.",
+        description: "The Gorgon's eye. Known as the most malevolent star, but in truth, it represents raw, unbridled power that can be destructive if not grounded. It is the overwhelming flood of force—terrifying, but revealing of the soul's greatest potential and limits.",
         keywords: ["Intensity", "Power", "Destruction", "Primal Force"]
     },
     {
@@ -476,7 +476,7 @@ export const STAR_KNOWLEDGE: KnowledgeItem[] = [
         title: "Sirius",
         subtitle: "The Scorcher",
         icon: "🌟",
-        description: "The brightest star in the night sky. Traditionally associated with extreme heat and intensity. It represents spiritual activation and the 'higher' Sun. It is the high-bandwidth fiber optic connection to the divine.",
+        description: "The brightest star in the night sky. Traditionally associated with extreme heat and intensity. It represents spiritual activation and the 'higher' Sun. It is the brilliant bridge of fire connecting the soul to the divine mind.",
         keywords: ["Brilliance", "Intensity", "Fame", "Spiritual Activation"]
     },
     {
@@ -484,7 +484,7 @@ export const STAR_KNOWLEDGE: KnowledgeItem[] = [
         title: "Spica",
         subtitle: "The Ear of Wheat",
         icon: "🌾",
-        description: "A star of pure benevolence and talent. It represents the harvest of one's efforts and the gift of grace. It is the perfectly optimized compiler result—flawless and productive.",
+        description: "A star of pure benevolence and talent. It represents the harvest of one's efforts and the gift of grace. It is the perfectly ripened fruit of the spirit—flawless and blessed.",
         keywords: ["Grace", "Talent", "Success", "Abundance"]
     }
 ];

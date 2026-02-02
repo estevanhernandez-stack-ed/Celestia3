@@ -10,6 +10,7 @@ import { NatalChartData, PlanetPosition } from '@/types/astrology';
 import { PlanetSceneOrb } from './PlanetOrb';
 import { Canvas } from '@react-three/fiber';
 import { ProgressionService } from '@/lib/ProgressionService';
+import { ResonanceService } from '@/lib/ResonanceService';
 
 const ZODIAC_SIGNS = [
   'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 
@@ -316,10 +317,12 @@ const NatalCompass: React.FC<NatalCompassProps> = ({ chart: externalChart }) => 
               onMouseEnter={() => {
                 setHoveredPlanet(p.name);
                 setMeditationStartTime(Date.now());
+                ResonanceService.startDrone(p.name);
               }}
               onMouseLeave={() => {
                 setHoveredPlanet(null);
                 setMeditationStartTime(null);
+                ResonanceService.stopDrone();
               }}
               className="cursor-pointer"
             >

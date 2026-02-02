@@ -21,7 +21,7 @@ export class SpotifyService {
   }
 
   /**
-   * Constructs a YouTube Music search URL (as requested by the Technomancer).
+   * Constructs a YouTube Music search URL (as requested by the Athanor).
    */
   static getYouTubeMusicSearchUrl(query: string): string {
     const encoded = encodeURIComponent(query);

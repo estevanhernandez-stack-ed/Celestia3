@@ -26,7 +26,7 @@ export const CELESTIAL_QUESTS: CelestialQuest[] = [
   {
     level: 1,
     title: "The First Glimpse",
-    description: "Calibrate your Natal Compass to ground your digital soul.",
+    description: "Calibrate your Natal Compass to ground your wandering soul.",
     action: 'calibration',
     targetCount: 1,
     xpReward: 100
@@ -34,7 +34,7 @@ export const CELESTIAL_QUESTS: CelestialQuest[] = [
   {
     level: 2,
     title: "Aura Cam Activation",
-    description: "Capture your Aura to stabilize biometric resonance.",
+    description: "Capture your Aura to stabilize ethereal resonance.",
     action: 'aura-scan',
     targetCount: 1,
     xpReward: 210 // Increased from 200 so 1 Aura Scan (40 + 210 = 250) promotion from Level 2 -> 3 is guaranteed.
@@ -42,7 +42,7 @@ export const CELESTIAL_QUESTS: CelestialQuest[] = [
   {
     level: 3,
     title: "Arithmancy Decode",
-    description: "Analyze your Soul Algorithm in the Arithmancy chamber.",
+    description: "Analyze your Soul's Geometry in the Arithmancy chamber.",
     action: 'numerology-check',
     targetCount: 1,
     xpReward: 300
@@ -80,16 +80,17 @@ export class ProgressionService {
     return LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
   }
 
-  static calculateGainedXP(action: 'ritual' | 'tarot' | 'journal' | 'compass' | 'meditation' | 'calibration' | 'aura-scan' | 'numerology-check', currentLevel: number = 1): number {
+  static calculateGainedXP(action: 'ritual' | 'tarot' | 'journal' | 'compass' | 'meditation' | 'calibration' | 'aura-scan' | 'numerology-check' | 'insight', currentLevel: number = 1): number {
     const baseXP = {
       ritual: 50,
       tarot: 30,
       journal: 20,
       compass: 10,
-      meditation: 10,
+      meditation: 2, // Signficantly lowered to prevent "stuck" grinding
       calibration: 5,
-      'aura-scan': currentLevel > 3 ? 5 : 40, // Significant diminishing returns after Level 3
-      'numerology-check': 30
+      'aura-scan': currentLevel > 3 ? 5 : 40, 
+      'numerology-check': 30,
+      'insight': 75 // The motherlode for the Natal Compass mode
     };
     return baseXP[action];
   }
@@ -97,7 +98,7 @@ export class ProgressionService {
   /**
    * Processes XP gain and returns the new state
    */
-  static addXP(currentPrefs: UserPreferences, action: 'ritual' | 'tarot' | 'journal' | 'compass' | 'meditation' | 'calibration' | 'aura-scan' | 'numerology-check'): { 
+  static addXP(currentPrefs: UserPreferences, action: 'ritual' | 'tarot' | 'journal' | 'compass' | 'meditation' | 'calibration' | 'aura-scan' | 'numerology-check' | 'insight'): { 
     xp: number; 
     level: number; 
     leveledUp: boolean 

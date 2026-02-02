@@ -8,6 +8,7 @@ import { ChatService } from '@/lib/ChatService';
 import { NatalChartData } from '@/types/astrology';
 import { voiceService } from '@/lib/VoiceService';
 import { ResonanceService } from '@/lib/ResonanceService';
+import { ProgressionService } from '@/lib/ProgressionService';
 
 interface CosmicInsightPanelProps {
     chart: NatalChartData | null;
@@ -113,11 +114,17 @@ const CosmicInsightPanel: React.FC<CosmicInsightPanelProps> = ({ chart }) => {
 
             if (analysis && analysis.story) {
                 console.log('[CosmicInsight] ✅ Valid story received, updating preferences...');
+                
+                // Award XP for the revelation
+                const progression = ProgressionService.addXP(preferences, 'insight');
+                
                 updatePreferences({
                     chartAnalysis: {
                         ...analysis,
                         timestamp: Date.now()
-                    }
+                    },
+                    xp: progression.xp,
+                    level: progression.level
                 });
                 setShowSafeMode(false); // Success!
             } else {

@@ -16,10 +16,11 @@ import {
     Cpu,
     BookOpen
 } from 'lucide-react';
-import { ConfigService, SystemPrompt, GlobalDirective } from '@/lib/ConfigService';
+import { ConfigService, SystemPrompt, GlobalDirective, DEFAULT_DIRECTIVE } from '@/lib/ConfigService';
 import { useSettings } from '@/context/SettingsContext';
 import { ProgressionService } from '@/lib/ProgressionService';
-import { Zap as ZapIcon, Trash2, Award, ArrowUpCircle } from 'lucide-react';
+import { Zap as ZapIcon, Trash2, Award, ArrowUpCircle, Users } from 'lucide-react';
+import { CelebrityService } from '@/lib/CelebrityService';
 
 const AdminView: React.FC = () => {
     const [prompts, setPrompts] = useState<SystemPrompt[]>([]);
@@ -30,6 +31,8 @@ const AdminView: React.FC = () => {
     const [directive, setDirective] = useState<GlobalDirective | null>(null);
     const [isDirectiveSaving, setIsDirectiveSaving] = useState(false);
     const [isSyncingPrompts, setIsSyncingPrompts] = useState(false);
+    const [isSeedingCelebs, setIsSeedingCelebs] = useState(false);
+    const [seedResult, setSeedResult] = useState<{ success: number; failed: string[] } | null>(null);
     const { preferences, updatePreferences } = useSettings();
 
     const loadPrompts = useCallback(async () => {
@@ -147,6 +150,22 @@ const AdminView: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={async () => {
+                                            if (window.confirm("WARNING: This will overwrite the Global Directive with local hardened defaults (The Resurrected Seer). Proceed?")) {
+                                                setIsDirectiveSaving(true);
+                                                await ConfigService.saveGlobalDirective(DEFAULT_DIRECTIVE);
+                                                await loadDirective();
+                                                setIsDirectiveSaving(false);
+                                            }
+                                        }}
+                                        disabled={isDirectiveSaving}
+                                        className="flex items-center gap-2 px-4 py-3 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95 border border-amber-500/20"
+                                    >
+                                        <RefreshCw className={isDirectiveSaving ? "animate-spin" : ""} size={14} />
+                                        {isDirectiveSaving ? 'Resetting...' : 'Reset to Hardened Defaults'}
+                                    </button>
+
                                     <button
                                         onClick={async () => {
                                             if (window.confirm("WARNING: This will overwrite all Cloud Prompts with local hardened defaults. Proceed?")) {
@@ -450,6 +469,38 @@ const AdminView: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* Seed Celebrity Charts */}
+                            <div className="p-8 bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-3xl space-y-6 flex flex-col justify-between">
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-4 text-fuchsia-400">
+                                        <Users size={32} />
+                                        <h4 className="text-xl font-bold text-white uppercase tracking-wider">Seed Astral Icons</h4>
+                                    </div>
+                                    <p className="text-sm text-fuchsia-200/60 leading-relaxed uppercase tracking-widest font-medium">
+                                        Precompute and store natal charts for all known celebrities to Firestore. Required for Celebrity Synergy.
+                                    </p>
+                                    {seedResult && (
+                                        <div className={`p-3 rounded-xl text-xs font-mono ${seedResult.failed.length > 0 ? 'bg-rose-500/10 text-rose-300' : 'bg-emerald-500/10 text-emerald-300'}`}>
+                                            ✅ {seedResult.success} charts seeded. {seedResult.failed.length > 0 && `❌ Failed: ${seedResult.failed.join(', ')}`}
+                                        </div>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={async () => {
+                                        setIsSeedingCelebs(true);
+                                        setSeedResult(null);
+                                        const result = await CelebrityService.seedAllCelebrityCharts();
+                                        setSeedResult(result);
+                                        setIsSeedingCelebs(false);
+                                    }}
+                                    disabled={isSeedingCelebs}
+                                    className="w-full py-4 bg-fuchsia-600 hover:bg-fuchsia-500 disabled:opacity-50 text-white rounded-2xl font-black tracking-widest uppercase text-sm transition-all shadow-xl shadow-fuchsia-500/20 flex items-center justify-center gap-3"
+                                >
+                                    {isSeedingCelebs ? <RefreshCw className="animate-spin" size={18} /> : <Users size={18} />}
+                                    {isSeedingCelebs ? 'Seeding Charts...' : 'Seed All Celebrity Charts'}
+                                </button>
                             </div>
 
                             <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-xl">

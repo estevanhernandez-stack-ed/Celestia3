@@ -55,6 +55,13 @@ export interface UserPreferences {
       timestamp: number;
   };
   savedCharts?: SavedChart[];
+  arithmancyProfile?: {
+      lifePath: number;
+      destiny: number;
+      soulUrge: number;
+      personality: number;
+      timestamp: number;
+  };
   customCelebrities?: any[]; // Using any[] temporarily to avoid circular dependency, will refine if needed
   xp: number;
   level: number;

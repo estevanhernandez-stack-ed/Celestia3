@@ -67,16 +67,15 @@ export class ChatService {
         ).join('\n');
 
         chartContext = `
-[PRECISION_NATAL_CHART] (NASA-LEVEL ACCURACY)
+[CELESTIAL_MAPPING] (COSMIC PRECISION)
 Native: ${prefs.name}
-Full Legal Name: ${prefs.fullName || "Not Provided"}
 Birth Date: ${prefs.birthDate}
 Location: ${prefs.birthLocation.city}
 Coordinates: ${prefs.birthLocation.lat.toFixed(4)}, ${prefs.birthLocation.lng.toFixed(4)}
 Positions:
 ${planetPositions}
 Ascendant: ${chart.ascendant?.sign} ${chart.ascendant?.degree.toFixed(2)}°
-[END_CHART]
+[END_MAPPING]
 `;
       } catch (e) {
         console.error("SwissEph failed during chat context generation:", e);
@@ -112,6 +111,16 @@ Active Paradigms: ${paradigms}
 Entropy Mode: ${prefs.allowEntropy ? 'PROTOCOL_CHAOS' : 'STABLE'}
 Intent: ${prefs.intent}
 [END_PREFERENCES]
+
+[AKASHIC_RECORDS: SOUL_ALGORITHM]
+${prefs.arithmancyProfile ? `
+Life Path: ${prefs.arithmancyProfile.lifePath}
+Destiny: ${prefs.arithmancyProfile.destiny}
+Soul Urge: ${prefs.arithmancyProfile.soulUrge}
+Personality: ${prefs.arithmancyProfile.personality}
+` : "Soul Algorithm has not yet been deciphered."}
+[END_AKASHIC]
+
 
 [ACTIVE_MAGICAL_PARADIGMS]
 The User has UNLOCKED the following archival texts. You MUST integrate these specific concepts, vocal styles, and ritual technologies into your response where relevant.
@@ -244,7 +253,9 @@ ${prefs.activeParadigms.map(p => {
 
   static async generateArithmancyInterpretation(prefs: UserPreferences, numerologyData: NumerologyProfile): Promise<string> {
     console.log('[ChatService] 🚀 generateArithmancyInterpretation called for:', prefs.name);
+    const systemPrompt = await ConfigService.getPrompt('technomancer_grimoire');
     const rawPrompt = await ConfigService.getPrompt('arithmancy_natal_integration');
+    console.log('[ChatService] 📝 Raw Arithmancy Prompt length:', rawPrompt.length);
     
     // Fetch knowledge context if enabled
     let knowledgeContext = "";
@@ -283,7 +294,13 @@ ${prefs.activeParadigms.map(p => {
         chartData = `[LOCAL_CACHE (${isFresh ? 'FRESH' : 'STALE'})]\n${prefs.chartAnalysis.bigThree}\n${prefs.chartAnalysis.cosmicSignature}`;
     }
 
-    const prompt = rawPrompt
+    let prompt = rawPrompt;
+    if (!prompt.includes("{{chartData}}")) {
+        console.warn('[ChatService] 🛠️ Auto-repairing stale prompt: appending {{chartData}} anchor.');
+        prompt += "\n\n#### THE CELESTIAL INPUT\n[CHART_DATA]\n{{chartData}}\n";
+    }
+
+    prompt = prompt
         .replace(/{{name}}/g, prefs.name)
         .replace(/{{lifePath}}/g, String(numerologyData.lifePath.core))
         .replace(/{{lifePathArchetype}}/g, numerologyData.lifePath.archetype)
@@ -297,27 +314,77 @@ ${prefs.activeParadigms.map(p => {
         .replace(/{{chartData}}/g, chartData);
 
     console.log('[ChatService] 📝 Final Arithmancy Prompt length:', prompt.length);
-    if (!chartData.includes("unavailable")) {
-        console.log('[ChatService] ✅ Chart data successfully injected into Arithmancy prompt.');
-    } else {
-        console.warn('[ChatService] ⚠️ Arithmancy prompt is missing live chart data.');
+    
+    if (rawPrompt.includes("{{chartData}}")) {
+        console.log('[ChatService] ✅ Chart data placeholder found in raw prompt.');
+        if (chartData.includes("unavailable")) {
+            console.warn('[ChatService] ⚠️ {{chartData}} placeholder exists, but data is UNAVAILABLE. Check prefs.birthDate/Location.');
+        } else {
+            console.log('[ChatService] 🚀 {{chartData}} successfully populated with calculated positions.');
+        }
     }
 
     try {
-      const result = await technomancerModel.generateContent(prompt);
+      const result = await technomancerModel.generateContent({
+        contents: [
+            { role: "user", parts: [{ text: systemPrompt }] },
+            { role: "user", parts: [{ text: prompt }] }
+        ],
+        allowEntropy: prefs.allowEntropy
+      });
       const response = await result.response;
-      return response.text();
+      const text = response.text();
+
+      // 1. Check if the response is JSON
+      if (text.trim().startsWith('{')) {
+          try {
+              const data = JSON.parse(text.trim().replace(/^```json?\s*/i, '').replace(/```\s*$/i, ''));
+              
+              // 2. Flatten Technomancer-style nested JSON into Markdown
+              let flattened = "";
+              
+              // Helper to recursively collect text
+              const collectText = (obj: unknown) => {
+                  if (typeof obj === 'string') {
+                      flattened += obj + "\n\n";
+                  } else if (typeof obj === 'object' && obj !== null) {
+                      const record = obj as Record<string, unknown>;
+                      // If it's the 'response' object, prioritize its keys
+                      const target = record.response || record.output || record;
+                      if (typeof target === 'object' && target !== null) {
+                        Object.values(target as Record<string, unknown>).forEach(val => collectText(val));
+                      }
+                  }
+              };
+              
+              collectText(data);
+              
+              if (flattened.trim()) return flattened.trim();
+          } catch (e) {
+              console.warn("[ChatService] Failed to parse Arithmancy JSON, falling back to raw text.", e);
+          }
+      }
+
+      return text;
     } catch (error) {
        console.error("Arithmancy Interpretation Failed", error);
-       return "The frequencies are currently mismatched. The Technomancer is unable to synthesize the digital and celestial signals at this moment.";
+       return "The frequencies are currently mismatched. The Athanor is unable to synthesize the celestial signals at this moment.";
     }
   }
 
   static async generateNatalInterpretation(name: string, chartData: string, useSafeMode = false): Promise<{ story: string, bigThree: string, cosmicSignature: string }> {
     console.log('[ChatService] 🚀 generateNatalInterpretation called. useSafeMode:', useSafeMode);
     
+    const systemPrompt = await ConfigService.getPrompt('technomancer_grimoire');
     const rawPrompt = await ConfigService.getPrompt('natal_interpretation');
-    let prompt = rawPrompt
+    
+    let prompt = rawPrompt;
+    if (!prompt.includes("{{chartData}}")) {
+        console.warn('[ChatService] 🛠️ Auto-repairing stale Natal prompt: appending {{chartData}} anchor.');
+        prompt += "\n\n#### CELESTIAL ALIGNMENT\n[CHART_DATA]\n{{chartData}}\n";
+    }
+
+    prompt = prompt
         .replace(/{{name}}/g, name)
         .replace(/{{chartData}}/g, chartData);
 
@@ -334,8 +401,13 @@ ${prefs.activeParadigms.map(p => {
     console.log('[ChatService] 📝 Prompt length:', prompt.length, 'chars');
 
     try {
-      console.log('[ChatService] 📡 Calling technomancerModel.generateContent...');
-      const result = await technomancerModel.generateContent(prompt);
+      console.log('[ChatService] 📡 Calling technomancerModel.generateContent (Structured)...');
+      const result = await technomancerModel.generateContent({
+        contents: [
+            { role: "user", parts: [{ text: systemPrompt }] },
+            { role: "user", parts: [{ text: prompt }] }
+        ]
+      });
       console.log('[ChatService] 📥 Got result from technomancerModel');
       const response = await result.response;
       const text = response.text();
@@ -550,7 +622,14 @@ ${prefs.activeParadigms.map(p => {
     console.log('[ChatService] 🚀 generateDeepDiveReading called for:', intent);
     
     const rawPrompt = await ConfigService.getPrompt('deep_dive_interpretation');
-    const prompt = rawPrompt
+    
+    let prompt = rawPrompt;
+    if (!prompt.includes("{{chartData}}")) {
+        console.warn('[ChatService] 🛠️ Auto-repairing stale Deep Dive prompt: appending {{chartData}} anchor.');
+        prompt += "\n\n#### CELESTIAL CONTEXT\n[CHART_DATA]\n{{chartData}}\n";
+    }
+
+    prompt = prompt
         .replace(/{{name}}/g, name)
         .replace(/{{chartData}}/g, chartData)
         .replace(/{{intent}}/g, intent);

@@ -464,14 +464,16 @@ const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded =
                                 ) : (
                                     <>
                                         <div className="bg-white p-4 shadow-2xl rotate-1 transform hover:rotate-0 transition-transform duration-500 max-w-sm rounded-sm">
-                                            <NextImage 
-                                                src={capturedImage!} 
-                                                alt="Aura" 
-                                                className="w-full h-auto" 
-                                                width={400} 
-                                                height={533} 
-                                                unoptimized
-                                            />
+                                            {capturedImage && (
+                                                <NextImage 
+                                                    src={capturedImage} 
+                                                    alt="Aura" 
+                                                    className="w-full h-auto" 
+                                                    width={400} 
+                                                    height={533} 
+                                                    unoptimized
+                                                />
+                                            )}
                                         </div>
 
                                         <div className="text-center space-y-6">

@@ -5,6 +5,8 @@ import { ChatService, ChatMessage } from "@/lib/ChatService";
 import { RitualLib } from "@/utils/CelestialLogic";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Zap, Settings2, Brain, Sparkles, Volume2 } from "lucide-react";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useSettings } from "@/context/SettingsContext";
 import { useAuth } from "@/context/AuthContext";
 import { PersistenceService } from "@/lib/PersistenceService";
@@ -215,9 +217,27 @@ export default function ChatInterface({ initialPrompt, onPromptHandled }: ChatIn
               }`}
                 onClick={() => m.thought_signature && (setActiveThought(m.thought_signature), setIsVisionOpen(true))}
               >
-                <div className="whitespace-pre-wrap leading-relaxed text-sm">
-                  {m.content}
-                </div>
+                <div className={`mt-1 text-sm leading-relaxed ${m.role === 'user' ? 'font-sans' : 'font-mono'}`}>
+                          <ReactMarkdown 
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              p: ({...props}) => <p className="mb-4 last:mb-0" {...props} />,
+                              ul: ({...props}) => <ul className="list-disc ml-4 mb-4" {...props} />,
+                              ol: ({...props}) => <ol className="list-decimal ml-4 mb-4" {...props} />,
+                              li: ({...props}) => <li className="mb-1" {...props} />,
+                              h1: ({...props}) => <h1 className="text-xl font-bold mb-4" {...props} />,
+                              h2: ({...props}) => <h2 className="text-lg font-bold mb-3" {...props} />,
+                              h3: ({...props}) => <h3 className="text-base font-bold mb-2" {...props} />,
+                              code: ({children, ...props}) => (
+                                <code className="bg-black/30 rounded px-1 py-0.5 text-xs" {...props}>
+                                  {children}
+                                </code>
+                              )
+                            }}
+                          >
+                            {m.content}
+                          </ReactMarkdown>
+                        </div>
                 {m.role === 'model' && (
                   <div className="mt-3 pt-3 border-t border-emerald-900/30 flex items-center justify-between">
                     <button 
