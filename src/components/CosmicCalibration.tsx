@@ -330,9 +330,10 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
                                  await logout();
                                  onClose();
                                }}
-                               className="px-6 py-2 bg-white/5 hover:bg-red-500/10 border border-white/10 hover:border-red-500/50 text-slate-400 hover:text-red-400 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                               disabled={isAuthenticating}
+                               className="px-6 py-2 bg-white/5 hover:bg-red-500/10 border border-white/10 hover:border-red-500/50 text-slate-400 hover:text-red-400 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50"
                              >
-                               Sign Out
+                               {isAuthenticating ? "Synchronizing..." : "Sign Out"}
                              </button>
                            )}
                         </div>
@@ -387,7 +388,7 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
                               <input 
                                 type="range" min="0" max="1" step="0.1"
                                 value={preferences.voiceVolume ?? 1}
-                                onChange={(e) => updatePreferences({ voiceVolume: parseFloat(e.target.value) })}
+                                onChange={(e) => updatePreferences({ voiceVolume: parseFloat(e.target.value) || 0 })}
                                 className="w-full accent-pink-500"
                               />
                            </div>
@@ -399,7 +400,7 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
                               <input 
                                 type="range" min="0.5" max="2" step="0.1"
                                 value={preferences.voiceSpeed || 1}
-                                onChange={(e) => updatePreferences({ voiceSpeed: parseFloat(e.target.value) })}
+                                onChange={(e) => updatePreferences({ voiceSpeed: parseFloat(e.target.value) || 1 })}
                                 className="w-full accent-pink-500"
                               />
                            </div>

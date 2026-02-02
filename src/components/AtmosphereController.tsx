@@ -34,7 +34,7 @@ const AtmosphereController: React.FC<AtmosphereProps> = ({ activeView }) => {
 
   // Handle Volume
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const vol = parseFloat(e.target.value);
+    const vol = parseFloat(e.target.value) || 0;
     setVolume(vol);
     ResonanceService.setVolume(vol);
   };

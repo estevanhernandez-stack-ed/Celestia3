@@ -535,7 +535,7 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
                         step="any"
                         className="w-full bg-emerald-950/20 border border-emerald-900/50 rounded-xl px-4 py-3 text-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-inner [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none"
                         value={birthInfo.lat}
-                        onChange={(e) => setBirthInfo({...birthInfo, lat: parseFloat(e.target.value)})}
+                        onChange={(e) => setBirthInfo({...birthInfo, lat: parseFloat(e.target.value) || 0})}
                       />
                     </div>
                     <div className="space-y-1">
@@ -545,7 +545,7 @@ const OnboardingExperience: React.FC<OnboardingExperienceProps> = ({ initialStep
                         step="any"
                         className="w-full bg-emerald-950/20 border border-emerald-900/50 rounded-xl px-4 py-3 text-emerald-100 focus:border-emerald-500 outline-none transition-all shadow-inner [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none"
                         value={birthInfo.lng}
-                        onChange={(e) => setBirthInfo({...birthInfo, lng: parseFloat(e.target.value)})}
+                        onChange={(e) => setBirthInfo({...birthInfo, lng: parseFloat(e.target.value) || 0})}
                       />
                     </div>
                   </div>

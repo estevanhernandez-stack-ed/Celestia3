@@ -261,7 +261,7 @@ const AdminView: React.FC = () => {
                                         min="0" 
                                         max="100" 
                                         value={directive.glitchSensitivity}
-                                        onChange={(e) => setDirective({ ...directive, glitchSensitivity: parseInt(e.target.value) })}
+                                        onChange={(e) => setDirective({ ...directive, glitchSensitivity: parseInt(e.target.value) || 0 })}
                                         className="w-full accent-amber-500 bg-slate-800 h-1.5 rounded-full appearance-none cursor-pointer"
                                     />
                                     <div className="flex justify-between text-[8px] text-slate-500 uppercase font-black tracking-widest">
