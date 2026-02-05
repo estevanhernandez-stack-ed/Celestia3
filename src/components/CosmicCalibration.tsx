@@ -111,6 +111,9 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
         voiceId: 'en-US-Journey-F',
         rate: 0.85
     });
+
+    // UNLOCK ALL MODES
+    updatePreferences({ level: 10, xp: 0 });
   };
 
   if (!isOpen) return null;

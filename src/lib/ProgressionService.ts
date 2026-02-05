@@ -80,7 +80,7 @@ export class ProgressionService {
     return LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
   }
 
-  static calculateGainedXP(action: 'ritual' | 'tarot' | 'journal' | 'compass' | 'meditation' | 'calibration' | 'aura-scan' | 'numerology-check' | 'insight', currentLevel: number = 1): number {
+  static calculateGainedXP(action: 'ritual' | 'tarot' | 'journal' | 'compass' | 'meditation' | 'calibration' | 'aura-scan' | 'aura-skip' | 'numerology-check' | 'insight', currentLevel: number = 1): number {
     const baseXP = {
       ritual: 50,
       tarot: 30,
@@ -89,6 +89,7 @@ export class ProgressionService {
       meditation: 10, // Supercharged for faster progression
       calibration: 5,
       'aura-scan': currentLevel > 3 ? 5 : 40, 
+      'aura-skip': 250,
       'numerology-check': 30,
       'insight': 150 // The ultimate revelation XP
     };
@@ -98,7 +99,7 @@ export class ProgressionService {
   /**
    * Processes XP gain and returns the new state
    */
-  static addXP(currentPrefs: UserPreferences, action: 'ritual' | 'tarot' | 'journal' | 'compass' | 'meditation' | 'calibration' | 'aura-scan' | 'numerology-check' | 'insight'): { 
+  static addXP(currentPrefs: UserPreferences, action: 'ritual' | 'tarot' | 'journal' | 'compass' | 'meditation' | 'calibration' | 'aura-scan' | 'aura-skip' | 'numerology-check' | 'insight'): { 
     xp: number; 
     level: number; 
     leveledUp: boolean 

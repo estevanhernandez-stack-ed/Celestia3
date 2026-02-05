@@ -16,9 +16,10 @@ interface AuraScannerProps {
     natalChart?: NatalChartData | null;
     city?: string;
     allowEntropy?: boolean;
+    onSkip?: () => void;
 }
 
-const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded = false, natalChart, city, allowEntropy }) => {
+const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded = false, natalChart, city, allowEntropy, onSkip }) => {
     const webcamRef = useRef<Webcam>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [step, setStep] = useState<'intro' | 'scanning' | 'result'>('intro');
@@ -384,6 +385,16 @@ const AuraScanner: React.FC<AuraScannerProps> = ({ onClose, onSave, isEmbedded =
                                     <Zap size={18} className="group-hover:animate-bounce" />
                                     Initiate Aura Link
                                 </button>
+                                
+                                {onSkip && (
+                                    <button
+                                        onClick={onSkip}
+                                        className="w-full py-3 border border-indigo-500/10 hover:bg-indigo-500/5 text-indigo-400/50 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-2 group"
+                                    >
+                                        <Sparkles size={12} className="group-hover:animate-spin" />
+                                        Aura Overload / Skip Capture
+                                    </button>
+                                )}
 
                                 <p className="text-[10px] text-indigo-400/50 uppercase tracking-[0.3em] font-bold">
                                     Hover your hands over the keyboard to connect with the oracle

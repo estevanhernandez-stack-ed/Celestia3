@@ -776,6 +776,11 @@ const DashboardShell: React.FC = () => {
                                 const progression = ProgressionService.addXP(preferences, 'aura-scan');
                                 updatePreferences({ xp: progression.xp, level: progression.level });
                             }}
+                            onSkip={() => {
+                                const progression = ProgressionService.addXP(preferences, 'aura-skip');
+                                updatePreferences({ xp: progression.xp, level: progression.level });
+                                setActiveView('compass');
+                            }}
                         />
                     )}
 
@@ -946,6 +951,11 @@ const DashboardShell: React.FC = () => {
                         
                         // Add XP
                         const progression = ProgressionService.addXP(preferences, 'aura-scan');
+                        updatePreferences({ xp: progression.xp, level: progression.level });
+                        setIsAuraCamOpen(false);
+                    }}
+                    onSkip={() => {
+                        const progression = ProgressionService.addXP(preferences, 'aura-skip');
                         updatePreferences({ xp: progression.xp, level: progression.level });
                         setIsAuraCamOpen(false);
                     }}
