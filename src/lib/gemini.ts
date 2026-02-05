@@ -1,5 +1,3 @@
-import { functions } from "./firebase";
-import { httpsCallable } from "firebase/functions";
 import { ConfigService } from "./ConfigService";
 import { KnowledgeService } from "./KnowledgeService";
 import { SchemaType } from "@google/generative-ai";
@@ -37,13 +35,20 @@ interface ProxyResult {
     candidates?: ProxyCandidate[];
 }
 
-// Mock implementation of the Gemini model that routes through our Firebase Proxy
-// This resolves the 403 "unregistered caller" error by providing identity via Firebase Auth
+// Internal proxy call to our Next.js API route to hide keys and provide auth context
 const proxyCall = async (data: Record<string, unknown>): Promise<ProxyResult> => {
-  if (!functions) throw new Error("Firebase Functions not initialized");
-  const call = httpsCallable(functions, 'geminiProxy', { timeout: 180000 }); // 3 minutes for complex prompts
-  const result = await call(data);
-  return result.data as ProxyResult;
+    const response = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(`Gemini Proxy Error: ${JSON.stringify(error)}`);
+    }
+    
+    return await response.json();
 };
 
 export const technomancerModel = {
@@ -131,7 +136,7 @@ export const technomancerModel = {
     }));
 
     const result = await proxyCall({
-      model: "gemini-3-pro-preview",
+      model: "gemini-1.5-pro-latest",
       contents,
       generation_config: scrubbedConfig,
       system_instruction

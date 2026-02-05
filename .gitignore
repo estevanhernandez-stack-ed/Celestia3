@@ -43,6 +43,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Project Specific (ensure we don't track nested git folders if they reappear)
+# Project Specific
+.firebase/
 **/.git
 !.git/

@@ -142,7 +142,7 @@ class GoogleTTSProvider implements VoiceProvider {
   }
 
   private async speakChunk(text: string, voiceId: string, options?: VoiceOptions): Promise<void> {
-    const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${this.apiKey}`;
+    const url = `/api/tts`;
     
     // Removed try-catch to allow errors to propagate
     // Wrap in SSML if not already wrapped
@@ -209,10 +209,10 @@ class GoogleTTSProvider implements VoiceProvider {
   }
 }
 
-const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
+const API_KEY_SET = !!process.env.NEXT_PUBLIC_GEMINI_API_KEY || !!process.env.GEMINI_API_KEY;
 const webProvider = new WebSpeechProvider();
 
 // Configured to try Google TTS first, then fall back to Browser TTS
-export const voiceService: VoiceProvider = API_KEY 
-  ? new GoogleTTSProvider(API_KEY, webProvider) 
+export const voiceService: VoiceProvider = API_KEY_SET 
+  ? new GoogleTTSProvider("", webProvider) 
   : webProvider;

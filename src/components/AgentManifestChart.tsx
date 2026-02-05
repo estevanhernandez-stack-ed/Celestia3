@@ -67,7 +67,7 @@ const ToolNode = ({ icon: Icon, title, desc, color, tech, badge, address }: { ic
 
 export default function AgentManifestChart() {
     return (
-        <div className="min-h-screen bg-[#050505] text-slate-300 p-8 font-sans selection:bg-indigo-500/30 overflow-hidden relative">
+        <div className="min-h-screen bg-[#050505] text-slate-300 p-4 md:p-8 font-sans selection:bg-indigo-500/30 overflow-x-hidden relative">
             {/* Technical Overlays */}
             <div className="absolute inset-0 bg-[url('/grid.svg')] bg-[size:40px_40px] opacity-[0.03] pointer-events-none" />
             <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-size-[100%_2px,3px_100%] pointer-events-none opacity-20" />
@@ -89,10 +89,10 @@ export default function AgentManifestChart() {
                                 <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400">Status: Operational</span>
                             </div>
                         </div>
-                        <h1 className="text-6xl font-black text-white italic tracking-tighter uppercase leading-none">
+                        <h1 className="text-4xl md:text-6xl font-black text-white italic tracking-tighter uppercase leading-none">
                             Gemini 3 <span className="text-indigo-500 italic">Agentic</span> Heart
                         </h1>
-                        <p className="text-slate-400 max-w-xl font-medium leading-relaxed">
+                        <p className="text-slate-400 max-w-xl text-sm md:text-base font-medium leading-relaxed">
                             A technical mapping of the function-calling architecture and multimodal manifestations governing the Celestia 3 ecosystem.
                         </p>
                     </div>
@@ -118,7 +118,7 @@ export default function AgentManifestChart() {
                                 </div>
                             </div>
                             <div>
-                                <h2 className="text-5xl font-black text-white uppercase tracking-tighter italic">Unified Intelligence</h2>
+                                <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter italic">Unified Intelligence</h2>
                                 <div className="mt-4 flex gap-4">
                                     <div className="flex-1 space-y-2">
                                         <p className="text-indigo-200/70 leading-relaxed font-bold text-sm max-w-md">
@@ -166,7 +166,7 @@ export default function AgentManifestChart() {
                                     <span className="text-[9px] font-mono font-bold text-emerald-500 uppercase">PROTOCOL_ACTIVE::STREAMING</span>
                                 </div>
                             </div>
-                            <div className="text-right font-mono font-bold text-[7px] text-slate-500">
+                            <div className="text-right font-mono font-bold text-[7px] text-slate-500 mt-4 md:mt-0">
                                 LOC::0x3F_A912<br/>
                                 TS::2026-02-05
                             </div>

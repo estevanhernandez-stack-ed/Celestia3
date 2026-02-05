@@ -26,7 +26,9 @@ import {
   Camera,
   Settings,
   Target,
-  Zap
+  Zap,
+  Menu,
+  X
 } from 'lucide-react';
 import NatalCompass from './NatalCompass';
 import TransitFeed from './TransitFeed';
@@ -95,6 +97,7 @@ const DashboardShell: React.FC = () => {
   const [selectedNum, setSelectedNum] = useState<{number: number, type: 'Life Path' | 'Destiny' | 'Active' | 'Personal Day', source: string} | null>(null);
   const [lockedView, setLockedView] = useState<string | null>(null);
   const [isAthanorOpen, setIsAthanorOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Check for Welcome
   useEffect(() => {
@@ -242,9 +245,9 @@ const DashboardShell: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-indigo-950 via-slate-950 to-black text-slate-200 font-sans overflow-hidden">
-      {/* Sidebar */}
+      {/* Sidebar (Desktop) */}
       <div 
-        className={`${isSidebarCollapsed ? 'w-20' : 'w-64'} bg-black/40 backdrop-blur-xl border-r border-white/10 transition-all duration-300 flex flex-col z-20 shadow-2xl`}
+        className={`${isSidebarCollapsed ? 'w-20' : 'w-64'} hidden md:flex bg-black/40 backdrop-blur-xl border-r border-white/10 transition-all duration-300 flex-col z-20 shadow-2xl`}
       >
         <div className="p-4 border-b border-white/10 flex items-center justify-between">
             {!isSidebarCollapsed && (
@@ -313,9 +316,17 @@ const DashboardShell: React.FC = () => {
       {/* Main Content Area */}
       <div className="flex-1 relative overflow-hidden flex flex-col">
         {/* Header */}
-        <header className="h-16 border-b border-white/5 flex items-center px-6 justify-between bg-black/20 backdrop-blur-md z-10 relative">
-            <div className="flex items-center gap-6">
-                <h1 className="text-xl font-medium tracking-widest text-indigo-200 uppercase font-serif">
+        <header className="h-16 border-b border-white/5 flex items-center px-4 md:px-6 justify-between bg-black/20 backdrop-blur-md z-10 relative">
+            <div className="flex items-center gap-3 md:gap-6">
+                {/* Mobile Menu Toggle */}
+                <button 
+                    onClick={() => setIsMobileMenuOpen(true)}
+                    className="md:hidden p-2 text-indigo-400 hover:text-white transition-colors"
+                >
+                    <Menu size={24} />
+                </button>
+
+                <h1 className="text-sm md:text-xl font-medium tracking-widest text-indigo-200 uppercase font-serif truncate max-w-[150px] md:max-w-none">
                     {navItems.find(i => i.id === activeView)?.label}
                 </h1>
                 
@@ -781,7 +792,97 @@ const DashboardShell: React.FC = () => {
                     )}
                 </motion.div>
             </AnimatePresence>
+
+            {/* Mobile Bottom Navigation */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-black/80 backdrop-blur-xl border-t border-white/10 z-40 flex items-center justify-around px-2">
+                {[
+                    { id: 'compass', icon: Compass, label: 'Compass' },
+                    { id: 'aura', icon: Camera, label: 'Aura' },
+                    { id: 'numerology', icon: Hash, label: 'Arithmancy' },
+                    { id: 'codex', icon: BookOpen, label: 'Codex' }
+                ].map((item) => (
+                    <button
+                        key={item.id}
+                        onClick={() => handleViewChange(item.id)}
+                        className={`flex flex-col items-center gap-1 transition-colors ${
+                            activeView === item.id ? 'text-indigo-400' : 'text-slate-500'
+                        }`}
+                    >
+                        <item.icon size={20} />
+                        <span className="text-[9px] font-bold uppercase tracking-tighter">{item.label}</span>
+                    </button>
+                ))}
+            </div>
         </main>
+
+        {/* Mobile Sidebar Drawer */}
+        <AnimatePresence>
+            {isMobileMenuOpen && (
+                <>
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 md:hidden"
+                    />
+                    <motion.div 
+                        initial={{ x: '-100%' }}
+                        animate={{ x: 0 }}
+                        exit={{ x: '-100%' }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                        className="fixed top-0 left-0 bottom-0 w-72 bg-slate-950 border-r border-white/10 z-50 md:hidden flex flex-col"
+                    >
+                        <div className="p-4 border-b border-white/10 flex items-center justify-between">
+                            <div className="font-bold text-lg tracking-wider text-transparent bg-clip-text bg-linear-to-r from-indigo-400 to-fuchsia-400">
+                                CELESTIA <span className="font-light opacity-80">GATEWAY</span>
+                            </div>
+                            <button 
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="p-2 text-slate-500 hover:text-white"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+                            {navItems.map((item) => {
+                                const isLocked = VIEW_LEVEL_REQUIREMENTS[item.id] > userLevel;
+                                return (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => {
+                                            handleViewChange(item.id);
+                                            setIsMobileMenuOpen(false);
+                                        }}
+                                        className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all ${
+                                            activeView === item.id 
+                                            ? 'bg-white/10 text-white shadow-lg' 
+                                            : 'text-slate-400 hover:bg-white/5'
+                                        } ${isLocked ? 'opacity-50' : ''}`}
+                                    >
+                                        <item.icon size={20} className={activeView === item.id ? item.color : 'text-slate-500'} />
+                                        <div className="flex flex-col items-start">
+                                            <span className="font-medium text-sm">{item.label}</span>
+                                            <span className="text-[9px] text-slate-500 uppercase tracking-widest">{item.subtitle}</span>
+                                        </div>
+                                        {isLocked && <LockingRuneIcon size={12} className="ml-auto text-slate-600" />}
+                                    </button>
+                                );
+                            })}
+                        </nav>
+                        <div className="p-4 border-t border-white/5">
+                            <button 
+                                onClick={() => logout()}
+                                className="w-full flex items-center gap-4 p-4 rounded-xl text-slate-500 hover:text-red-400 transition-all"
+                            >
+                                <LogOut size={20} />
+                                <span className="font-medium text-sm">Disconnect</span>
+                            </button>
+                        </div>
+                    </motion.div>
+                </>
+            )}
+        </AnimatePresence>
 
         {/* Modals & Overlays */}
         <AnimatePresence>
