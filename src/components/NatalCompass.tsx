@@ -77,7 +77,7 @@ const NatalCompass: React.FC<NatalCompassProps> = ({ chart: externalChart }) => 
         const progression = ProgressionService.addXP(preferences, 'meditation');
         updatePreferences({ xp: progression.xp, level: progression.level });
         setMeditatedPlanets(prev => new Set(prev).add(hoveredPlanet));
-      }, 3000);
+      }, 1500);
       return () => clearTimeout(timer);
     }
   }, [hoveredPlanet, meditationStartTime, meditatedPlanets, preferences, updatePreferences]);

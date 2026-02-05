@@ -94,18 +94,42 @@ export class CelebrityService {
 
   /**
    * Fetches a precomputed natal chart for a celebrity from Firestore.
+   * If not found, attempts to calculate it on-the-fly if full celebrity data is provided.
    */
-  static async getCelebrityChart(celebrityId: string): Promise<NatalChartData | null> {
+  static async getCelebrityChart(celebrityId: string, fallbackCeleb?: Celebrity): Promise<NatalChartData | null> {
     try {
+      console.log(`[CelebrityService] Fetching chart for ${celebrityId}...`);
+      
+      // 1. Try Firestore first
       const docRef = doc(db, 'celebrity_charts', celebrityId);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data() as CelebrityChartDocument;
+        console.log(`[CelebrityService] Chart found in Firestore for ${celebrityId}`);
         return data.chartData;
       }
+
+      // 2. If not in firestore, but we have the data, calculate now
+      const celeb = fallbackCeleb || this.getCelebrityById(celebrityId);
+      if (celeb) {
+        console.log(`[CelebrityService] Calculating on-the-fly for ${celeb.name} (${celeb.birthDate})...`);
+        // Ensure date is valid for Swiss Ephemeris
+        const date = new Date(celeb.birthDate);
+        if (isNaN(date.getTime())) {
+            throw new Error(`Invalid birth date: ${celeb.birthDate}`);
+        }
+
+        return await SwissEphemerisService.calculateChart(
+          date,
+          celeb.lat,
+          celeb.lng
+        );
+      }
+
+      console.warn(`[CelebrityService] No celebrity data found to calculate chart for ${celebrityId}`);
       return null;
     } catch (e) {
-      console.error(`[CelebrityService] Failed to fetch chart for ${celebrityId}`, e);
+      console.error(`[CelebrityService] Failed to fetch/calculate chart for ${celebrityId}`, e);
       return null;
     }
   }
@@ -152,23 +176,29 @@ export class CelebrityService {
     {
       "id": "slug-name",
       "name": "Full Name",
-      "birthDate": "ISO-8601-TIMESTAMP",
+      "birthDate": "YYYY-MM-DDTHH:MM:SSZ",
       "location": "City, Country",
       "lat": 0.0,
       "lng": 0.0,
       "description": "Short poetic description",
       "category": "Music" | "Science" | "Art" | "Philosophy" | "Tech" | "History"
     }
-    If data is unknown, provide your best historical estimate. Be accurate with coordinates.`;
+    Be accurate with coordinates. Return ONLY the JSON object.`;
 
     try {
       const result = await technomancerModel.generateContent({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        systemInstruction: "You are the Chronos Scryer. You find accurate birth data for historical and modern icons. Always return valid JSON."
+        systemInstruction: "You are the Chronos Scryer. You find accurate birth data for historical and modern icons. You respond ONLY with a single JSON object."
       });
       
-      const text = result.response.text();
-      return JSON.parse(text) as Celebrity;
+      let text = result.response.text();
+      // Clean markdown wrappers if present
+      text = text.replace(/```json\n?/, '').replace(/\n?```/, '').trim();
+      
+      const parsed = JSON.parse(text);
+      if (!parsed.id || !parsed.birthDate) throw new Error("Incomplete celebrity data");
+      
+      return parsed as Celebrity;
     } catch (e) {
       console.error("Scrying failed", e);
       return null;
@@ -184,6 +214,12 @@ export class CelebrityService {
   }
 
   static getCelebrityById(id: string) {
-    return CELEBRITIES.find(c => c.id === id);
+    // Check local constants
+    const local = CELEBRITIES.find(c => c.id === id);
+    if (local) return local;
+
+    // We can't easily check customCelebrities here without preferences, 
+    // but getCelebrityChart handles the fallbackCeleb being passed in.
+    return null;
   }
 }

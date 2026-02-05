@@ -7,6 +7,7 @@ import { GrimoireService } from '@/lib/GrimoireService';
 import { useAuth } from '@/context/AuthContext';
 import { Save, Sparkles, RefreshCw, X } from 'lucide-react';
 import { technomancerModel } from '@/lib/gemini';
+import AethericThoughtStream from './AethericThoughtStream';
 
 interface TarotSpreadProps {
   cards: TarotCard[];
@@ -177,9 +178,8 @@ Speak directly to the seeker ("You..."). Do NOT use markdown formatting.
             </div>
 
             {isInterpreting ? (
-              <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                <RefreshCw className="text-indigo-400 animate-spin" size={32} />
-                <p className="text-indigo-300 text-xs uppercase tracking-widest font-bold">The Seer is communing with the aether...</p>
+              <div className="py-8">
+                <AethericThoughtStream />
               </div>
             ) : (
               <p className="text-slate-200 leading-relaxed text-sm font-serif italic whitespace-pre-wrap">

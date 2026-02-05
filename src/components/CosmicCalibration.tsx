@@ -15,7 +15,9 @@ import {
   Camera,
   Lock,
   Sparkles,
-  RefreshCw
+  RefreshCw,
+  Info,
+  Rocket
 } from 'lucide-react';
 import { ConfigService } from '@/lib/ConfigService';
 import { useSettings } from '@/context/SettingsContext';
@@ -23,13 +25,17 @@ import { useAuth } from '@/context/AuthContext';
 import { KnowledgeLevel } from '@/types/preferences';
 import { GrimoireService } from '@/lib/GrimoireService';
 import { GrimoireEntry, AuraEntryContent } from '@/types/grimoire';
+import { SwissEphemerisService } from '@/lib/SwissEphemerisService';
+import { voiceService } from '@/lib/VoiceService';
+import CelestialScene from './onboarding/CelestialScene';
+import { OnboardingChartData } from '@/types/onboarding';
 
 interface CosmicCalibrationProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type SettingsTab = 'astro' | 'profile' | 'studio' | 'system';
+type SettingsTab = 'astro' | 'profile' | 'studio' | 'system' | 'about';
 
 export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibrationProps) {
   const { preferences, updatePreferences } = useSettings();
@@ -37,6 +43,8 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
   const [activeTab, setActiveTab] = useState<SettingsTab>('astro');
   const [auraCaptures, setAuraCaptures] = useState<GrimoireEntry[]>([]);
   const [isLinking, setIsLinking] = useState(false);
+  const [eggStatus, setEggStatus] = useState({ count: 0, active: false });
+  const [nostradamusChart, setNostradamusChart] = useState<OnboardingChartData | null>(null);
 
   const levels: KnowledgeLevel[] = ['Beginner', 'Intermediate', 'Advanced'];
 
@@ -52,11 +60,57 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
     setIsLinking(true);
     try {
       await signInWithGoogle();
-    } catch (e) {
-      console.error("Linking failed", e);
+    } catch (_e) {
+      console.error("Linking failed", _e);
     } finally {
       setIsLinking(false);
     }
+  };
+
+  const handleEggTrigger = async () => {
+    const nextCount = eggStatus.count + 1;
+    if (nextCount < 3) {
+      setEggStatus({ ...eggStatus, count: nextCount });
+      return;
+    }
+
+    // Trigger Easter Egg
+    setEggStatus({ count: 0, active: true });
+    
+    // Calculate Nostradamus Chart if not already done
+    if (!nostradamusChart) {
+        try {
+            const date = new Date("1503-12-14T12:00:00Z"); // Dec 14, 1503
+            const natal = await SwissEphemerisService.calculateChart(date, 43.7892, 4.8329);
+            
+            // Map to OnboardingChartData with generic interpretations for the egg
+            const onboardingChart: OnboardingChartData = {
+                summary: "Prophetic alignment detected.",
+                ascendant: (natal.ascendant?.sign as string) || "Aries",
+                planets: natal.planets.map((p, idx) => ({
+                    name: p.name,
+                    sign: p.sign as string,
+                    degree: p.degree,
+                    absoluteDegree: p.absoluteDegree,
+                    retrograde: p.retrograde,
+                    house: p.house || 1,
+                    distance: (idx + 1) * 25,
+                    size: p.name === 'Sun' ? 3 : 1.5,
+                    interpretation: "A fragment of the master's own destiny...",
+                    color: p.name === 'Sun' ? '#fde047' : p.name === 'Moon' ? '#f1f5f9' : '#818cf8'
+                }))
+            };
+            setNostradamusChart(onboardingChart);
+        } catch (_err) {
+            console.error("Egg calculation failed", _err);
+        }
+    }
+
+    // Speak with Journey voice
+    voiceService.speak("Welcome to Celestia 3, Your Gateway to the Stars.", { 
+        voiceId: 'en-US-Journey-F',
+        rate: 0.85
+    });
   };
 
   if (!isOpen) return null;
@@ -66,11 +120,13 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'studio', label: 'Studio', icon: Volume2 },
     { id: 'system', label: 'System', icon: Shield },
+    { id: 'about', label: 'About', icon: Info },
   ];
 
   return (
-    <AnimatePresence>
+    <>
       <motion.div
+        key="calibration-overlay"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -509,7 +565,7 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
                              try {
                                 await ConfigService.syncLocalPromptsToCloud();
                                 alert("Archives Synchronized.");
-                             } catch (e) {
+                             } catch (_err) {
                                 alert("Synchronization Failed.");
                              }
                           }}
@@ -561,6 +617,59 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
                      </section>
                   </div>
                 )}
+
+                {activeTab === 'about' && (
+                    <div className="space-y-12 pb-10">
+                        <section className="space-y-8 text-center">
+                            <div className="flex justify-center">
+                                <div className="p-6 bg-indigo-500/10 rounded-full border border-indigo-500/20 shadow-[0_0_50px_rgba(99,102,241,0.2)]">
+                                    <Sparkles size={48} className="text-indigo-400" />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <h3 className="text-4xl font-black text-white italic tracking-tighter">CELESTIA <span className="text-indigo-500">3</span></h3>
+                                <p className="text-xs font-bold text-indigo-400/60 uppercase tracking-[0.4em]">The High-Fidelity Spiritual Engine</p>
+                            </div>
+                            <p className="text-sm text-slate-400 max-w-lg mx-auto leading-relaxed">
+                                Celestia 3 is a multimodal agentic environment where astronomical precision meets the ethereal. Built with Gemini 3 for the next generation of seekers.
+                            </p>
+                        </section>
+
+                        <section className="grid grid-cols-2 gap-4">
+                            <div className="p-6 bg-white/2 border border-white/5 rounded-3xl text-center space-y-1">
+                                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Version</div>
+                                <div 
+                                    className="text-lg font-mono text-white cursor-help hover:text-indigo-400 transition-colors"
+                                    onClick={handleEggTrigger}
+                                >
+                                    v3.0.4-LUMINA
+                                </div>
+                            </div>
+                            <div className="p-6 bg-white/2 border border-white/5 rounded-3xl text-center space-y-1">
+                                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Build</div>
+                                <div className="text-lg font-mono text-white">HERMETIC_STABLE</div>
+                            </div>
+                        </section>
+
+                        <section className="space-y-4">
+                            <h4 className="text-[10px] font-black tracking-[0.2em] text-slate-500 uppercase text-center">Aetheric Architects</h4>
+                            <div className="flex flex-wrap justify-center gap-6">
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="w-12 h-12 rounded-full bg-slate-900 border border-white/10" />
+                                    <span className="text-[10px] font-bold text-white uppercase">Nostradamus</span>
+                                </div>
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="w-12 h-12 rounded-full bg-slate-900 border border-white/10" />
+                                    <span className="text-[10px] font-bold text-white uppercase">The Seer</span>
+                                </div>
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="w-12 h-12 rounded-full bg-slate-900 border border-white/10" />
+                                    <span className="text-[10px] font-bold text-white uppercase">Gemini 3</span>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                )}
               </motion.div>
             </AnimatePresence>
           </div>
@@ -580,6 +689,69 @@ export default function CosmicCalibration({ isOpen, onClose }: CosmicCalibration
           </div>
         </motion.div>
       </motion.div>
-    </AnimatePresence>
+      
+      <AnimatePresence>
+          {eggStatus.active && (
+              <NostradamusEgg 
+                key="nostradamus-egg-overlay"
+                chart={nostradamusChart} 
+                onClose={() => setEggStatus({ ...eggStatus, active: false })} 
+              />
+          )}
+      </AnimatePresence>
+    </>
   );
+}
+
+// --- Nostradamus Easter Egg Overlay ---
+function NostradamusEgg({ onClose, chart }: { onClose: () => void, chart: OnboardingChartData | null }) {
+    return (
+        <motion.div 
+            key="nostradamus-egg-content"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-200 bg-black flex flex-col items-center justify-center"
+        >
+            <div className="absolute top-12 left-0 w-full flex justify-center z-10">
+                <div className="flex flex-col items-center gap-2">
+                    <h1 className="text-2xl font-black text-white/40 tracking-[1em] uppercase ml-[1em]">Celestia 3</h1>
+                    <div className="w-64 h-px bg-linear-to-r from-transparent via-white/20 to-transparent" />
+                </div>
+            </div>
+
+            <div className="absolute inset-0 z-0">
+                {chart && (
+                    <CelestialScene 
+                        data={chart}
+                        selectedPlanet={null}
+                        onSelectPlanet={() => {}}
+                        flybyActive={false} // Zoomed out, not as a flyby
+                        onReady={() => {}}
+                    />
+                )}
+            </div>
+
+            <div className="relative z-10 flex flex-col items-center gap-8 bg-black/40 backdrop-blur-md p-12 rounded-[3rem] border border-white/10 max-w-2xl text-center">
+                <div className="space-y-4">
+                    <h2 className="text-6xl font-black text-white italic tracking-tighter">MICHEL DE <span className="text-indigo-500">NOSTREDAME</span></h2>
+                    <p className="text-xs font-bold text-indigo-400/60 uppercase tracking-[0.5em]">The Eternal Eye • Dec 14, 1503</p>
+                </div>
+
+                <div className="p-6 bg-indigo-500/5 border border-indigo-500/20 rounded-2xl">
+                    <p className="text-lg text-indigo-200 leading-relaxed font-serif italic">
+                        &quot;Through the machine, the ancient stars speak once more. Welcome to the fusion of logic and prophecy.&quot;
+                    </p>
+                </div>
+
+                <button 
+                    onClick={onClose}
+                    className="px-12 py-4 bg-white text-black rounded-full font-black uppercase tracking-widest hover:bg-indigo-100 transition-all flex items-center gap-3"
+                >
+                    <Rocket size={18} />
+                    Return to the Present
+                </button>
+            </div>
+        </motion.div>
+    );
 }

@@ -11,6 +11,7 @@ import { useSettings } from '@/context/SettingsContext';
 import { SavedChart } from '@/types/preferences';
 import { ChatService } from '@/lib/ChatService';
 import { voiceService } from '@/lib/VoiceService';
+import { AethericThoughtStream } from './AethericThoughtStream';
 
 interface SynastryViewProps {
   userChart: NatalChartData | null;
@@ -530,9 +531,8 @@ const SynastryView: React.FC<SynastryViewProps> = ({ userChart }) => {
             </div>
 
             {analysisStatus === 'loading' && (
-                <div className="p-12 bg-pink-950/10 border border-pink-900/20 rounded-3xl flex flex-col items-center justify-center text-center animate-pulse min-h-[200px]">
-                        <Loader2 className="text-pink-500 animate-spin mb-4" size={32} />
-                        <p className="text-sm text-pink-400 uppercase tracking-widest">Consulting the Akashic Records...</p>
+                <div className="p-12 bg-pink-950/10 border border-pink-900/20 rounded-3xl min-h-[400px] flex items-center justify-center">
+                    <AethericThoughtStream />
                 </div>
             )}
 

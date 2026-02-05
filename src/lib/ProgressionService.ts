@@ -86,11 +86,11 @@ export class ProgressionService {
       tarot: 30,
       journal: 20,
       compass: 10,
-      meditation: 2, // Signficantly lowered to prevent "stuck" grinding
+      meditation: 10, // Supercharged for faster progression
       calibration: 5,
       'aura-scan': currentLevel > 3 ? 5 : 40, 
       'numerology-check': 30,
-      'insight': 75 // The motherlode for the Natal Compass mode
+      'insight': 150 // The ultimate revelation XP
     };
     return baseXP[action];
   }
